@@ -6,14 +6,13 @@ from app.core.schemas import ApiModel
 
 
 class GenerateScriptsRequest(ApiModel):
-    scene_id: str
+    scene_id: str | None = None
     objective: str = Field(min_length=2, max_length=500)
     extra_context: str | None = Field(default=None, max_length=1000)
     original_text: str | None = Field(default=None, max_length=2000)
     dimension: str | None = Field(default=None, max_length=20)
     source_session_id: str | None = Field(default=None, max_length=36)
     source_round: int | None = Field(default=None, ge=0, le=12)
-    use_stories: bool = False
 
 
 class ScriptVersion(ApiModel):

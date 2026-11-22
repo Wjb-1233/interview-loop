@@ -1,0 +1,445 @@
+{
+ "scenario": "video interview room, real voice session (doubao SSE response.output_audio.delta), headless Chrome with fake mic",
+ "beforeFix_openingQuestion": [
+  {
+   "t": 1.4,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "-",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0
+  },
+  {
+   "t": 1.6,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "-",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.008
+  },
+  {
+   "t": 1.8,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "-",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.352
+  },
+  {
+   "t": 2,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "-",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.352
+  },
+  {
+   "t": 2.2,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "-",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.129
+  },
+  {
+   "t": 2.4,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "-",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.187
+  },
+  {
+   "t": 2.6,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.284
+  },
+  {
+   "t": 2.8,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.241
+  },
+  {
+   "t": 3,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.241
+  },
+  {
+   "t": 3.2,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.261
+  },
+  {
+   "t": 3.4,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.139
+  },
+  {
+   "t": 3.6,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.082
+  },
+  {
+   "t": 3.8,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.168
+  },
+  {
+   "t": 4,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.168
+  },
+  {
+   "t": 4.2,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.245
+  },
+  {
+   "t": 4.4,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.011
+  },
+  {
+   "t": 4.6,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0
+  },
+  {
+   "t": 4.8,
+   "state": "loading",
+   "tap": "no",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0
+  }
+ ],
+ "afterFix_openingQuestion": [
+  {
+   "t": 6.6,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 0,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0
+  },
+  {
+   "t": 6.9,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 1,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0
+  },
+  {
+   "t": 7,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 1,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0
+  },
+  {
+   "t": 7.2,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 2,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0
+  },
+  {
+   "t": 7.4,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 3,
+   "pcmPeakSentToSimli": 0,
+   "analyserPeak": 0.004
+  },
+  {
+   "t": 7.6,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 5,
+   "pcmPeakSentToSimli": 9116,
+   "analyserPeak": 0.364
+  },
+  {
+   "t": 7.8,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 6,
+   "pcmPeakSentToSimli": 11808,
+   "analyserPeak": 0.134
+  },
+  {
+   "t": 8,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 6,
+   "pcmPeakSentToSimli": 11808,
+   "analyserPeak": 0.134
+  },
+  {
+   "t": 8.2,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 7,
+   "pcmPeakSentToSimli": 6475,
+   "analyserPeak": 0.116
+  },
+  {
+   "t": 8.4,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 9,
+   "pcmPeakSentToSimli": 10096,
+   "analyserPeak": 0.299
+  },
+  {
+   "t": 8.6,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 10,
+   "pcmPeakSentToSimli": 10221,
+   "analyserPeak": 0.174
+  },
+  {
+   "t": 8.8,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 11,
+   "pcmPeakSentToSimli": 9307,
+   "analyserPeak": 0.012
+  },
+  {
+   "t": 9,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 11,
+   "pcmPeakSentToSimli": 9307,
+   "analyserPeak": 0.012
+  },
+  {
+   "t": 9.2,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 13,
+   "pcmPeakSentToSimli": 10179,
+   "analyserPeak": 0.041
+  },
+  {
+   "t": 9.4,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 14,
+   "pcmPeakSentToSimli": 5688,
+   "analyserPeak": 0.251
+  },
+  {
+   "t": 9.6,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 15,
+   "pcmPeakSentToSimli": 8661,
+   "analyserPeak": 0.262
+  },
+  {
+   "t": 9.8,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 17,
+   "pcmPeakSentToSimli": 8123,
+   "analyserPeak": 0.126
+  },
+  {
+   "t": 10,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 17,
+   "pcmPeakSentToSimli": 8123,
+   "analyserPeak": 0.126
+  },
+  {
+   "t": 10.2,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 18,
+   "pcmPeakSentToSimli": 10223,
+   "analyserPeak": 0.051
+  },
+  {
+   "t": 10.4,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 19,
+   "pcmPeakSentToSimli": 8359,
+   "analyserPeak": 0.008
+  },
+  {
+   "t": 10.6,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 21,
+   "pcmPeakSentToSimli": 8468,
+   "analyserPeak": 0.3
+  },
+  {
+   "t": 10.8,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 22,
+   "pcmPeakSentToSimli": 10957,
+   "analyserPeak": 0.185
+  },
+  {
+   "t": 11,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 22,
+   "pcmPeakSentToSimli": 10957,
+   "analyserPeak": 0.185
+  },
+  {
+   "t": 11.2,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 23,
+   "pcmPeakSentToSimli": 10249,
+   "analyserPeak": 0.308
+  },
+  {
+   "t": 11.4,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 25,
+   "pcmPeakSentToSimli": 10199,
+   "analyserPeak": 0.088
+  },
+  {
+   "t": 11.6,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 26,
+   "pcmPeakSentToSimli": 10101,
+   "analyserPeak": 0.113
+  },
+  {
+   "t": 11.8,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 27,
+   "pcmPeakSentToSimli": 5176,
+   "analyserPeak": 0.121
+  },
+  {
+   "t": 12,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 27,
+   "pcmPeakSentToSimli": 5176,
+   "analyserPeak": 0.121
+  },
+  {
+   "t": 12.2,
+   "state": "ready",
+   "tap": "yes",
+   "sdkCtx": "running",
+   "frames": 29,
+   "pcmPeakSentToSimli": 10081,
+   "analyserPeak": 0.017
+  }
+ ],
+ "note": "beforeFix: analyserPeak>0 (interviewer speaking) while tap=no / frames=0 -> nothing reached Simli. afterFix: tap=yes and pcmPeakSentToSimli ~10k-21k while analyserPeak>0.",
+ "mouthMovement": {
+  "speakingAvg": 2.55,
+  "speakingMax": 6.19,
+  "silentAvg": 1.19,
+  "silentMax": 4.32,
+  "nSpeaking": 16,
+  "nSilent": 84
+ },
+ "mouthMovementNote": "per-pixel mean |delta| of mouth box between consecutive video frames: speaking avg 2.55 vs silence avg 1.19",
+ "screenshots": {
+  "speaking": "16-live-speaking-mouth-open.png",
+  "pause": "16-live-pause-mouth-closed.png",
+  "spokenAtMs": 7489,
+  "liveAtMs": 6263
+ }
+}

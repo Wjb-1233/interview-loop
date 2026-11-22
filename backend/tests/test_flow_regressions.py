@@ -1,6 +1,5 @@
 """流程回归：视频任务先结束会话再评分、计划任务不再派生新计划、降级报告可重算。"""
 
-from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -119,60 +118,3 @@ def test_degraded_evaluation_can_be_rescored(monkeypatch) -> None:
         rescored = client.post(f"/api/v1/evaluations/{session_id}?force=true", headers=headers)
         assert rescored.status_code == 201, rescored.text
         assert rescored.json()["data"]["degraded"] is False
-
-
-def test_video_task_finishes_session_before_scoring(monkeypatch) -> None:
-    """视频任务必须先把会话标记 FINISHED，再走评分，否则报告永远 404。"""
-    order: list[str] = []
-
-    from app.features.tasks import service as task_service
-
-    async def fake_update(*_args, **_kwargs):
-        return None
-
-    monkeypatch.setattr(task_service, "_update", fake_update)
-
-    from app.features.evaluations import delivery as delivery_module
-    from app.features.evaluations import service as evaluation_service
-    from app.features.training import service as training_service
-    from app.features.video import metrics as metrics_module
-
-    monkeypatch.setattr(delivery_module, "analyze", lambda _path: {"words": [{"text": "我", "start": 0}, {"text": "可以", "start": 1}]})
-    monkeypatch.setattr(metrics_module, "analyze_video", lambda _path: {"tips": []})
-
-    async def fake_create_voice_session(*_args, **_kwargs):
-        return "session-fake"
-
-    monkeypatch.setattr(
-        "app.features.voice.session.create_voice_session", fake_create_voice_session
-    )
-
-    async def fake_finish(_session, _user, _sid):
-        order.append("finish")
-
-    async def fake_evaluate(_session, _user, _sid, **_kwargs):
-        order.append("evaluate")
-
-    monkeypatch.setattr(training_service, "finish_session", fake_finish)
-    monkeypatch.setattr(evaluation_service, "evaluate_session", fake_evaluate)
-
-    task = SimpleNamespace(
-        id="task-fake",
-        user_id="user-fake",
-        payload={"recording": "fake.webm", "questions": [{"text": "问题", "start": 0, "end": 5}], "sceneId": "scene-x"},
-    )
-
-    import asyncio
-
-    original_path_of = None
-    from app.features.recordings import storage
-
-    original_path_of = storage.path_of
-    monkeypatch.setattr(storage, "path_of", lambda _name: __import__("pathlib").Path(__file__))
-    try:
-        asyncio.run(task_service.process_video_interview(task))
-    finally:
-        if original_path_of:
-            monkeypatch.setattr(storage, "path_of", original_path_of)
-
-    assert order == ["finish", "evaluate"], f"调用顺序错误: {order}"

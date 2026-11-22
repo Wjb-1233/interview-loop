@@ -66,6 +66,11 @@ export function useAuth() {
     }
   }
 
+  async function refreshUser(): Promise<void> {
+    if (!user.value) return
+    user.value = (await api.get<ApiEnvelope<User>>('/auth/me')).data.data
+  }
+
   async function logout(): Promise<void> {
     try {
       await api.post('/auth/logout')
@@ -93,6 +98,7 @@ export function useAuth() {
     register,
     restore,
     logout,
+    refreshUser,
     updateProfile,
     applyAvatar,
   }

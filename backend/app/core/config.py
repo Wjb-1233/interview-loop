@@ -71,11 +71,14 @@ class Settings(BaseSettings):
     require_email_verification: bool = False
     email_verification_hours: int = Field(default=48, ge=1, le=168)
     model_warmup_enabled: bool = True
-    task_worker_concurrency: int = Field(default=2, ge=1, le=4)
     # 成本治理：每个学员每天允许的模型调用次数（评分、追问、起草各算一次）
     model_daily_quota: int = Field(default=400, ge=10, le=100000)
-    lesson_video_engine: str = "remotion"
+    # remotion 在本机多进程渲染会卡死（详见交付说明），默认走纯 Python 引擎，演示更可靠
+    lesson_video_engine: str = "python"
+    # 单次渲染硬超时：超时即判定失败并让 worker 继续下一个任务
+    lesson_video_timeout_seconds: float = Field(default=480.0, ge=1.0, le=3600.0)
     evaluation_samples: int = Field(default=3, ge=1, le=3)
+    voice_engine: str = Field(default="auto", pattern="^(auto|doubao|pipeline)$")
     doubao_realtime_app_id: str = ""
     doubao_realtime_access_token: str = ""
     doubao_realtime_ws_url: str = "wss://openspeech.bytedance.com/api/v3/realtime/dialogue"
@@ -87,11 +90,9 @@ class Settings(BaseSettings):
     doubao_tts_speaker: str = "saturn_zh_female_keainvsheng_tob"
     doubao_tts_emotion: str = "gentle"
 
-    milvus_enabled: bool = False
-    milvus_uri: str = "http://localhost:19530"
-    milvus_token: str = "root:Milvus"
-    milvus_collection: str = "communication_knowledge"
-    milvus_dimension: int = Field(default=384, ge=8, le=32768)
+    # 在线数字人（Simli）：密钥只在服务端换 5 分钟会话令牌，为空则前端回退本地 3D 形象
+    simli_api_key: str = ""
+    simli_face_id: str = "14c60d62-6ebf-424d-b626-1f4f91c33b04"
 
     max_training_rounds: int = Field(default=12, ge=1, le=12)
 
@@ -124,11 +125,6 @@ class Settings(BaseSettings):
             problems.append("REDIS_ENABLED 必须为 true")
         if self.redis_password is None or len(self.redis_password.get_secret_value()) < 24:
             problems.append("REDIS_PASSWORD 必须至少包含 24 个字符")
-        if not self.milvus_enabled:
-            # 向量库缺失只影响课程检索质量，不阻塞启动
-            import logging
-
-            logging.getLogger(__name__).warning("production.milvus_disabled 课程检索将降级为关键词匹配")
         if not self.cors_origins or any(not origin.startswith("https://") for origin in self.cors_origins):
             problems.append("CORS_ORIGINS 必须全部使用 https://")
         if self.cookie_samesite == "none" and self.environment != "production":

@@ -5,6 +5,7 @@ import { ArrowLeft, Camera, Mic, Volume2 } from 'lucide-vue-next'
 
 import PermissionDialog from '@/components/media/PermissionDialog.vue'
 import LiveInterviewRoom from '@/components/training/LiveInterviewRoom.vue'
+import { useInterviewExit } from '@/composables/useInterviewExit'
 import { api, errorMessage } from '@/lib/api'
 import type { ApiEnvelope, Scene } from '@/lib/types'
 
@@ -16,13 +17,16 @@ const taskKey = computed(() => (typeof route.query.taskKey === 'string' ? route.
 
 const scene = shallowRef<Scene | null>(null)
 const started = shallowRef(false)
-const duration = shallowRef(30)
+const duration = shallowRef(Number(route.query.duration) || 10)
+const preparedSessionId = typeof route.query.sessionId === 'string' ? route.query.sessionId : ''
+const activeSessionId = shallowRef(preparedSessionId)
+const finishRequested = shallowRef(false)
+const transferring = shallowRef(false)
 const initialDepth = (useRoute().query.depth as 'STANDARD' | 'THREE_LAYER' | 'PRESSURE') || 'STANDARD'
-const language = (useRoute().query.lang as 'zh' | 'en') || 'zh'
 const engine = shallowRef<'doubao' | 'pipeline'>('doubao')
 const depth = shallowRef<'STANDARD' | 'THREE_LAYER' | 'PRESSURE'>(initialDepth)
-const advanced = shallowRef(false)
 const error = shallowRef('')
+useInterviewExit(() => activeSessionId.value, () => finishRequested.value || transferring.value, message => { error.value = message })
 // 权限/设备问题要能指出具体原因，才谈得上“可执行的处理”
 const deviceIssue = shallowRef<'' | 'permission' | 'device' | 'busy' | 'insecure' | 'unsupported'>('')
 const preview = ref<HTMLVideoElement | null>(null)
@@ -119,6 +123,7 @@ async function probePermissions(): Promise<void> {
 let waitTimer = 0
 // 超时之后旧请求可能才回来，用序号让它作废，避免状态被迟到的结果覆盖
 let attemptNo = 0
+let disposed = false
 
 function endWaiting(): void {
   if (waitTimer) {
@@ -129,6 +134,7 @@ function endWaiting(): void {
 }
 
 async function openCamera(): Promise<void> {
+  if (disposed) return
   if (!navigator.mediaDevices?.getUserMedia) {
     deviceIssue.value = window.isSecureContext ? 'unsupported' : 'insecure'
     error.value = deviceMessage(deviceIssue.value)
@@ -139,6 +145,7 @@ async function openCamera(): Promise<void> {
   showGuide.value = false
   // (1) 先探测并展示权限状态，用户不用自己去浏览器菜单里猜
   await probePermissions()
+  if (disposed) return
   // (2) 发起请求的同时把「已经发出去了」明说在页面上，否则用户会以为按钮没反应
   waitingForAllow.value = true
   const seq = ++attemptNo
@@ -261,30 +268,29 @@ function start(): void {
 }
 
 function switchToVoice(): void {
+  if (planId.value && taskKey.value === 'retest') { error.value = '本项复测需要保留原训练方式，请恢复摄像头后继续。'; return }
   // 一键切语音：场景、追问强度、语言、训练计划任务原样带过去，用户不用重选
   closeCamera()
+  transferring.value = true
   void router.push({
     name: 'voice',
     query: {
       sceneId: sceneId.value,
       depth: depth.value,
-      lang: language,
+      sessionId: activeSessionId.value,
+      duration: String(duration.value),
       ...(planId.value ? { planId: planId.value, taskKey: taskKey.value } : {}),
     },
   })
 }
 
-function onEnded(sessionId: string): void {
-  if (planId.value && taskKey.value) {
-    void api
-      .post(`/training-plans/${planId.value}/tasks/${taskKey.value}/complete`, { evidence: sessionId })
-      .catch(() => undefined)
-  }
-  void router.push(`/report/${sessionId}`)
+async function onEnded(sessionId: string): Promise<void> {
+  await router.push(`/report/${sessionId}`)
 }
 
 onMounted(async () => {
   // 进页面就先摆出权限状态：「未申请 / 已允许 / 已被拒绝」，别让用户自己去浏览器菜单里找
+  try { engine.value = (await api.get<ApiEnvelope<{ engine: 'doubao' | 'pipeline' }>>('/voice/status')).data.data.engine } catch { /* room reports connection errors */ }
   await probePermissions()
   const connection = (navigator as unknown as { connection?: { effectiveType?: string; downlink?: number } }).connection
   networkLabel.value = navigator.onLine
@@ -300,7 +306,7 @@ onMounted(async () => {
   }
 })
 
-onBeforeUnmount(closeCamera)
+onBeforeUnmount(() => { disposed = true; attemptNo++; endWaiting(); closeCamera() })
 
 // 防止未使用变量告警
 void errorMessage
@@ -308,14 +314,14 @@ void errorMessage
 
 <template>
   <div class="page video-page">
-    <RouterLink class="back" to="/scenes"><ArrowLeft :size="13" :stroke-width="1.8" aria-hidden="true" /> 返回场景训练</RouterLink>
+    <RouterLink class="back" to="/scenes"><ArrowLeft :size="13" :stroke-width="1.8" aria-hidden="true" /> {{ finishRequested ? '返回场景（保留本次总结）' : '直接退出（不保留记录）' }}</RouterLink>
 
     <template v-if="!started">
       <header class="page-heading">
         <div>
           <p class="eyebrow">视频面试{{ scene ? ` · ${scene.category}` : '' }}</p>
           <h1 class="page-title">{{ scene ? scene.title : '坐在对面，像真面试一样' }}</h1>
-          <p class="page-lead">打开摄像头，面试官会先开口提问，你正常说话回答；画面和声音会在结束后给出评分。</p>
+          <p class="page-lead">与卡通面试官面对面交流，直接开口回答，全程不显示问答字幕；结束后查看评分与回放。</p>
         </div>
       </header>
 
@@ -334,7 +340,7 @@ void errorMessage
 
       <section class="setup panel">
         <div class="preview-wrap">
-          <video ref="preview" class="preview" muted playsinline />
+          <video ref="preview" class="preview" muted />
           <div v-if="!cameraOn" class="preview-empty">
             <Camera :size="22" :stroke-width="1.6" aria-hidden="true" />
             <span>摄像头未开启</span>
@@ -373,7 +379,7 @@ void errorMessage
         <div class="setup-block">
           <p class="label">面试时长</p>
           <div class="chip-group" role="group" aria-label="面试时长">
-            <button v-for="minutes in [30, 60]" :key="minutes" type="button" class="chip" :class="{ active: duration === minutes }" @click="duration = minutes">
+            <button v-for="minutes in [5, 10, 15, 30, 60]" :key="minutes" type="button" class="chip" :class="{ active: duration === minutes }" @click="duration = minutes">
               {{ minutes }} 分钟
             </button>
           </div>
@@ -383,21 +389,12 @@ void errorMessage
         <div class="setup-block">
           <span class="block-label">追问强度</span>
           <div class="chip-group" role="group" aria-label="追问强度">
-            <button type="button" class="chip" :class="{ active: depth === 'STANDARD' }" @click="depth = 'STANDARD'">标准</button>
-            <button type="button" class="chip" :class="{ active: depth === 'THREE_LAYER' }" @click="depth = 'THREE_LAYER'">三层深挖</button>
-            <button type="button" class="chip" :class="{ active: depth === 'PRESSURE' }" @click="depth = 'PRESSURE'">压力面</button>
+            <button type="button" class="chip" :disabled="Boolean(preparedSessionId)" :class="{ active: depth === 'STANDARD' }" @click="depth = 'STANDARD'">标准</button>
+            <button type="button" class="chip" :disabled="Boolean(preparedSessionId)" :class="{ active: depth === 'THREE_LAYER' }" @click="depth = 'THREE_LAYER'">三层深挖</button>
+            <button type="button" class="chip" :disabled="Boolean(preparedSessionId)" :class="{ active: depth === 'PRESSURE' }" @click="depth = 'PRESSURE'">压力面</button>
           </div>
         </div>
 
-        <div class="setup-block">
-          <button type="button" class="advanced-toggle" @click="advanced = !advanced">
-            {{ advanced ? '收起高级选项' : '高级选项' }}
-          </button>
-          <div v-if="advanced" class="chip-group" role="group" aria-label="语音引擎">
-            <button type="button" class="chip" :class="{ active: engine === 'doubao' }" @click="engine = 'doubao'">标准引擎</button>
-            <button type="button" class="chip" :class="{ active: engine === 'pipeline' }" @click="engine = 'pipeline'">本地管线</button>
-          </div>
-        </div>
 
         <footer class="setup-actions">
           <button class="button start" type="button" :disabled="!ready" @click="start">
@@ -415,13 +412,16 @@ void errorMessage
 
     <LiveInterviewRoom
       v-else
-      mode="video"
+      capture-mode="video"
       :scene="scene"
       :engine="engine"
       :duration-minutes="duration"
-        :depth="depth"
-        :language="language"
+      :depth="depth"
+      :prepared-session-id="preparedSessionId"
+      :exit-error="error"
       @ended="onEnded"
+      @prepared="activeSessionId = $event"
+      @finishing="finishRequested = true"
       @switch-voice="switchToVoice"
     />
   </div>
@@ -460,5 +460,4 @@ void errorMessage
 .device-error .error-banner { margin: 0; }
 .device-steps { margin: 0; padding-left: 18px; color: var(--text-2); font-size: 12.5px; line-height: 1.9; }
 .device-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-@media (max-width: 720px) { .checks { grid-template-columns: 1fr; } }
 </style>

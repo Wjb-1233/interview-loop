@@ -124,5 +124,4 @@ onBeforeUnmount(() => {
   .perm-spinner { animation: none; border-top-color: var(--accent); }
   .perm-progress i { animation: none; width: 100%; }
 }
-@media (max-width: 520px) { .perm-body { padding: 22px; } .perm-actions .button { flex: 1; } }
 </style>

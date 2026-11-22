@@ -1,0 +1,63 @@
+{
+  "ready": true,
+  "connectMs": 7853,
+  "classes": "avatar-presenter interviewer-art active listening connected",
+  "videoStats": {
+    "w": 768,
+    "h": 768,
+    "rs": 4,
+    "paused": false
+  },
+  "notice": [],
+  "simliRequests": [
+    "GET http://127.0.0.1:5173/src/components/media/SimliPresenter.vue?t=1795074332096",
+    "GET http://127.0.0.1:5173/src/components/media/SimliPresenter.vue?vue&type=style&index=0&scoped=793fda77&lang.css",
+    "GET http://127.0.0.1:5173/api/v1/avatar/simli-session",
+    "GET http://127.0.0.1:5173/node_modules/.vite/deps/simli-client.js?v=585c7169",
+    "GET https://simli-u7chyk9m.rtc.livekit.cloud/settings/regions",
+    "GET https://simli-u7chyk9m.rtc.livekit.cloud/settings/regions"
+  ],
+  "simliResponses": [
+    {
+      "url": "http://127.0.0.1:5173/src/components/media/SimliPresenter.vue?t=1795074332096",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/src/components/media/SimliPresenter.vue?vue&type=style&index=0&scoped=793fda77&lang.css",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/api/v1/avatar/simli-session",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5173/node_modules/.vite/deps/simli-client.js?v=585c7169",
+      "status": 200
+    },
+    {
+      "url": "https://simli-u7chyk9m.rtc.livekit.cloud/settings/regions",
+      "status": 200
+    },
+    {
+      "url": "https://simli-u7chyk9m.rtc.livekit.cloud/settings/regions",
+      "status": 200
+    }
+  ],
+  "requestFailures": [],
+  "websockets": [
+    "ws://127.0.0.1:5173/?token=7nddvWOCmqap",
+    "ws://127.0.0.1:5173/?token=7nddvWOCmqap",
+    "ws://127.0.0.1:5173/api/v1/voice/ws?ticket=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZW1vLXN0dWRlbnQiLCJ0eXAiOiJ2",
+    "wss://api.simli.ai/compose/webrtc/livekit?session_token=trinity2_gAAAAABq_sxaPrM92qpQIOsZ5Yxzf9pVOc7NWvo4ZkZc7A1YiudziBA",
+    "wss://simli-u7chyk9m.rtc.livekit.cloud/rtc/v1?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVXNlciIsInZp"
+  ],
+  "consoleErrors": [
+    "console: Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "replayClicked": true,
+  "frames": [
+    "C:\\Users\\wjb\\AppData\\Local\\Temp\\dsh-win-bash-20176-5339116a/shots-simli/03-speaking-0.png",
+    "C:\\Users\\wjb\\AppData\\Local\\Temp\\dsh-win-bash-20176-5339116a/shots-simli/03-speaking-1.png",
+    "C:\\Users\\wjb\\AppData\\Local\\Temp\\dsh-win-bash-20176-5339116a/shots-simli/03-speaking-2.png"
+  ]
+}

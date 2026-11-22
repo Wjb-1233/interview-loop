@@ -36,9 +36,15 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 
 # 单 worker：分析任务 worker 跑在应用进程内；多 worker 时任务领取已用 SKIP LOCKED，
 # 但模型常驻内存，按内存预算再决定是否扩容。
+#
+# 显式关闭 uvicorn 的代理头解析（它的默认值是开的，只会信任 127.0.0.1/::1）：
+# 开启时 uvicorn 会用 X-Forwarded-For 的某一跳覆盖 request.client.host，而 XFF 由客户端控制，
+# 等于让攻击者自选限流键、绕过 login 等限流（此前配 --forwarded-allow-ips "*" 时对任意来源都生效）。
+# 关掉后 request.client 始终是真实 TCP 对端（这里是 nginx 容器地址），客户端地址由应用层
+# 按 TRUSTED_PROXY_COUNT 从 XFF 右侧数跳取（backend/app/infrastructure/rate_limit.py）。
+# 不要再加 --proxy-headers / --forwarded-allow-ips。
 CMD ["uvicorn", "app.main:app", \
      "--host", "0.0.0.0", \
      "--port", "8081", \
      "--workers", "1", \
-     "--proxy-headers", \
-     "--forwarded-allow-ips", "*"]
+     "--no-proxy-headers"]

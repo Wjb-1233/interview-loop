@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 import type { Scores } from '@/lib/types'
 
-const props = withDefaults(defineProps<{ scores: Scores; quiet?: boolean }>(), { quiet: false })
+const props = withDefaults(defineProps<{ scores: Scores; quiet?: boolean; previous?: Scores | null }>(), { quiet: false, previous: null })
 
 const AXES: Array<{ key: keyof Scores; label: string }> = [
   { key: 'logic', label: '内容与逻辑' },
@@ -41,6 +41,17 @@ const shape = computed(() => {
 })
 const shapePoints = computed(() => shape.value.map((p) => `${p.x},${p.y}`).join(' '))
 
+// 上一次的四维形状，与本次叠在同一张雷达图上
+const previousPoints = computed(() => {
+  const before = props.previous
+  if (!before) return ''
+  return AXES.map((axis, index) => {
+    const value = Math.max(0, Math.min(5, Number(before[axis.key]) || 0))
+    const { x, y } = point(index, (RADIUS * value) / 5)
+    return `${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ')
+})
+
 const labels = computed(() => AXES.map((axis, index) => {
   const { x, y } = point(index, LABEL_RADIUS)
   const anchor = index === 0 ? 'middle' : index < 3 ? 'start' : 'end'
@@ -75,6 +86,7 @@ const labels = computed(() => AXES.map((axis, index) => {
       />
     </g>
 
+    <polygon v-if="previousPoints" class="shape previous" :points="previousPoints" />
     <polygon class="shape" :points="shapePoints" />
     <circle
       v-for="(vertex, index) in shape"
@@ -120,6 +132,14 @@ const labels = computed(() => AXES.map((axis, index) => {
   letter-spacing: .12em;
 }
 .quiet .labels text { fill: var(--text-3); }
+.shape.previous {
+  fill: none;
+  stroke: var(--text-3);
+  stroke-dasharray: 5 4;
+  stroke-width: 1.2;
+  opacity: .65;
+  animation: none;
+}
 .shape {
   transform-origin: 140px 116px;
   animation: radar-grow .68s cubic-bezier(.22, .8, .28, 1) both;

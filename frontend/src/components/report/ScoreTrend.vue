@@ -6,7 +6,8 @@ import type { Scores } from '@/lib/types'
 const props = withDefaults(defineProps<{
   points: Array<{ date: string; score: number; dimensions: Scores }>
   compact?: boolean
-}>(), { compact: false })
+  label?: string
+}>(), { compact: false, label: '历史训练综合评分趋势' })
 
 const host = useTemplateRef<HTMLDivElement>('host')
 const width = shallowRef(420)
@@ -87,7 +88,7 @@ onBeforeUnmount(() => observer?.disconnect())
       :height="height"
       preserveAspectRatio="none"
       role="img"
-      aria-label="历史训练综合评分趋势"
+      :aria-label="label"
     >
       <defs>
         <linearGradient :id="gradientId" x1="0" y1="0" x2="0" y2="1">
@@ -111,10 +112,10 @@ onBeforeUnmount(() => observer?.disconnect())
         :cy="point.y"
         r="2.4"
         :style="{ animationDelay: `${900 + index * 85}ms` }"
-      />
+      ><title>{{ new Date(point.date).toLocaleString('zh-CN') }} · {{ point.value }} 分</title></circle>
 
       <g class="dates">
-        <text v-for="label in dateLabels" :key="label.text" class="axis" :x="label.x" :y="label.y" text-anchor="middle">{{ label.text }}</text>
+        <text v-for="label in dateLabels" :key="`${label.text}-${label.x}`" class="axis" :x="label.x" :y="label.y" text-anchor="middle">{{ label.text }}</text>
       </g>
     </svg>
   </div>

@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
+import MiniBarChart from './MiniBarChart.vue'
+import MiniDonut from './MiniDonut.vue'
+import MiniLineChart from './MiniLineChart.vue'
+
 interface Metrics {
   evaluations: {
     total: number
@@ -12,28 +18,41 @@ interface Metrics {
   daily: Array<{ date: string; count: number }>
 }
 
-defineProps<{ metrics: Metrics | null }>()
+const props = defineProps<{ metrics: Metrics | null }>()
 
 const BUCKETS = ['1-2', '3', '4', '5']
+const DAILY_LIMIT = 14
 
 function seconds(ms: number | null): string {
   if (!ms) return '—'
   return `${(ms / 1000).toFixed(1)}s`
 }
 
-function percent(value: number): string {
-  return `${Math.round(value * 100)}%`
-}
+const bucketItems = computed(() => {
+  const buckets = props.metrics?.evaluations.scoreBuckets ?? {}
+  return BUCKETS.map((key) => ({ label: `${key} 分`, value: buckets[key] ?? 0 }))
+})
+const bucketTotal = computed(() => bucketItems.value.reduce((sum, item) => sum + item.value, 0))
+
+const dailyPoints = computed(() =>
+  (props.metrics?.daily ?? []).slice(-DAILY_LIMIT).map((item) => ({ label: item.date.slice(5), value: item.count })),
+)
+const dailyTotal = computed(() => dailyPoints.value.reduce((sum, point) => sum + point.value, 0))
+
+const evaluationTotal = computed(() => props.metrics?.evaluations.total ?? 0)
+const degradedCount = computed(() => props.metrics?.evaluations.degraded ?? 0)
+const taskTotal = computed(() => props.metrics?.tasks.total ?? 0)
+const failedTasks = computed(() => props.metrics?.tasks.byStatus?.FAILED ?? 0)
 </script>
 
 <template>
   <section class="panel metrics-panel">
     <header class="metrics-head">
       <h2>运行指标</h2>
-      <p>评分质量与后台任务的实时统计，用来判断系统是否健康。</p>
+      <p>当前评分质量与历史录像分析结果。旧录像上传分析已停用。</p>
     </header>
 
-    <p v-if="!metrics" class="empty">还没有统计数据</p>
+    <p v-if="!metrics" class="metrics-empty">还没有统计数据</p>
     <template v-else>
       <div class="cards">
         <div class="card">
@@ -44,66 +63,69 @@ function percent(value: number): string {
           <strong>{{ seconds(metrics.evaluations.avgDurationMs) }}</strong>
           <span>平均评分耗时</span>
         </div>
-        <div class="card" :class="{ warn: metrics.evaluations.degradedRatio > 0.3 }">
-          <strong>{{ percent(metrics.evaluations.degradedRatio) }}</strong>
-          <span>规则兜底占比</span>
-        </div>
         <div class="card">
           <strong>{{ metrics.evaluations.avgScore ?? '—' }}</strong>
           <span>平均综合分</span>
         </div>
-        <div class="card" :class="{ warn: metrics.tasks.failedRatio > 0.2 }">
-          <strong>{{ percent(metrics.tasks.failedRatio) }}</strong>
-          <span>任务失败率（{{ metrics.tasks.total }} 个）</span>
-        </div>
       </div>
 
-      <div class="split">
-        <div>
-          <h3>分数分布</h3>
-          <ul class="bars">
-            <li v-for="key in BUCKETS" :key="key">
-              <span class="label">{{ key }} 分</span>
-              <i><b :style="{ width: `${metrics.evaluations.total ? ((metrics.evaluations.scoreBuckets[key] ?? 0) / metrics.evaluations.total) * 100 : 0}%` }" /></i>
-              <span class="num">{{ metrics.evaluations.scoreBuckets[key] ?? 0 }}</span>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3>近两周训练量</h3>
-          <ul class="daily">
-            <li v-for="item in metrics.daily" :key="item.date">
-              <span class="date">{{ item.date.slice(5) }}</span>
-              <span class="count num">{{ item.count }}</span>
-            </li>
-          </ul>
-          <p v-if="!metrics.daily.length" class="empty small">暂无数据</p>
-        </div>
+      <div class="chart-grid">
+        <section class="chart-card">
+          <div class="chart-head">
+            <h3>分数分布</h3>
+            <span v-if="bucketTotal > 0">共 {{ bucketTotal }} 次评分</span>
+          </div>
+          <MiniBarChart v-if="bucketTotal > 0" :items="bucketItems" unit="次" />
+          <p v-else class="chart-empty">还没有统计数据</p>
+        </section>
+
+        <section class="chart-card">
+          <div class="chart-head">
+            <h3>每日评分量</h3>
+            <span v-if="dailyTotal > 0">最近 {{ dailyPoints.length }} 天</span>
+          </div>
+          <MiniLineChart v-if="dailyTotal > 0" :points="dailyPoints" :height="120" />
+          <p v-else class="chart-empty">还没有统计数据</p>
+        </section>
+
+        <section class="chart-card span-2">
+          <div class="chart-head">
+            <h3>降级与失败</h3>
+            <span v-if="evaluationTotal > 0 || taskTotal > 0">占各自总量比例</span>
+          </div>
+          <div v-if="evaluationTotal > 0 || taskTotal > 0" class="donuts">
+            <MiniDonut v-if="evaluationTotal > 0" :value="degradedCount" :total="evaluationTotal" caption="降级" tone="warn" />
+            <MiniDonut v-if="taskTotal > 0" :value="failedTasks" :total="taskTotal" caption="失败" tone="warn" />
+          </div>
+          <p v-else class="chart-empty">还没有统计数据</p>
+        </section>
       </div>
     </template>
   </section>
 </template>
 
 <style scoped>
-.metrics-panel { padding: 22px; display: grid; gap: 18px; }
+.metrics-panel { padding: 22px; display: grid; gap: 16px; }
 .metrics-head h2 { margin: 0 0 6px; font-family: var(--font-display); font-size: 20px; }
 .metrics-head p { margin: 0; color: var(--text-2); font-size: 12.5px; }
-.cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-.card { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 6px; }
-.card strong { font-size: 22px; font-weight: 700; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.card { padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 4px; }
+.card strong { font-size: 19px; line-height: 1.15; font-weight: 650; color: var(--text); font-variant-numeric: tabular-nums; }
 .card span { color: var(--text-2); font-size: 11.5px; }
-.card.warn { border-color: #d9a7a1; background: rgba(180, 58, 42, .04); }
-.card.warn strong { color: #a4342a; }
-.split { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-.split h3 { margin: 0 0 10px; font-size: 13px; color: var(--text-2); font-weight: 600; }
-.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.bars li { display: grid; grid-template-columns: 52px 1fr 36px; align-items: center; gap: 10px; font-size: 12px; }
-.bars i { height: 4px; background: var(--track); border-radius: 999px; position: relative; overflow: hidden; }
-.bars i b { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 999px; }
-.daily { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.daily li { display: grid; gap: 2px; place-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 11px; }
-.daily .count { font-size: 13px; color: var(--text); }
-.empty { margin: 0; padding: 18px 0; text-align: center; color: var(--text-3); font-size: 13px; }
-.empty.small { padding: 6px 0; font-size: 12px; }
-@media (max-width: 1080px) { .cards { grid-template-columns: repeat(2, 1fr); } .split { grid-template-columns: 1fr; } }
+.chart-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.chart-card { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--overlay-1); display: grid; gap: 14px; align-content: start; }
+.chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.chart-head h3 { margin: 0; font-size: 15px; font-weight: 650; color: var(--text); }
+.chart-head span { color: var(--text-3); font-size: 11.5px; }
+.donuts { display: flex; flex-wrap: wrap; align-items: center; gap: 26px; }
+.chart-empty { margin: 0; padding: 22px 0; text-align: center; color: var(--text-3); font-size: 12.5px; }
+.metrics-empty { margin: 0; padding: 26px 0; text-align: center; color: var(--text-3); font-size: 13px; }
+@media (min-width: 1000px) {
+  .chart-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chart-card.span-2 { grid-column: 1 / -1; }
+  .chart-card { padding: 24px; }
+}
+@media (max-width: 640px) {
+  .cards { grid-template-columns: minmax(0, 1fr); }
+}
 </style>

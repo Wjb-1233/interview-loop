@@ -24,8 +24,8 @@ def test_list_tasks_returns_rows() -> None:
         assert isinstance(response.json()["data"], list)
 
 
-def test_retry_missing_task_returns_404() -> None:
+def test_legacy_task_retry_is_retired() -> None:
     with TestClient(app) as client:
         headers = _admin(client)
         response = client.post(f"/api/v1/admin/tasks/{uuid4()}/retry", headers=headers)
-        assert response.status_code == 404
+        assert response.status_code == 410

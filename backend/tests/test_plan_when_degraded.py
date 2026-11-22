@@ -64,8 +64,8 @@ def test_degraded_finish_returns_fallback_plan(monkeypatch) -> None:
 
         # 文字会话的任务组合：本场复盘 + 改写 + 微课
         keys = [task["key"] for task in plan["tasks"]]
-        assert keys == ["session-review", "rewrite", "course"], keys
-        assert [task["actionType"] for task in plan["tasks"]] == ["REPORT", "REWRITE", "COURSE"]
+        assert keys == ["session-review", "rewrite", "course", "retest"], keys
+        assert [task["actionType"] for task in plan["tasks"]] == ["REPORT", "REWRITE", "COURSE", "RETEST"]
         assert all(task["sourceSessionId"] == session_id for task in plan["tasks"])
 
         # 兜底文案必须让用户看出这是离线示例，不是模型个性化结果

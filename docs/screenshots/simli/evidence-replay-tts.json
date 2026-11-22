@@ -1,0 +1,54 @@
+{
+  "videoWidth": 768,
+  "frames": [
+    {
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-replay/A1-speaking.png",
+      "tap": 64
+    },
+    {
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-replay/A2-speaking.png",
+      "tap": 54
+    },
+    {
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-replay/A3-speaking.png",
+      "tap": 54
+    },
+    {
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-replay/A4-speaking.png",
+      "tap": 47
+    }
+  ],
+  "maxTap": 64,
+  "probe": {
+    "taps": 1,
+    "maxTap": 103,
+    "maxBus": 128
+  },
+  "notice": [],
+  "afterInterrupt": {
+    "taps": 1,
+    "tail": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "tailBus": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "errors": [
+    "console: Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ]
+}

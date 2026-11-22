@@ -54,7 +54,7 @@ function submit(): void {
       <strong>面试官</strong>
       <p>{{ latestReply.content }}</p>
     </div>
-    <p class="voice-intro">每轮点击麦克风回答，核对识别文字后发送。平台只保存文字对话、不保存录音；手机的语音识别服务可能处理音频。</p>
+    <p class="voice-intro">每轮点击麦克风回答，核对识别文字后发送。平台只保存文字对话、不保存录音；浏览器的语音识别服务可能处理音频。</p>
     <div class="voice-controls">
       <button class="record-button" :class="{ recording: speech.listening.value }" type="button" :aria-pressed="speech.listening.value" :disabled="!speech.available.value || sending || finished" @click="toggleRecording">
         <span class="microphone" aria-hidden="true">{{ speech.listening.value ? '■' : '●' }}</span>
@@ -115,6 +115,5 @@ function submit(): void {
 .voice-hint { background:var(--bg-2);color:var(--text-2); }
 .transcript { background:var(--bg-2); }
 @keyframes pulse { 50% { opacity:.65; } }
-@media (max-width: 650px) { .voice-composer { padding: 18px; } .voice-header { flex-direction: column; } .voice-controls { display: grid; grid-template-columns: 1fr 1fr; } .record-button { min-width: 0; padding: 0 11px; } .replay-button { padding: 0 8px; } }
 @media (prefers-reduced-motion: reduce) { .recording .microphone { animation: none; } }
 </style>

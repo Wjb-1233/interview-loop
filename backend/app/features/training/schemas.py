@@ -9,9 +9,10 @@ class CreateSessionRequest(ApiModel):
     scene_id: str
     mode: str = Field(default="STANDARD", pattern="^(STANDARD|DRILL)$")
     depth: str = Field(default="STANDARD", pattern="^(STANDARD|THREE_LAYER|PRESSURE)$")
-    language: str = Field(default="zh", pattern="^(zh|en)$")
+    language: str = Field(default="zh", pattern="^zh$")
     plan_id: str | None = None
     task_key: str | None = None
+    evidence_driven: bool = False
 
 
 class SendMessageRequest(ApiModel):
@@ -27,6 +28,15 @@ class MessageView(ApiModel):
     flagged: bool
     flags: list[str]
     created_at: datetime
+
+
+class AnswerTurnView(ApiModel):
+    round_no: int
+    question_message_id: str
+    answer_message_id: str
+    question: str
+    answer: str
+    flags: list[str] = Field(default_factory=list)
 
 
 class MessageRewriteView(ApiModel):
@@ -57,6 +67,8 @@ class SessionView(ApiModel):
     current_round: int
     max_rounds: int
     channel: str = "TEXT"
+    plan_id: str | None = None
+    task_key: str | None = None
     mode: str = "STANDARD"
     depth: str = "STANDARD"
     language: str = "zh"
@@ -74,6 +86,8 @@ class SessionView(ApiModel):
     question_total: int = 0
     question_covered: int = 0
     messages: list[MessageView] = Field(default_factory=list)
+    answer_turns: list[AnswerTurnView] = Field(default_factory=list)
+    assessment_context: dict | None = None
 
 
 class TrainingHistoryItem(ApiModel):

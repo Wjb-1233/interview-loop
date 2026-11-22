@@ -98,7 +98,6 @@ jobs:
           DATABASE_URL: sqlite+aiosqlite:///./e2e.db
           AUTO_CREATE_SCHEMA: "true"
           REDIS_ENABLED: "false"
-          MILVUS_ENABLED: "false"
           LLM_API_KEY: ""
           JWT_SECRET: e2e-only-secret-longer-than-32-characters
           CORS_ORIGINS: http://127.0.0.1:5173

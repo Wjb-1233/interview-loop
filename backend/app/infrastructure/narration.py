@@ -232,10 +232,11 @@ def audio_duration(path: Path) -> float:
 
 
 def synthesize_slide(
-    text: str, workdir: Path, index: int, style: str = "tutor", emotion: str | None = None
+    text: str, workdir: Path, index: int, style: str = "tutor", emotion: str | None = None,
+    *, split_text: bool = True,
 ) -> tuple[Path, float, str]:
     """合成一幕旁白，返回（音频文件, 秒数, 引擎）。"""
-    sentences = _split_sentences(text) or [text]
+    sentences = (_split_sentences(text) or [text]) if split_text else [text]
     pieces: list[Path] = []
     engine = "doubao"
 

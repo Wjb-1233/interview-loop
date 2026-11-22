@@ -122,6 +122,48 @@ def test_text_session_share_has_transcript() -> None:
         assert "第 2 题" in report.text
 
 
+def _mark_review_required(session_id: str) -> float:
+    """造一场矛盾未消解的评分：库内保留原总分（这里直接写成 100），只翻标记位。"""
+
+    async def run() -> float:
+        from sqlalchemy import select
+        from app.db.base import session_factory
+        from app.db.models import Evaluation
+
+        async with session_factory() as db:
+            row = await db.scalar(select(Evaluation).where(Evaluation.session_id == session_id))
+            original = row.overall_score
+            row.overall_score = 100.0
+            row.review_required = True
+            await db.commit()
+            return original
+
+    return asyncio.run(run())
+
+
+def test_review_required_hides_overall_score_in_share_and_report() -> None:
+    """矛盾未消解：分享接口与打印版都不出现库内总分，只给原因；四维留作参考。"""
+    with TestClient(app, client=(f"share-{uuid4().hex}", 50045)) as client:
+        headers = _register(client, "review")
+        session_id = _finished_session(client, headers)
+        assert _mark_review_required(session_id) != 100.0
+        token = _share_token(client, headers, session_id)
+
+        payload = client.get(f"/api/v1/share/{token}").json()["data"]
+        assert payload["overallScore"] is None
+        assert "矛盾" in payload["scoreUnavailableReason"] and "暂不可用" in payload["scoreUnavailableReason"]
+        assert all(payload["scores"][key] is not None for key in ("logic", "relevance", "correctness", "concision"))
+
+        printed = client.get(f"/api/v1/share/{token}/report")
+        assert printed.status_code == 200
+        assert "100.0" not in printed.text and "<b>100" not in printed.text
+        assert "暂不可用" in printed.text
+        assert payload["scoreUnavailableReason"] in printed.text
+        assert "四维分值为原记录值，仅作参考" in printed.text
+        # 四维也照常印出，只是标注为参考
+        assert f'<td class="num">{payload["scores"]["logic"]}</td>' in printed.text
+
+
 def test_share_prefers_stored_transcript() -> None:
     """已有 transcript（视频任务或人工修正写入）时保持原样，不回退到消息表。"""
     with TestClient(app, client=(f"share-{uuid4().hex}", 50044)) as client:

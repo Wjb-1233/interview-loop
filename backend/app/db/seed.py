@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import hash_password
 from app.db.models import Course, Scene, User
 from app.features.scenes.taxonomy import LEGACY_CATEGORIES
-from app.infrastructure.knowledge import KnowledgeDocument, knowledge_store
 
 
 import json
@@ -535,12 +534,4 @@ async def seed_database(session: AsyncSession, include_demo_users: bool = True) 
         if not await session.get(Course, item["id"]):
             session.add(Course(**item))
     await session.commit()
-    await knowledge_store.upsert(
-        [
-            KnowledgeDocument("k-star", "STAR 回答法", "按情境、任务、行动、结果组织回答，行动与结果要具体可验证。", "面试"),
-            KnowledgeDocument("k-pyramid", "面试表达结构", "面试回答先直接回应问题，再用具体经历说明依据，最后总结结果与岗位关联。", "面试"),
-            KnowledgeDocument("k-followup", "面试经历追问", "按情境、任务、行动、结果组织面试回答，突出个人行动和可验证结果。", "面试"),
-            KnowledgeDocument("k-interview-followup", "面试追问应对", "面对追问时先回应问题，再说明判断依据；不确定的事实应明确说明，不编造经历。", "面试"),
-        ]
-    )
 

@@ -13,6 +13,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Evaluation, MistakeState, Scene, SkillState, TrainingSession
+from app.features.evaluations.quality import formal_filters
 
 DIMENSIONS = ["logic", "relevance", "correctness", "concision"]
 DIFFICULTY_BASE = {"入门": 920.0, "中级": 1000.0, "进阶": 1080.0}
@@ -35,7 +36,7 @@ async def scene_average(session: AsyncSession, scene_id: str) -> float | None:
     value = await session.scalar(
         select(func.avg(Evaluation.overall_score))
         .join(TrainingSession, TrainingSession.id == Evaluation.session_id)
-        .where(TrainingSession.scene_id == scene_id)
+        .where(TrainingSession.scene_id == scene_id, *formal_filters())
     )
     return round((value or 0) / 20, 2) if value else None
 

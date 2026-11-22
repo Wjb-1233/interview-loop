@@ -17,7 +17,7 @@ export function useSceneFilters(scenes: ShallowRef<Scene[]>) {
   const recommendedSceneId = computed(() => String(route.query.sceneId ?? ''))
   const foundationFocus = computed(() => isFoundationScene(recommendedSceneId.value))
   const catalogScenes = computed(() => scenes.value.filter((scene) =>
-    !isFoundationScene(scene.id) || (foundationFocus.value && scene.id === recommendedSceneId.value)))
+    (!scene.mine || scene.id === recommendedSceneId.value) && (!isFoundationScene(scene.id) || (foundationFocus.value && scene.id === recommendedSceneId.value))))
   const industries = computed(() => ['全部行业', ...new Set(catalogScenes.value
     .filter((scene) => !isFoundationScene(scene.id)).map((scene) => scene.industry))])
   const industryScenes = computed(() => catalogScenes.value.filter((scene) =>

@@ -1,34 +1,29 @@
 <script setup lang="ts">
-import { computed, onMounted, shallowRef } from 'vue'
+import { computed, onMounted, shallowRef, watch } from 'vue'
 import { ArrowLeft } from 'lucide-vue-next'
 
 import ScriptVersionCard from '@/components/scenes/ScriptVersionCard.vue'
+import { useScriptPreview } from '@/composables/useScriptPreview'
 import { api, errorMessage } from '@/lib/api'
 import type { ApiEnvelope, Scene, ScriptVersion } from '@/lib/types'
 
 const versions = shallowRef<ScriptVersion[]>([])
-let audio: HTMLAudioElement | null = null
-
-async function playPreview(version: ScriptVersion): Promise<void> {
-  try {
-    const response = await api.post<ApiEnvelope<{ url: string }>>('/scripts/preview', { text: version.content })
-    audio?.pause()
-    audio = new Audio(response.data.data.url)
-    await audio.play().catch(() => undefined)
-  } catch (reason) {
-    error.value = errorMessage(reason)
-  }
-}
 const scenes = shallowRef<Scene[]>([])
 const loading = shallowRef(true)
 const error = shallowRef('')
+const { previewingId, playingId, playPreview } = useScriptPreview((message) => { error.value = message })
+const favoritingIds = shallowRef<string[]>([])
+const deletingIds = shallowRef<string[]>([])
 const page = shallowRef(1)
 const PAGE_SIZE = 9
+const onlyFavorites = shallowRef(false)
+const filtered = computed(() => versions.value.filter((item) => !onlyFavorites.value || item.favorite))
 
 const sceneTitles = computed(() => new Map(scenes.value.map((scene) => [scene.id, scene.title])))
-const pageCount = computed(() => Math.max(1, Math.ceil(versions.value.length / PAGE_SIZE)))
-const paged = computed(() => versions.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
+const pageCount = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
+const paged = computed(() => filtered.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
 
+watch([onlyFavorites, pageCount], () => { page.value = Math.max(1, Math.min(page.value, pageCount.value)) })
 onMounted(load)
 
 async function load(): Promise<void> {
@@ -49,22 +44,32 @@ async function load(): Promise<void> {
 }
 
 async function favorite(version: ScriptVersion): Promise<void> {
+  if (favoritingIds.value.includes(version.id)) return
+  favoritingIds.value = [...favoritingIds.value, version.id]
+  error.value = ''
   try {
     const response = await api.post<ApiEnvelope<{ favorite: boolean }>>(`/scripts/${version.id}/favorite`)
     versions.value = versions.value.map((item) => item.id === version.id ? { ...item, favorite: response.data.data.favorite } : item)
   } catch (reason) {
     error.value = errorMessage(reason)
+  } finally {
+    favoritingIds.value = favoritingIds.value.filter((id) => id !== version.id)
   }
 }
 
 async function remove(version: ScriptVersion): Promise<void> {
+  if (deletingIds.value.includes(version.id)) return
   if (!window.confirm('确定删除这个版本吗？删除后无法恢复。')) return
+  deletingIds.value = [...deletingIds.value, version.id]
+  error.value = ''
   try {
     await api.delete(`/scripts/${version.id}`)
     versions.value = versions.value.filter((item) => item.id !== version.id)
     if (page.value > pageCount.value) page.value = pageCount.value
   } catch (reason) {
     error.value = errorMessage(reason)
+  } finally {
+    deletingIds.value = deletingIds.value.filter((id) => id !== version.id)
   }
 }
 </script>
@@ -76,12 +81,13 @@ async function remove(version: ScriptVersion): Promise<void> {
     <header class="page-heading">
       <div>
         <p class="eyebrow">话术版本</p>
-        <h1 class="page-title">已保存的话术</h1>
-        <p class="page-lead">每次生成三种风格都会存在这里，收藏的会同时出现在个人收藏。</p>
+        <h1 class="page-title">我的话术库</h1>
+        <p class="page-lead">生成记录和收藏统一保存在这里。</p>
       </div>
       <span class="count num">{{ versions.length }} 个</span>
     </header>
 
+    <div class="actions"><button class="button secondary" @click="onlyFavorites = false; page = 1">全部话术</button><button class="button secondary" @click="onlyFavorites = true; page = 1">已收藏</button><RouterLink class="button secondary" to="/favorites">收藏的场景</RouterLink></div>
     <div v-if="error" class="error-banner">{{ error }}</div>
     <div v-if="loading" class="skeleton loading" />
 
@@ -96,6 +102,11 @@ async function remove(version: ScriptVersion): Promise<void> {
           v-for="version in paged"
           :key="version.id"
           :version="version"
+          :preview-loading="previewingId === version.id"
+          :preview-disabled="!!previewingId && previewingId !== version.id"
+          :preview-playing="playingId === version.id"
+          :favorite-loading="favoritingIds.includes(version.id)"
+          :deleting="deletingIds.includes(version.id)"
           :scene-title="sceneTitles.get(version.sceneId ?? '') ?? '历史场景'"
           show-actions
           allow-delete

@@ -12,9 +12,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.responses import ok
+from app.core.errors import AppError, not_found
 from app.core.security import CurrentUser, StreamingUser
 from app.db.base import get_session
-from app.db.models import Evaluation, Scene, TrainingSession
+from app.db.models import Evaluation, Message, Scene, TrainingSession
 from app.features.training.schemas import (
     CreateSessionRequest,
     SelfReviewRequest,
@@ -26,8 +27,8 @@ from app.features.training.service import (
     session_hint,
     create_training_session,
     delete_training_session,
+    discard_training_session,
     delete_resume_context,
-    finish_session,
     get_training_session,
     list_training_sessions,
     stream_reply,
@@ -37,7 +38,8 @@ from app.features.training.service import (
     clear_job_description,
     set_session_archived,
 )
-from app.features.evaluations.service import evaluate_session, list_mistakes, set_mistake_state
+from app.features.evaluations.service import list_mistakes, set_mistake_state
+from app.features.training.workflow import end_training_attempt
 from app.infrastructure.rate_limit import limit_model_user
 from app.features.training.resume import MAX_RESUME_BYTES, parse_resume
 from app.db.models import ResumeContext
@@ -89,8 +91,53 @@ async def create(body: CreateSessionRequest, user: CurrentUser, session: DbSessi
         session, user.id, body.scene_id, mode=body.mode, plan_id=body.plan_id, task_key=body.task_key,
         depth=body.depth,
         language=body.language,
+        evidence_driven=body.evidence_driven,
     )
     return ok(result.model_dump(by_alias=True))
+
+
+@router.post("/prepare", status_code=201)
+async def prepare_interview(
+    user: CurrentUser,
+    session: DbSession,
+    scene_id: Annotated[str, Form(alias="sceneId")],
+    channel: Annotated[str, Form(pattern="^(TEXT|VOICE|VIDEO)$")] = "TEXT",
+    depth: Annotated[str, Form(pattern="^(STANDARD|THREE_LAYER|PRESSURE)$")] = "STANDARD",
+    duration: Annotated[int, Form(ge=5, le=60)] = 10,
+    jd: Annotated[str, Form(max_length=4000)] = "",
+    plan_id: Annotated[str | None, Form(alias="planId")] = None,
+    task_key: Annotated[str | None, Form(alias="taskKey")] = None,
+    file: Annotated[UploadFile | None, File()] = None,
+    evidence_driven: Annotated[bool, Form(alias="evidenceDriven")] = False,
+) -> dict:
+    require_verified(user)
+    filename = resume_text = None
+    if file:
+        try:
+            filename, resume_text = parse_resume(file.filename or "", await file.read(MAX_RESUME_BYTES + 1))
+        finally:
+            await file.close()
+    if jd.strip() and len(jd.strip()) < 20:
+        raise AppError(422, "JD_TOO_SHORT", "岗位描述至少需要 20 字")
+    if file or jd.strip():
+        await limit_model_user(user.id)
+    result = await create_training_session(session, user.id, scene_id, filename, resume_text, plan_id=plan_id, task_key=task_key, depth=depth, channel=channel, evidence_driven=evidence_driven)
+    training = await session.get(TrainingSession, result.id)
+    from app.db.models import TrainingPlan
+    from app.features.plans.service import validated_plan_tasks
+    plan = await session.get(TrainingPlan, plan_id) if plan_id else None
+    task = next((item for item in await validated_plan_tasks(session, plan) if item.get("key") == task_key), {}) if plan else {}
+    if jd.strip() and task.get("actionType") != "RETEST":
+        await set_job_description(session, user.id, training.id, jd.strip())
+    training.delivery = {**(training.delivery or {}), "plannedDurationMinutes": duration}
+    await session.commit()
+    return ok((await get_training_session(session, user.id, training.id)).model_dump(by_alias=True))
+
+
+@router.get("/{session_id}/interview-context")
+async def interview_context(session_id: str, user: CurrentUser, session: DbSession) -> dict:
+    from app.features.training.preparation import interview_context_data
+    return ok(await interview_context_data(session, user.id, session_id))
 
 
 @router.post("/with-resume", status_code=201)
@@ -112,7 +159,7 @@ async def create_with_resume(
     result = await create_training_session(
         session, user.id, scene_id, filename, resume_text,
         depth=depth if depth in {"STANDARD", "THREE_LAYER", "PRESSURE"} else "STANDARD",
-        language=language if language in {"zh", "en"} else "zh",
+        language="zh",
     )
     return ok(result.model_dump(by_alias=True))
 
@@ -136,7 +183,10 @@ async def export_reports(user: CurrentUser, session: DbSession) -> StreamingResp
             select(TrainingSession, Scene, Evaluation)
             .join(Scene, Scene.id == TrainingSession.scene_id)
             .outerjoin(Evaluation, Evaluation.session_id == TrainingSession.id)
-            .where(TrainingSession.user_id == user.id)
+            .where(
+                TrainingSession.user_id == user.id,
+                (TrainingSession.status != "ACTIVE") | (TrainingSession.current_round > 0),
+            )
             .order_by(TrainingSession.started_at.desc())
             .limit(500)
         )
@@ -182,6 +232,12 @@ async def delete_one(session_id: str, user: CurrentUser, session: DbSession) -> 
     return Response(status_code=204)
 
 
+@router.post("/{session_id}/discard", status_code=204)
+async def discard(session_id: str, user: CurrentUser, session: DbSession) -> Response:
+    await discard_training_session(session, user.id, session_id)
+    return Response(status_code=204)
+
+
 @router.delete("/{session_id}/resume", status_code=204)
 async def delete_resume(session_id: str, user: CurrentUser, session: DbSession) -> Response:
     await delete_resume_context(session, user.id, session_id)
@@ -223,25 +279,8 @@ async def finish(
     create_plan: bool = True,
 ) -> dict:
     await limit_model_user(user.id)
-    training = await finish_session(session, user.id, session_id)
-    evaluation = await evaluate_session(session, user.id, session_id, create_plan=create_plan)
-    await auto_complete_plan_task(session, user.id, training, evaluation)
+    evaluation = await end_training_attempt(session, user.id, session_id, create_plan=create_plan)
     return ok(evaluation.model_dump(by_alias=True))
-
-
-async def auto_complete_plan_task(session: DbSession, user_id: str, training, evaluation) -> None:
-    """从计划任务发起的训练，结束后自动勾掉任务；不满足条件时静默跳过。"""
-    if not training.plan_id or not training.task_key:
-        return
-    from app.core.errors import AppError
-
-    from app.features.plans.service import complete_training_task
-
-    try:
-        await complete_training_task(session, user_id, training.plan_id, training.task_key, training.id)
-    except AppError:
-        # 轮次不足或已有更好记录时，保持任务未完成，前端会给出提示
-        return
 
 
 @router.post("/{session_id}/restart", status_code=201)
@@ -254,6 +293,8 @@ async def restart(session_id: str, user: CurrentUser, session: DbSession) -> dic
         session, user.id, old.scene_id,
         resume.filename if resume else None,
         resume.content if resume else None,
+        mode=old.mode, depth=old.depth, channel=old.channel,
+        jd_text=old.jd_text, question_plan=old.question_plan, job_match=old.job_match,
     )
     return ok(result.model_dump(by_alias=True))
 
@@ -332,6 +373,14 @@ async def edit_transcript(
     target = next((item for item in transcript if item.get("roundNo") == round_no), None)
     if target is None:
         raise not_found("该轮转写")
+
+    if not delivery.get("rescoreRequired"):
+        from app.db.models import Evaluation
+        from app.features.evaluations.service import evaluation_snapshot
+
+        evaluation = await session.scalar(select(Evaluation).where(Evaluation.session_id == session_id))
+        if evaluation:
+            delivery["pendingEvaluationSnapshot"] = await evaluation_snapshot(session, evaluation, training)
 
     target["text"] = body.text.strip()
     target["edited"] = True

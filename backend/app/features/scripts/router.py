@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Response
@@ -5,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.responses import ok
-from app.core.errors import not_found
+from app.core.errors import AppError, not_found
 from app.core.security import CurrentUser
 from app.db.base import get_session
 from app.db.models import Script
@@ -15,6 +17,8 @@ from app.infrastructure.rate_limit import limit_model_user
 
 router = APIRouter(prefix="/scripts", tags=["话术生成"])
 DbSession = Annotated[AsyncSession, Depends(get_session)]
+logger = logging.getLogger(__name__)
+PREVIEW_TIMEOUT_SECONDS = 25
 
 
 @router.post("/generate", status_code=201)
@@ -28,7 +32,7 @@ async def generate_scripts(body: GenerateScriptsRequest, user: CurrentUser, sess
 async def history(user: CurrentUser, session: DbSession) -> dict:
     scripts = (
         await session.scalars(
-            select(Script).where(Script.user_id == user.id).order_by(Script.created_at.desc()).limit(50)
+            select(Script).where(Script.user_id == user.id).order_by(Script.created_at.desc())
         )
     ).all()
     return ok([ScriptVersion.model_validate(item).model_dump(by_alias=True) for item in scripts])
@@ -73,5 +77,11 @@ async def preview_script(body: dict, user: CurrentUser) -> dict:
     text = str(body.get("text") or "")
     if not text.strip():
         raise not_found("文本")
-    url = preview_speech(text)
+    try:
+        url = await asyncio.wait_for(asyncio.to_thread(preview_speech, text), timeout=PREVIEW_TIMEOUT_SECONDS)
+    except TimeoutError:
+        raise AppError(504, "PREVIEW_TIMEOUT", "试听语音生成超时，请稍后重试。") from None
+    except Exception as exc:
+        logger.warning("scripts.preview_failed error_type=%s", type(exc).__name__)
+        raise AppError(503, "PREVIEW_UNAVAILABLE", "试听语音暂不可用，请稍后重试。") from None
     return ok({"url": url})

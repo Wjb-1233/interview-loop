@@ -38,7 +38,8 @@ def demo_request_allowed(request: Request) -> bool:
     source = request.headers.get("origin") or request.headers.get("referer") or ""
     parsed = urlsplit(source)
     try:
-        return parsed.scheme in {"http", "https"} and parsed.hostname in {"localhost", "127.0.0.1"} and parsed.port in {4173, 5173}
+        # 开发环境下，本机任意端口都能用一键登录（预览端口经常换）
+        return parsed.scheme in {"http", "https"} and parsed.hostname in {"localhost", "127.0.0.1", "::1"}
     except ValueError:
         return False
 

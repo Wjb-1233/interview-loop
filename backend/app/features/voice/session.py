@@ -13,24 +13,9 @@ from app.features.scenes.service import get_scene
 from app.features.scenes.taxonomy import normalize_bank
 
 
-# 录像降级时占位作答：评分链路需要至少两轮，画面指标仍在，只是没有文字可评
-DEGRADED_ANSWER = "（这段录像里没有识别到作答内容，以下评分只依据画面表现与题目）"
-DEGRADED_FALLBACK_QUESTIONS = ("请做一个简单的自我介绍。", "请介绍一个你最近完成的项目。")
-
-
-def _degraded_turns(questions: list[str]) -> list[tuple[str, str]]:
-    """转写为空时用题目占位，保证至少两轮，会话与报告都还能建起来。"""
-    pool = [str(item).strip() for item in questions if str(item).strip()]
-    for extra in DEGRADED_FALLBACK_QUESTIONS:
-        if len(pool) >= 2:
-            break
-        pool.append(extra)
-    return [(question, DEGRADED_ANSWER) for question in pool]
-
-
-def _coverage(scene: Scene, questions: list[str]) -> int:
+def _coverage(scene: Scene, questions: list[str], bank_override: list[dict] | None = None) -> int:
     """按文本相似度判断必问题是否真的被问到，而不是直接按轮次算。"""
-    bank = normalize_bank(scene.question_bank)
+    bank = normalize_bank(bank_override if bank_override is not None else scene.question_bank)
     if not bank or not questions:
         return 0
     covered = 0
@@ -57,10 +42,10 @@ async def create_voice_session(
     engine: str = "doubao",
     channel: str = "VOICE",
     recording_path: str | None = None,
-    degraded_reason: str | None = None,
+    prepared_session_id: str | None = None,
 ) -> str:
     scene = await get_scene(session, scene_id, user_id)
-    if not turns and not degraded_reason:
+    if not turns:
         raise AppError(422, "VOICE_SESSION_EMPTY", "这次通话没有可评分的对话内容")
 
     cleaned: list[tuple[str, str]] = []
@@ -71,16 +56,7 @@ async def create_voice_session(
             continue
         cleaned.append((question or "请继续。", answer))
     if not cleaned:
-        if not degraded_reason:
-            raise AppError(422, "VOICE_SESSION_EMPTY", "这次通话没有可评分的回答")
-        # 录像降级：没有文字作答也留一份可回放、可评分的会话，别让整段录像白录
-        marks = [
-            str(item.get("text", ""))
-            for item in (delivery or {}).get("marks") or []
-            if isinstance(item, dict)
-        ]
-        cleaned = _degraded_turns(marks)
-        delivery = {**(delivery or {}), "transcriptReason": degraded_reason}
+        raise AppError(422, "VOICE_SESSION_EMPTY", "这次通话没有可评分的回答")
 
     now = datetime.now(timezone.utc)
     training = TrainingSession(
@@ -97,6 +73,29 @@ async def create_voice_session(
         recording_path=recording_path,
         started_at=now,
     )
+    from app.features.training.rubrics import new_context
+    training.assessment_context = new_context(scene, normalize_bank(scene.question_bank))
+    if prepared_session_id:
+        prepared = await session.get(TrainingSession, prepared_session_id)
+        if prepared is None or prepared.user_id != user_id or prepared.scene_id != scene_id:
+            raise AppError(404, "SESSION_NOT_FOUND", "准备会话不存在")
+        if prepared.current_round:
+            existing = (await session.scalars(select(Message).where(Message.session_id == prepared.id).order_by(Message.round_no, Message.created_at))).all()
+            old = [(next((m.content for m in existing if m.round_no == index and m.speaker == "AI"), ""), next((m.content for m in existing if m.round_no == index and m.speaker == "USER"), "")) for index in range(1, prepared.current_round + 1)]
+            if old == cleaned and prepared.channel == channel:
+                return prepared.id
+            raise AppError(409, "SESSION_ALREADY_SAVED", "本场面试已保存，请查看训练记录")
+        if prepared.status != "ACTIVE":
+            raise AppError(409, "SESSION_ALREADY_SAVED", "本场面试已保存，请查看训练记录")
+        from sqlalchemy import delete
+        await session.execute(delete(Message).where(Message.session_id == prepared.id))
+        prepared.current_round = len(cleaned)
+        prepared.covered_count = _coverage(scene, [question for question, _ in cleaned], prepared.question_plan)
+        prepared.channel = channel
+        prepared.duration_seconds = duration_seconds
+        prepared.delivery = {**(prepared.delivery or {}), **(training.delivery or {})}
+        prepared.recording_path = recording_path
+        training = prepared
     session.add(training)
     await session.flush()
 

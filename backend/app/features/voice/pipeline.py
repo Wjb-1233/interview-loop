@@ -121,7 +121,7 @@ def _make_transcript_tap(websocket: WebSocket, role: str):
     return TranscriptTap()
 
 
-def build_pipeline(websocket: WebSocket, instructions: str, opening: str = "", lang: str = "zh"):
+def build_pipeline(websocket: WebSocket, instructions: str, opening: str = ""):
     """构造 pipecat 管线；导入放在函数内，避免未安装时影响其他功能。"""
     from pipecat.audio.vad.silero import SileroVADAnalyzer
     from pipecat.processors.audio.vad_processor import VADProcessor
@@ -151,7 +151,7 @@ def build_pipeline(websocket: WebSocket, instructions: str, opening: str = "", l
             yield TTSStartedFrame()
             wav = Path(tempfile.mkdtemp()) / "out.wav"
             try:
-                await asyncio.to_thread(_synth_wav, text, wav, "Microsoft Zira Desktop" if lang == "en" else "Microsoft Huihui Desktop")
+                await asyncio.to_thread(_synth_wav, text, wav, "Microsoft Huihui Desktop")
                 raw = await asyncio.to_thread(
                     subprocess.run,
                     [
@@ -183,7 +183,7 @@ def build_pipeline(websocket: WebSocket, instructions: str, opening: str = "", l
         ),
     )
 
-    stt = WhisperSTTService(model="small", device="cpu", compute_type="int8", language="en" if lang == "en" else "zh")
+    stt = WhisperSTTService(model="small", device="cpu", compute_type="int8", language="zh")
     llm = OpenAILLMService(
         api_key=settings.llm_api_key,
         base_url=f"{settings.llm_base_url.rstrip('/')}/v1",

@@ -80,7 +80,7 @@ class Smoke:
         self.check(
             "就绪检查",
             ready.status_code == 200,
-            f"database={checks.get('database')} llm={checks.get('llm')} redis={checks.get('sessionState')}",
+            f"database={checks.get('database')} llm={checks.get('llm')} rateLimit={checks.get('rateLimit')}",
         )
 
         token = self.login(api)

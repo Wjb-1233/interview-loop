@@ -1,24 +1,25 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, shallowRef, watch } from 'vue'
+import { computed, inject, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { Moon, Sun, Bookmark, FolderPlus, History, LayoutDashboard, MessageSquareText, MessagesSquare, Settings, TrendingUp, UserRound } from 'lucide-vue-next'
+import { Moon, Sun, Bookmark, History, LayoutDashboard, MessageSquareText, MessagesSquare, Settings, TrendingUp, UserRound } from 'lucide-vue-next'
 
 import AtmosphereBackdrop from '@/components/layout/AtmosphereBackdrop.vue'
 import { useAuth } from '@/composables/useAuth'
 import { useTheme } from '@/composables/useTheme'
+import { activeTrainingAttemptKey, trainingAttemptId } from '@/lib/activeTrainingAttempt'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuth()
+const activeAttempt = inject(activeTrainingAttemptKey)!
 
 const studentNavItems = [
   { to: '/', label: '成长看板', icon: LayoutDashboard },
   { to: '/scenes', label: '场景训练', icon: MessagesSquare },
-  { to: '/my-scenes', label: '我的场景', icon: FolderPlus },
   { to: '/plans', label: '能力提升', icon: TrendingUp },
   { to: '/scripts', label: '话术优化', icon: MessageSquareText },
-  { to: '/favorites', label: '个人收藏', icon: Bookmark },
+  { to: '/scripts/saved', label: '话术库', icon: Bookmark },
   { to: '/history', label: '训练记录', icon: History },
   { to: '/profile', label: '个人资料', icon: UserRound },
 ]
@@ -31,8 +32,6 @@ const navItems = computed(() => auth.user.value?.role === 'ADMIN' ? adminNavItem
 const home = computed(() => auth.user.value?.role === 'ADMIN' ? '/admin' : '/')
 const { theme, toggle: toggleTheme, applyScope } = useTheme()
 const sidebarCollapsed = shallowRef(false)
-const mobileMenuOpen = shallowRef(false)
-const mobileView = shallowRef(false)
 const roleLabel = computed(() => auth.user.value?.role === 'ADMIN' ? '管理员' : '训练学员')
 
 // 学员与管理员各自记住自己的主题偏好
@@ -46,20 +45,15 @@ watch(() => auth.user.value?.role ?? null, (role) => {
 
 
 
-function syncViewport(): void { mobileView.value = window.matchMedia('(max-width: 768px)').matches }
-onMounted(() => {
-  syncViewport()
-  window.addEventListener('resize', syncViewport)
-})
-onUnmounted(() => window.removeEventListener('resize', syncViewport))
-
 function toggleNavigation(): void {
-  if (mobileView.value) mobileMenuOpen.value = !mobileMenuOpen.value
-  else sidebarCollapsed.value = !sidebarCollapsed.value
+  sidebarCollapsed.value = !sidebarCollapsed.value
 }
 
 async function signOut() {
-  await auth.logout()
+  try {
+    await activeAttempt.discardBeforeLogout(trainingAttemptId(route))
+    await auth.logout()
+  } catch { return }
   await router.replace('/login')
 }
 </script>
@@ -69,7 +63,7 @@ async function signOut() {
     <div class="app-bg" aria-hidden="true"><AtmosphereBackdrop variant="app" /></div>
     <header class="topbar">
       <div class="topbar-start">
-        <button class="menu-toggle" type="button" aria-label="切换导航" :aria-expanded="mobileView ? mobileMenuOpen : !sidebarCollapsed" @click="toggleNavigation">
+        <button class="menu-toggle" type="button" aria-label="切换导航" :aria-expanded="!sidebarCollapsed" @click="toggleNavigation">
           <svg width="15" height="10" viewBox="0 0 15 10" fill="none" aria-hidden="true">
             <path d="M0 1h15M0 5h15M0 9h15" stroke="currentColor" stroke-width="1.1" />
           </svg>
@@ -90,7 +84,7 @@ async function signOut() {
       </div>
     </header>
 
-    <aside class="sidebar" :class="{ open: mobileMenuOpen }">
+    <aside class="sidebar">
       <nav class="nav" :aria-label="auth.user.value?.role === 'ADMIN' ? '管理导航' : '学员导航'">
         <RouterLink
           v-for="item in navItems"
@@ -98,7 +92,6 @@ async function signOut() {
           :to="item.to"
           class="nav-link"
           :class="{ active: route.path === item.to || (item.to !== '/' && route.path.startsWith(item.to)) }"
-          @click="mobileMenuOpen = false"
         >
           <component :is="item.icon" :size="15" :stroke-width="1.6" aria-hidden="true" />
           <span>{{ item.label }}</span>
@@ -264,26 +257,6 @@ async function signOut() {
 .collapsed .sidebar-foot { opacity: 0; pointer-events: none; }
 
 .content { grid-column: 2; grid-row: 2; min-width: 0; background: transparent; position: relative; z-index: 1; }
-
-@media (max-width: 768px) {
-  .shell, .shell.collapsed { display: block; padding-top: 58px; }
-  .topbar { position: fixed; inset: 0 0 auto; padding: 0 20px; }
-  .topbar-brand span, .topbar-account .role, .topbar-account strong { display: none; }
-  .sidebar {
-    position: fixed;
-    z-index: 25;
-    inset: 58px auto 0 0;
-    width: 212px;
-    height: calc(100vh - 58px);
-    padding: 18px 0;
-    background: var(--bg-2);
-    transform: translateX(-102%);
-    transition: transform .22s var(--ease);
-  }
-  .sidebar.open { transform: translateX(0); box-shadow: 24px 0 48px rgba(0, 0, 0, .5); }
-  .nav-link { padding: 11px 24px; }
-  .content { min-height: calc(100vh - 58px); }
-}
 
 :root[data-theme='dark'] .topbar {
   background: rgba(10, 8, 22, .72);

@@ -35,6 +35,7 @@ def normalize_bank(raw):
                         "text": text,
                         "dimension": item.get("dimension") or None,
                         "difficulty": item.get("difficulty") or None,
+                        **({"rubric": item["rubric"]} if isinstance(item.get("rubric"), dict) else {}),
                     }
                 )
     return result

@@ -7,7 +7,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, not_found
@@ -20,17 +20,26 @@ from app.db.models import (
     PasswordResetRequest,
     Course,
     Evaluation,
-    EvaluationEvidence,
-    MistakeState,
     RefreshToken,
     Scene,
     TrainingSession,
     User,
 )
+from app.features.account.deletion import purge_user_rows
 from app.features.admin.schemas import CourseAdminInput, SceneAdminInput, UserAdminUpdate
 from app.features.scenes.taxonomy import normalize_bank
 
 DEFAULT_RESET_PASSWORD = "123456789"
+
+# 自动化测试与验收脚本注册账号时使用的邮箱前缀
+TEST_EMAIL_PREFIXES = (
+    "simli-", "imm-", "e2e-", "a11y-", "hint-", "nav-", "probe-", "repro-",
+    "self-review-", "api-", "bench-", "load-", "test-",
+    "bank-", "group-", "resume-", "coding-", "smoke-", "latency-", "en-", "py-",
+    "seg-", "jdcheck-", "room-", "jd-", "vs-", "vt-", "pv2-", "pv-", "v2-",
+    "loop2-", "loop-",
+)
+DEMO_EMAILS = {"student@example.com", "admin@example.com"}
 
 router = APIRouter(prefix="/admin", tags=["后台管理"])
 DbSession = Annotated[AsyncSession, Depends(get_session)]
@@ -53,7 +62,12 @@ async def overview(_: AdminUser, session: DbSession) -> dict:
         "activeScenes": int((await session.scalar(select(func.count()).select_from(Scene).where(Scene.active.is_(True)))) or 0),
         "courses": await count(Course),
         "activeCourses": int((await session.scalar(select(func.count()).select_from(Course).where(Course.active.is_(True)))) or 0),
-        "sessions": await count(TrainingSession),
+        # 0 轮的占位会话（进房间时 prepare 建的）不算训练场次，否则看板会虚高
+        "sessions": int((await session.scalar(
+            select(func.count()).select_from(TrainingSession).where(
+                or_(TrainingSession.status != "ACTIVE", TrainingSession.current_round > 0)
+            )
+        )) or 0),
         "averageScore": round(float(average or 0), 1),
     })
 
@@ -76,6 +90,30 @@ async def users(
         "role": item.role, "active": item.active, "bio": item.bio,
         "createdAt": item.created_at.isoformat(),
     } for item in rows])
+
+
+@router.post("/users/cleanup-test")
+async def cleanup_test_users(body: dict, _: AdminUser, session: DbSession) -> dict:
+    """按邮箱前缀清理测试脚本留下的账号：dryRun 只统计，正式执行会连同会话与报告一起删除。"""
+    dry_run = bool(body.get("dryRun", True))
+    rows = (await session.scalars(select(User).where(User.role != "ADMIN"))).all()
+    targets = [
+        item for item in rows
+        if item.email.lower().startswith(TEST_EMAIL_PREFIXES) and item.email not in DEMO_EMAILS
+    ]
+    if dry_run:
+        return ok({"count": len(targets), "sample": [item.email for item in targets[:5]]})
+
+    deleted = 0
+    for user in targets:
+        session_ids = list((await session.scalars(
+            select(TrainingSession.id).where(TrainingSession.user_id == user.id)
+        )).all())
+        await purge_user_rows(session, user, session_ids)
+        await session.delete(user)
+        deleted += 1
+    await session.commit()
+    return ok({"count": deleted})
 
 
 @router.post("/users/{user_id}/reset-password")
@@ -149,7 +187,7 @@ async def scenes(_: AdminUser, session: DbSession) -> dict:
 @router.post("/scenes", status_code=201)
 async def create_scene(body: SceneAdminInput, _: AdminUser, session: DbSession) -> dict:
     payload = body.model_dump()
-    payload["question_bank"] = [item.model_dump() for item in body.question_bank]
+    payload["question_bank"] = [item.model_dump(by_alias=True, exclude_none=True) for item in body.question_bank]
     scene = Scene(id=f"scene-{uuid4().hex}", **payload)
     session.add(scene)
     await session.commit()
@@ -162,7 +200,7 @@ async def update_scene(scene_id: str, body: SceneAdminInput, _: AdminUser, sessi
     if scene is None:
         raise not_found("面试场景")
     payload = body.model_dump()
-    payload["question_bank"] = [item.model_dump() for item in body.question_bank]
+    payload["question_bank"] = [item.model_dump(by_alias=True, exclude_none=True) for item in body.question_bank]
     for key, value in payload.items():
         setattr(scene, key, value)
     await session.commit()
@@ -323,92 +361,6 @@ async def question_coverage(_: AdminUser, session: DbSession) -> dict:
         "totalQuestions": sum(item["questions"] for item in items),
         "neverTrained": len([item for item in items if item["sessions"] == 0]),
         "items": sorted(items, key=lambda x: (x["sessions"], -x["questions"])),
-    })
-
-DIMENSION_SCORE_FIELD = {
-    "logic": "logic_score",
-    "appropriateness": "appropriateness_score",
-    "correctness": "correctness_score",
-    "relevance": "relevance_score",
-    "concision": "concision_score",
-}
-
-DIMENSION_NAMES = {
-    "logic": "内容与逻辑",
-    "relevance": "贴合问题",
-    "correctness": "信息完整",
-    "concision": "表达干净",
-}
-
-
-@router.get("/mistake-stats")
-async def mistake_stats(_: AdminUser, session: DbSession) -> dict:
-    evaluations = (await session.scalars(select(Evaluation))).all()
-    if not evaluations:
-        return ok({"total": 0, "byDimension": [], "byScene": [], "resolvedRate": 0})
-    by_id = {item.id: item for item in evaluations}
-    evidence_rows = (
-        await session.scalars(
-            select(EvaluationEvidence).where(
-                EvaluationEvidence.evaluation_id.in_(list(by_id))
-            )
-        )
-    ).all()
-    sessions = {
-        row.id: row
-        for row in (
-            await session.scalars(
-                select(TrainingSession).where(
-                    TrainingSession.id.in_([item.session_id for item in evaluations])
-                )
-            )
-        ).all()
-    }
-    scenes = {
-        row.id: row
-        for row in (
-            await session.scalars(
-                select(Scene).where(Scene.id.in_([item.scene_id for item in sessions.values()]))
-            )
-        ).all()
-    }
-
-    dimension_counts: dict[str, int] = {name: 0 for name in DIMENSION_NAMES.values()}
-    scene_counts: dict[str, int] = {}
-    total = 0
-    for row in evidence_rows:
-        evaluation = by_id.get(row.evaluation_id)
-        if evaluation is None:
-            continue
-        score = getattr(evaluation, DIMENSION_SCORE_FIELD.get(row.dimension, "logic_score"), 5)
-        if score > 3:
-            continue
-        total += 1
-        label = DIMENSION_NAMES.get(row.dimension, row.dimension)
-        dimension_counts[label] = dimension_counts.get(label, 0) + 1
-        training = sessions.get(evaluation.session_id)
-        scene = scenes.get(training.scene_id) if training else None
-        title = scene.title if scene else "历史场景"
-        scene_counts[title] = scene_counts.get(title, 0) + 1
-
-    states = (await session.scalars(select(MistakeState))).all()
-    resolved_rate = 0.0
-    if states:
-        resolved_rate = round(
-            len([item for item in states if item.status == "RESOLVED"]) / max(len(states), 1), 3
-        )
-
-    return ok({
-        "total": total,
-        "byDimension": [
-            {"name": name, "count": count}
-            for name, count in sorted(dimension_counts.items(), key=lambda kv: kv[1], reverse=True)
-        ],
-        "byScene": [
-            {"name": name, "count": count}
-            for name, count in sorted(scene_counts.items(), key=lambda kv: kv[1], reverse=True)[:10]
-        ],
-        "resolvedRate": resolved_rate,
     })
 
 @router.get("/password-requests")
@@ -591,20 +543,7 @@ async def list_tasks(
 
 @router.post("/tasks/{task_id}/retry")
 async def retry_task(task_id: str, _: AdminUser, session: DbSession) -> dict:
-    """把失败的任务重新排队。"""
-    from app.db.models import AnalysisTask
-
-    task = await session.get(AnalysisTask, task_id)
-    if task is None:
-        raise not_found("任务")
-    if task.status not in {"FAILED", "DONE"}:
-        raise AppError(422, "TASK_NOT_RETRYABLE", "只有失败或已完成的任务可以重跑")
-    task.status = "PENDING"
-    task.progress = 0
-    task.stage = "重新排队"
-    task.error = None
-    await session.commit()
-    return ok({"id": task.id, "status": task.status})
+    raise AppError(410, "VIDEO_UPLOAD_RETIRED", "旧录像分析已停用，历史结果仅供查看")
 
 
 @router.get("/metrics")

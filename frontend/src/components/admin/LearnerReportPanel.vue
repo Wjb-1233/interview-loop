@@ -136,11 +136,6 @@ h3 { margin: 22px 0 10px; color: var(--text-3); font-size: 11.5px; font-weight: 
 .trend { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; padding-left: 18px; color: var(--text-3); font-size: 12.5px; }
 .report-foot { display: flex; justify-content: flex-end; margin-top: 22px; }
 
-@media (max-width: 620px) {
-  .dimensions { grid-template-columns: 1fr; }
-  .metrics { grid-template-columns: 1fr; }
-}
-
 /* 进度条：入场时从 0 长到目标值 */
 .bar b {
   width: 0;

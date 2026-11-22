@@ -53,6 +53,9 @@ def test_report_keeps_only_verifiable_score_evidence(monkeypatch) -> None:
         assert finished.status_code == 200
         report = finished.json()["data"]
         assert report["planId"] is None
+        assert report["qualityStatus"] == "INSUFFICIENT_EVIDENCE"
+        assert report["missingEvidenceDimensions"] == ["relevance", "correctness"]
+        assert report["eligibleForGrowth"] is False
         assert {item["dimension"] for item in report["evidence"]} == {"logic", "concision"}
         logic = next(item for item in report["evidence"] if item["dimension"] == "logic")
         assert logic["questionMessageId"] == opening_id

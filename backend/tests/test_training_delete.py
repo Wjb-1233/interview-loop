@@ -6,7 +6,6 @@ from sqlalchemy import select
 
 from app.db.base import session_factory
 from app.db.models import Evaluation, Message, TrainingPlan, TrainingSession
-from app.infrastructure.state_store import state_store
 from app.main import app
 
 
@@ -94,4 +93,3 @@ def test_delete_training_session_removes_related_data_and_protects_other_users()
         assert evidence_plan.tasks[0]["completed"] is True
         assert all(not task["completed"] and task["evidence"] is None for task in evidence_plan.tasks[1:])
         assert evidence_plan.tasks[2]["rewritePassed"] is False
-        assert asyncio.run(state_store.get(target_id)) is None

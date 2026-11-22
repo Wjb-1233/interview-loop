@@ -2,6 +2,7 @@
 import { computed, onMounted, shallowRef } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { useAuth } from '@/composables/useAuth'
 import { api, errorMessage } from '@/lib/api'
 
 const route = useRoute()
@@ -17,6 +18,7 @@ onMounted(async () => {
   }
   try {
     await api.post('/auth/verify-email/confirm', { token: token.value })
+    await useAuth().refreshUser()
     state.value = 'ok'
   } catch (reason) {
     state.value = 'error'

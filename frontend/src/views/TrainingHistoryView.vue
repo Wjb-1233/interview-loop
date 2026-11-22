@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import SelectField from '@/components/ui/SelectField.vue'
 import DeleteTrainingDialog from '@/components/training/DeleteTrainingDialog.vue'
 import { api, errorMessage, MODEL_REQUEST_TIMEOUT_MS } from '@/lib/api'
-import type { ApiEnvelope } from '@/lib/types'
+import type { ApiEnvelope, TrainingSession } from '@/lib/types'
 
 const router = useRouter()
 
@@ -117,6 +117,17 @@ async function confirmDelete(): Promise<void> {
   }
 }
 
+async function continueTraining(item: HistoryItem): Promise<void> {
+  try {
+    const current = (await api.get<ApiEnvelope<TrainingSession>>(`/training-sessions/${item.id}`)).data.data
+    if (current.channel === 'TEXT' || !current.channel) {
+      await router.push(`/training/${item.id}`)
+    } else {
+      await router.push({ name: current.channel === 'VIDEO' ? 'video' : 'voice', query: { sessionId: item.id, sceneId: item.sceneId, depth: current.depth ?? 'STANDARD', duration: String(current.delivery?.plannedDurationMinutes ?? 10), ...(current.planId && current.taskKey ? { planId: current.planId, taskKey: current.taskKey } : {}) } })
+    }
+  } catch (reason) { error.value = errorMessage(reason) }
+}
+
 async function generateScore(item: HistoryItem): Promise<void> {
   if (scoringId.value) return
   scoringId.value = item.id
@@ -185,14 +196,14 @@ async function exportReports(): Promise<void> {
           <button v-if="item.recordingUrl" class="replay-link" type="button" @click="openReplay(item)">回放录音</button>
           <RouterLink v-if="item.overallScore !== null" class="button" :to="`/report/${item.id}`">查看评分报告 →</RouterLink>
           <button
-            v-else-if="item.status === 'FINISHED'"
+            v-else-if="item.status === 'FINISHED' || (item.channel && item.channel !== 'TEXT' && item.currentRound >= 2)"
             class="button"
             type="button"
             :disabled="Boolean(scoringId)"
             :title="scoringId === item.id ? '正在生成四维评分' : '为这场已结束的训练补生成评分报告'"
             @click="generateScore(item)"
           >{{ scoringId === item.id ? '正在评分…' : '生成评分 →' }}</button>
-          <RouterLink v-else class="button" :to="`/training/${item.id}`">继续训练 →</RouterLink>
+          <button v-else class="button" @click="continueTraining(item)">继续训练 →</button>
           <button v-if="item.status === 'FINISHED'" class="archive-button" type="button" @click="toggleArchive(item)">{{ item.archivedAt ? '恢复记录' : '归档' }}</button>
           <button class="delete-button" type="button" :aria-label="`彻底删除${item.sceneTitle}训练记录`" @click="askDelete(item)">彻底删除</button>
         </div>
@@ -223,7 +234,6 @@ async function exportReports(): Promise<void> {
         :src="replay.url"
         controls
         autoplay
-        playsinline
         @error="replayError = '这段录像已被清理，无法回放'"
       />
       <audio v-else ref="replayMedia" :src="replay.url" controls autoplay @error="replayError = '这段录音已被清理，无法回放'" />
@@ -255,7 +265,6 @@ async function exportReports(): Promise<void> {
 .replay-link,.archive-button { border:0; background:transparent; color:var(--mint-dark); cursor:pointer; font-size:12px; font-weight:700; }
 .delete-button { border: 0; background: transparent; color: var(--danger); cursor: pointer; font-size: 12px; font-weight: 700; }
 .delete-button:hover { text-decoration: underline; }
-@media (max-width: 700px) { .history-item { grid-template-columns: 1fr; gap: 14px; } .history-actions { justify-content: flex-start; } .history-tools { grid-template-columns: 1fr; } }
 .history-item { background:var(--glass); }
 .score { background:none;color:var(--text);font-weight:500; }
 .replay-link,.archive-button { color:var(--text-2); }

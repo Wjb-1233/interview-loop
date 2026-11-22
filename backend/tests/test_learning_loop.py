@@ -1,3 +1,4 @@
+from tests.support.factories import PLAN_DRAFT
 from importlib import import_module
 from uuid import uuid4
 
@@ -7,34 +8,6 @@ from app.infrastructure.llm import llm_gateway
 from app.main import app
 
 
-PLAN_DRAFT = {
-    "title": "逻辑性专项提升：先复盘再学微课",
-    "lesson": {
-        "title": "逻辑性微课",
-        "intro": "用三个步骤让回答先有结论，再有依据，最后落到行动。",
-        "steps": [
-            {
-                "title": "先给结论",
-                "explanation": "开口第一句先说结论，让对方立刻知道你要回答什么。",
-                "example": "我的结论是：先解决客户反馈的这个问题。",
-            },
-            {
-                "title": "再给依据",
-                "explanation": "用一条可核对的事实支撑结论，不堆形容词。",
-                "example": "依据是本周三位客户都提到同一处报错。",
-            },
-            {
-                "title": "落到行动",
-                "explanation": "明确谁在什么时候做什么，避免空泛表态。",
-                "example": "我今天下午提交方案，明天在群里同步结果。",
-            },
-        ],
-        "exercise": "结合最近一次真实沟通，用上面三个方法重写一段至少 40 字的逻辑性表达。",
-    },
-    "practice_task": "回到逻辑性基础场景完成至少 6 轮对话，重点练习结论先行。",
-    "rewrite_task": "对照逐轮批注，挑选问题最大的回答重新组织表达。",
-    "retest_task": "回到原场景完成新一轮训练，对比逻辑性评分变化。",
-}
 
 
 def finish_training(client: TestClient, headers: dict[str, str], scene_id: str, create_plan: bool) -> str:
@@ -96,11 +69,13 @@ def test_plan_is_review_then_lesson_and_closes(monkeypatch) -> None:
         plan_id = plan["id"]
         assert plan["focusDimension"] == "内容与逻辑"
         keys = [(task["key"], task["actionType"]) for task in plan["tasks"]]
-        assert keys[-1] == ("course", "COURSE")
-        assert all(action in {"SCENE", "VIDEO", "VOICE", "REWRITE", "REPORT", "REVIEW", "COURSE"} for _, action in keys)
+        assert keys[-1] == ("retest", "RETEST")
+        assert all(action in {"SCENE", "VIDEO", "VOICE", "REWRITE", "REPORT", "REVIEW", "COURSE", "RETEST"} for _, action in keys)
         course_task = next(item for item in plan["tasks"] if item["actionType"] == "COURSE")
         assert course_task["lesson"]["steps"][0]["title"] == "先给结论"
 
+        assert client.post(f"/api/v1/training-plans/{plan_id}/tasks/session-review/complete", headers=headers, json={}).status_code == 200
+        assert client.post(f"/api/v1/training-plans/{plan_id}/tasks/rewrite/complete", headers=headers, json={"evidence": "我的结论是先处理问题，通过验证结果证明方案有效，再同步后续行动安排。"}).status_code == 200
         for index in range(3):
             step = client.post(
                 f"/api/v1/training-plans/{plan_id}/tasks/course/steps/{index}/complete", headers=headers,

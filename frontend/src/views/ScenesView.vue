@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, shallowRef } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, shallowRef, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
+import MyScenesPanel from '@/components/scenes/MyScenesPanel.vue'
 import SceneCard from '@/components/scenes/SceneCard.vue'
 import InterviewStartDialog from '@/components/scenes/InterviewStartDialog.vue'
 import { useSceneFilters } from '@/composables/useSceneFilters'
@@ -11,10 +12,13 @@ import { DIFFICULTY_LEVELS } from '@/lib/sceneTaxonomy'
 import SelectField from '@/components/ui/SelectField.vue'
 
 const router = useRouter()
+const route = useRoute()
+const mine = shallowRef(route.query.tab === 'mine')
+watch(() => route.query.tab, (tab) => { mine.value = tab === 'mine' })
 const scenes = shallowRef<Scene[]>([])
 const loading = shallowRef(true)
 const error = shallowRef('')
-const startSelection = shallowRef<{ scene: Scene; mode: 'text' | 'voice' } | null>(null)
+const startSelection = shallowRef<{ scene: Scene; mode: 'text' | 'voice' | 'video' } | null>(null)
 const advanced = shallowRef(false)
 const DEPTH_KEY = 'yanjie-interview-depth'
 const depth = shallowRef<'STANDARD' | 'THREE_LAYER' | 'PRESSURE'>(
@@ -24,13 +28,6 @@ function setDepth(value: 'STANDARD' | 'THREE_LAYER' | 'PRESSURE'): void {
   depth.value = value
   localStorage.setItem(DEPTH_KEY, value)
 }
-const LANGUAGE_KEY = 'yanjie-interview-language'
-const language = shallowRef<'zh' | 'en'>((localStorage.getItem(LANGUAGE_KEY) as 'zh' | 'en') || 'zh')
-function setLanguage(value: 'zh' | 'en'): void {
-  language.value = value
-  localStorage.setItem(LANGUAGE_KEY, value)
-}
-
 const starting = shallowRef(false)
 const startError = shallowRef('')
 const {
@@ -61,6 +58,7 @@ async function startDrill(scene: Scene): Promise<void> {
     const created = await api.post<ApiEnvelope<{ id: string }>>('/training-sessions', {
       sceneId: scene.id,
       mode: 'DRILL',
+      evidenceDriven: true,
       ...(planId.value && taskKey.value ? { planId: planId.value, taskKey: taskKey.value } : {}),
     })
     void router.push(`/training/${created.data.data.id}`)
@@ -75,52 +73,31 @@ function start(scene: Scene, mode: 'text' | 'voice' | 'video' | 'drill') {
     return
   }
   startError.value = ''
-  if (mode === 'video') {
-    void router.push({ name: 'video', query: { sceneId: scene.id, depth: depth.value, lang: language.value } })
-    return
-  }
-  if (mode === 'voice') {
-    void router.push({
-      name: 'voice',
-      query: {
-        sceneId: scene.id,
-        depth: depth.value,
-        lang: language.value,
-        ...(planId.value && taskKey.value ? { planId: planId.value, taskKey: taskKey.value } : {}),
-      },
-    })
-    return
-  }
+  if (planId.value && typeof route.query.channel === 'string') mode = route.query.channel === 'VIDEO' ? 'video' : route.query.channel === 'VOICE' ? 'voice' : 'text'
   startSelection.value = { scene, mode }
 }
 
-async function confirmStart(file: File | null): Promise<void> {
+async function confirmStart(options: { file: File | null; jd: string; duration: number }): Promise<void> {
   if (!startSelection.value || starting.value) return
   const { scene, mode } = startSelection.value
   starting.value = true
   startError.value = ''
   try {
     const form = new FormData()
-    if (file) {
-      form.append('sceneId', scene.id)
-      form.append('depth', depth.value)
-      form.append('language', language.value)
-      form.append('file', file)
-    }
-    const response = file
-      ? await api.post<ApiEnvelope<{ id: string }>>('/training-sessions/with-resume', form, { timeout: MODEL_REQUEST_TIMEOUT_MS })
-      : await api.post<ApiEnvelope<{ id: string }>>('/training-sessions', {
-        sceneId: scene.id,
-        depth: depth.value,
-        language: language.value,
-        ...(planId.value && taskKey.value ? { planId: planId.value, taskKey: taskKey.value } : {}),
-      })
+    form.append('sceneId', scene.id)
+    form.append('channel', mode.toUpperCase())
+    form.append('evidenceDriven', 'true')
+    form.append('depth', depth.value)
+    form.append('duration', String(options.duration))
+    form.append('jd', options.jd)
+    if (options.file) form.append('file', options.file)
+    if (planId.value && taskKey.value) { form.append('planId', planId.value); form.append('taskKey', taskKey.value) }
+    const response = await api.post<ApiEnvelope<{ id: string; channel: string; depth: string }>>('/training-sessions/prepare', form, { timeout: MODEL_REQUEST_TIMEOUT_MS })
+    const prepared = response.data.data
     startSelection.value = null
-    await router.push({
-      name: 'training',
-      params: { id: response.data.data.id },
-      query: { ...(planId.value && taskKey.value ? { planId: planId.value, taskKey: taskKey.value } : {}), mode },
-    })
+    const query = { sessionId: prepared.id, sceneId: scene.id, depth: prepared.depth, duration: String(options.duration), ...(planId.value && taskKey.value ? { planId: planId.value, taskKey: taskKey.value } : {}) }
+    if (prepared.channel === 'TEXT') await router.push({ name: 'training', params: { id: prepared.id }, query })
+    else await router.push({ name: prepared.channel === 'VIDEO' ? 'video' : 'voice', query })
   } catch (reason) { startError.value = errorMessage(reason) }
   finally { starting.value = false }
 }
@@ -137,10 +114,12 @@ async function confirmStart(file: File | null): Promise<void> {
       </div>
       <div class="head-side">
         <span>{{ catalogScenes.length }} 场</span>
-        <RouterLink to="/my-scenes">自建场景 →</RouterLink>
+        <nav class="scene-tabs" aria-label="场景来源"><button class="button secondary" :aria-pressed="!mine" @click="mine = false">公共场景</button><button class="button secondary" :aria-pressed="mine" @click="mine = true">我的场景</button><RouterLink class="button secondary" to="/favorites">收藏场景</RouterLink></nav>
       </div>
     </header>
 
+    <MyScenesPanel v-if="mine" @start="start" />
+    <template v-else>
     <div v-if="planId" class="plan-notice">
       这是训练计划中的指定场景。请创建新会话，完成至少 6 轮对话并查看评分。
     </div>
@@ -164,11 +143,6 @@ async function confirmStart(file: File | null): Promise<void> {
         </div>
         <button class="more-toggle" type="button" @click="advanced = !advanced">{{ advanced ? '收起设置' : '更多设置' }}</button>
         <div v-if="advanced" class="extra-settings">
-          <div class="depth-picker" role="group" aria-label="面试语言">
-            <span>面试语言</span>
-            <button type="button" :class="{ active: language === 'zh' }" @click="setLanguage('zh')">中文</button>
-            <button type="button" :class="{ active: language === 'en' }" @click="setLanguage('en')">English</button>
-          </div>
           <div class="depth-picker" role="group" aria-label="追问强度">
             <span>追问强度</span>
             <button type="button" :class="{ active: depth === 'STANDARD' }" @click="setDepth('STANDARD')">标准</button>
@@ -184,6 +158,7 @@ async function confirmStart(file: File | null): Promise<void> {
       <SceneCard v-for="scene in visibleScenes" :key="scene.id" :scene="scene" @start="start" @favorite="toggleFavorite" />
     </section>
     <div v-else class="empty panel">没有匹配的场景。换一个关键词，或选择其他分类。</div>
+    </template>
     <InterviewStartDialog
       v-if="startSelection"
       :scene="startSelection.scene"
@@ -224,7 +199,6 @@ async function confirmStart(file: File | null): Promise<void> {
 .stage-label { flex: none; color: var(--text-3); font-size: 12px; letter-spacing: .02em; }
 .category-tabs { display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
 .category-tabs button { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-@media (max-width: 720px) { .stage-filter { flex-direction: column; align-items: stretch; gap: 6px; } }
 .category-tabs button { min-height: 38px; padding: 0 15px; border: 1px solid var(--line); border-radius: 7px; background:var(--card); cursor: pointer; color: var(--ink-soft); transition: background .18s, border-color .18s, color .18s; }
 .category-tabs button:hover { border-color: var(--mint-dark); color: var(--mint-dark); }
 .category-tabs button.active { border-color: var(--accent); background: var(--accent); color: var(--on-solid); }
@@ -252,8 +226,6 @@ async function confirmStart(file: File | null): Promise<void> {
 .difficulty-guide .hard { color:var(--danger); }
 .difficulty-select.easy,.difficulty-select.medium,.difficulty-select.hard { border-color:var(--border);color:var(--text); }
 .scene-grid > :nth-child(2n) { animation-delay: .1s; }
-@media (max-width: 1100px) { .filters { grid-template-columns: 1fr; } }
-@media (max-width: 650px) { .scene-hero { min-height: auto; padding: 28px 25px; } .hero-aside { display: none; } .scene-hero .page-title { font-size: 36px; } .scene-hero .page-lead { font-size: 13px; } .catalog-heading h2 { font-size: 23px; } .metadata-filters { display: grid; grid-template-columns: 1fr 1fr; } .metadata-filters select { min-width: 0; } .metadata-filters select:last-child { grid-column: 1 / -1; } .scene-grid { grid-template-columns: 1fr; } }
 
 :root[data-theme='dark'] .scene-hero {
   background: #0a0a24;
@@ -299,5 +271,4 @@ async function confirmStart(file: File | null): Promise<void> {
 .more-toggle { justify-self: start; border: 0; background: transparent; color: var(--text-3); font-size: 12.5px; cursor: pointer; padding: 0; }
 .more-toggle:hover { color: var(--text); }
 .scene-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
-@media (max-width: 720px) { .scene-head { flex-direction: column; align-items: flex-start; } .head-side { padding: 0; } }
 </style>

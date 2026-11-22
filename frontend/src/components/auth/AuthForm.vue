@@ -291,9 +291,4 @@ function submit() {
 }
 .consent-label { cursor: pointer; }
 .privacy-link { color: var(--accent-strong); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
-
-@media (max-width: 520px) {
-  .auth-form { gap: 16px; }
-  .form-title { font-size: 23px; }
-}
 </style>

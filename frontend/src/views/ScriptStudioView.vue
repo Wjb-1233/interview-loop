@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { MessageSquareText } from 'lucide-vue-next'
 
 import ScriptVersionCard from '@/components/scenes/ScriptVersionCard.vue'
+import { useScriptPreview } from '@/composables/useScriptPreview'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import { api, errorMessage, MODEL_REQUEST_TIMEOUT_MS } from '@/lib/api'
 import type { ApiEnvelope, MistakeItem, ScriptVersion } from '@/lib/types'
@@ -14,8 +15,9 @@ const mistakes = shallowRef<MistakeItem[]>([])
 const total = shallowRef(0)
 const history = shallowRef<ScriptVersion[]>([])
 const loading = shallowRef(true)
-let audio: HTMLAudioElement | null = null
 const error = shallowRef('')
+const { previewingId, playingId, playPreview } = useScriptPreview((message) => { error.value = message })
+const favoritingIds = shallowRef<string[]>([])
 const generating = shallowRef<string | null>(null)
 const results = shallowRef<Record<string, ScriptResult>>({})
 const showResolved = shallowRef(false)
@@ -24,11 +26,12 @@ const deepBusy = shallowRef(false)
 const deepResult = shallowRef<ScriptResult | null>(null)
 const freeOriginal = shallowRef('')
 const freeObjective = shallowRef('')
+const freeBackground = shallowRef('')
 
 async function startFreeRewrite(): Promise<void> {
   if (!freeOriginal.value.trim() || deepBusy.value) return
   deepRewrite.value = {
-    sceneId: mattersFirstScene.value,
+    sceneId: '',
     original: freeOriginal.value.trim(),
     dimension: '',
     objective: freeObjective.value.trim() || '把这句话改得更具体、更可核查',
@@ -43,7 +46,6 @@ const PAGE_SIZE = 6
 const route = useRoute()
 const keyOf = (item: MistakeItem) => `${item.sessionId}-${item.roundNo}-${item.dimension}`
 const pending = computed(() => mistakes.value)
-const resolvedCount = computed(() => mistakes.value.filter((item) => item.status === 'RESOLVED').length)
 const pageCount = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 const pagedPending = computed(() => pending.value)
 
@@ -119,8 +121,9 @@ async function generateDeep(): Promise<void> {
   error.value = ''
   try {
     const response = await api.post<ApiEnvelope<ScriptResult>>('/scripts/generate', {
-      sceneId: draft.sceneId,
+      sceneId: draft.sceneId || undefined,
       objective: draft.objective,
+      extraContext: freeBackground.value || undefined,
       originalText: draft.original,
       dimension: draft.dimension || undefined,
     }, { timeout: MODEL_REQUEST_TIMEOUT_MS })
@@ -130,17 +133,6 @@ async function generateDeep(): Promise<void> {
     error.value = errorMessage(reason)
   } finally {
     deepBusy.value = false
-  }
-}
-
-async function playPreview(version: ScriptVersion): Promise<void> {
-  try {
-    const response = await api.post<ApiEnvelope<{ url: string }>>('/scripts/preview', { text: version.content })
-    audio?.pause()
-    audio = new Audio(response.data.data.url)
-    await audio.play().catch(() => undefined)
-  } catch (reason) {
-    error.value = errorMessage(reason)
   }
 }
 
@@ -159,9 +151,13 @@ async function setStatus(item: MistakeItem, status: 'RESOLVED' | 'PENDING'): Pro
 }
 
 async function favorite(version: ScriptVersion): Promise<void> {
+  if (favoritingIds.value.includes(version.id)) return
+  favoritingIds.value = [...favoritingIds.value, version.id]
+  error.value = ''
   try {
     const response = await api.post<ApiEnvelope<{ favorite: boolean }>>(`/scripts/${version.id}/favorite`)
     const nextFavorite = response.data.data.favorite
+    if (deepResult.value) deepResult.value = { ...deepResult.value, versions: deepResult.value.versions.map((item) => item.id === version.id ? { ...item, favorite: nextFavorite } : item) }
     history.value = history.value.map((item) => item.id === version.id ? { ...item, favorite: nextFavorite } : item)
     results.value = Object.fromEntries(
       Object.entries(results.value).map(([key, result]) => [
@@ -171,6 +167,8 @@ async function favorite(version: ScriptVersion): Promise<void> {
     )
   } catch (reason) {
     error.value = errorMessage(reason)
+  } finally {
+    favoritingIds.value = favoritingIds.value.filter((id) => id !== version.id)
   }
 }
 </script>
@@ -199,6 +197,7 @@ async function favorite(version: ScriptVersion): Promise<void> {
         </label>
         <label class="deep-field">
           <span>想达到的效果</span>
+          <textarea v-model="freeBackground" class="field" rows="2" maxlength="1000" placeholder="目标岗位、面试问题或背景（可选）" aria-label="面试背景" />
           <input v-model="freeObjective" class="field" maxlength="500" placeholder="例如：说清楚我具体做了什么、结果怎么样" />
         </label>
         <div class="deep-actions">
@@ -209,7 +208,7 @@ async function favorite(version: ScriptVersion): Promise<void> {
         </div>
       </div>
       <div v-if="deepResult" class="versions deep-versions">
-        <ScriptVersionCard v-for="version in deepResult.versions" :key="version.id" :version="version" :show-actions="true" @favorite="favorite" @preview="playPreview" />
+        <ScriptVersionCard v-for="version in deepResult.versions" :key="version.id" :version="version" :show-actions="true" :preview-loading="previewingId === version.id" :preview-disabled="!!previewingId && previewingId !== version.id" :preview-playing="playingId === version.id" :favorite-loading="favoritingIds.includes(version.id)" @favorite="favorite" @preview="playPreview" />
         <p class="coach-note">{{ deepResult.coachNote }}</p>
       </div>
     </section>
@@ -241,6 +240,10 @@ async function favorite(version: ScriptVersion): Promise<void> {
           v-for="version in deepResult.versions"
           :key="version.id"
           :version="version"
+          :preview-loading="previewingId === version.id"
+          :preview-disabled="!!previewingId && previewingId !== version.id"
+          :preview-playing="playingId === version.id"
+          :favorite-loading="favoritingIds.includes(version.id)"
           :show-actions="true"
           @favorite="favorite"
           @preview="playPreview"
@@ -252,8 +255,8 @@ async function favorite(version: ScriptVersion): Promise<void> {
     <section class="block">
       <header class="block-head">
         <div><h2>待优化</h2><span>{{ pending.length }} 条</span></div>
-        <button v-if="resolvedCount" class="text-btn" type="button" @click="showResolved = !showResolved">
-          {{ showResolved ? '隐藏已解决' : `显示已解决（${resolvedCount}）` }}
+        <button class="text-btn" type="button" @click="showResolved = !showResolved">
+          {{ showResolved ? '隐藏已解决' : '显示已解决' }}
         </button>
       </header>
 
@@ -301,6 +304,10 @@ async function favorite(version: ScriptVersion): Promise<void> {
               @preview="playPreview"
               :key="version.id"
               :version="version"
+              :preview-loading="previewingId === version.id"
+              :preview-disabled="!!previewingId && previewingId !== version.id"
+              :preview-playing="playingId === version.id"
+              :favorite-loading="favoritingIds.includes(version.id)"
               :scene-title="item.sceneTitle"
               show-actions
               @favorite="favorite"
@@ -383,5 +390,4 @@ async function favorite(version: ScriptVersion): Promise<void> {
 .text-btn { font-size: 13px; color: var(--text-3); }
 .mistake-actions .button { font-size: 13px; padding: 8px 14px; }
 .coach-note { font-size: 13px; color: var(--text-2); }
-@media (max-width: 640px) { .page-title { font-size: 26px; } }
 </style>

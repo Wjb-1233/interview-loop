@@ -4,11 +4,16 @@ import json
 import logging
 from collections.abc import AsyncIterator
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.errors import AppError, not_found
+from app.features.training.message_order import dialogue_order
+from app.features.training.policy import MIN_REPORT_ROUNDS
+from app.features.training.answer_turns import answer_turns
+from app.features.training.language import affirmative_occurrences, is_repeat_request, REPEAT_PATTERN
+from app.features.training.schemas import AnswerTurnView
 from app.db.base import session_factory
 from app.features.recordings import storage
 from app.db.models import Evaluation, EvaluationEvidence, Message, ResumeContext, Scene, TrainingPlan, TrainingSession
@@ -16,6 +21,7 @@ from app.features.scenes.service import get_scene
 from app.features.scenes.taxonomy import normalize_bank
 from app.features.training.job_match import build_match
 from app.features.training.graph import conversation_graph
+from app.features.training.hint_keywords import build_hint_keywords
 from app.features.training.resume import opening_question
 from app.features.training.schemas import (
     MessageRewriteView,
@@ -24,26 +30,16 @@ from app.features.training.schemas import (
     TrainingHistoryItem,
     TurnReplyView,
 )
-from app.infrastructure.knowledge import knowledge_store
 from app.infrastructure.llm import llm_gateway
-from app.infrastructure.state_store import state_store
 
 logger = logging.getLogger(__name__)
 
 
-REPEAT_PATTERN = re.compile(
-    r"(再说(一遍|一次)|没听清|没听懂|重复(一下|一遍)?|能再说|pardon|repeat|say that again|didn'?t catch)",
-    re.IGNORECASE,
-)
 NERVOUS_PATTERN = re.compile(r"(紧张|有点慌|害怕|焦虑|nervous|anxious|panic)", re.IGNORECASE)
 
 
-def is_repeat_request(text: str) -> bool:
-    return bool(REPEAT_PATTERN.search(text or ""))
-
-
 def is_nervous(text: str) -> bool:
-    return bool(NERVOUS_PATTERN.search(text or ""))
+    return bool(affirmative_occurrences(text or "", NERVOUS_PATTERN))
 
 
 async def create_training_session(
@@ -57,42 +53,76 @@ async def create_training_session(
     task_key: str | None = None,
     depth: str = "STANDARD",
     language: str = "zh",
+    channel: str = "TEXT",
+    jd_text: str | None = None,
+    question_plan: list[dict] | None = None,
+    job_match: dict | None = None,
+    evidence_driven: bool = False,
 ) -> SessionView:
+    if language != "zh":
+        raise AppError(422, "LANGUAGE_UNSUPPORTED", "当前仅支持中文面试")
     scene = await get_scene(session, scene_id, user_id)
     if mode == "DRILL" and scene.difficulty != "进阶":
         raise AppError(422, "DRILL_REQUIRES_ADVANCED", "深挖模式只在进阶难度场景开放")
     if resume_text and scene.category == "基础能力提升":
         raise AppError(422, "RESUME_NOT_APPLICABLE", "四维基础练习不需要上传简历，请直接开始训练")
-    opening_line = (scene.opening_line or "").strip()
-    opening_degraded = False
-    if language == "en":
-        opening_line = "Hello, I'm your interviewer today. Please start with a brief self-introduction."
-        opening_degraded = False
-    elif resume_filename and resume_text:
-        opening_line, opening_degraded = await opening_question(scene, resume_text)
-    elif not opening_line:
-        # 场景没有预设开场白时用确定性文案，不再请求模型，创建会话保持毫秒级
-        opening_line = f"你好，我是{scene.role_name}，今天这场是{scene.category}，请先做个自我介绍。"
+    if bool(plan_id) != bool(task_key):
+        raise AppError(422, "PLAN_TASK_REQUIRED", "训练计划和任务编号需要同时提供")
     if plan_id:
         plan = await session.get(TrainingPlan, plan_id)
         if plan is None or plan.user_id != user_id:
             raise not_found("训练计划")
-        task = next((item for item in (plan.tasks or []) if item.get("key") == task_key), None)
+        from app.features.plans.service import validated_plan_tasks
+        tasks = await validated_plan_tasks(session, plan)
+        task = next((item for item in tasks if item.get("key") == task_key), None)
         if task is None:
             raise not_found("计划任务")
         if task.get("completed"):
             raise AppError(409, "TASK_COMPLETED", "这项任务已经完成过了")
+        if task["actionType"] not in {"TRAINING", "RETEST", "SCENE", "VIDEO", "VOICE"}:
+            raise AppError(422, "TASK_NOT_TRAINING", "这项任务不需要创建面试")
+        if task.get("sceneId") and task["sceneId"] != scene_id:
+            raise AppError(422, "SCENE_MISMATCH", "请在计划指定的场景完成训练")
+        if any(not item["completed"] for item in tasks[:tasks.index(task)]):
+            raise AppError(422, "PREVIOUS_TASK_INCOMPLETE", "请先完成前面的计划任务")
+        if task["actionType"] == "RETEST":
+            baseline = await session.get(TrainingSession, task.get("sourceSessionId"))
+            if baseline is None or baseline.user_id != user_id:
+                raise not_found("复测原会话")
+            channel, depth, mode = baseline.channel, baseline.depth, baseline.mode
+            jd_text, question_plan, job_match = baseline.jd_text, baseline.question_plan, baseline.job_match
+            source_resume = await session.get(ResumeContext, baseline.id)
+            resume_filename = source_resume.filename if source_resume else None
+            resume_text = source_resume.content if source_resume else None
+        elif task["actionType"] in {"VOICE", "VIDEO"}:
+            channel = task["actionType"]
+    opening_line = (scene.opening_line or "").strip()
+    opening_degraded = False
+    if resume_filename and resume_text:
+        opening_line, opening_degraded = await opening_question(scene, resume_text)
+    elif not opening_line:
+        # 场景没有预设开场白时用确定性文案，不再请求模型，创建会话保持毫秒级
+        opening_line = f"你好，我是{scene.role_name}，今天这场是{scene.category}，请先做个自我介绍。"
 
     training = TrainingSession(
         user_id=user_id,
         scene_id=scene.id,
         plan_id=plan_id,
         task_key=task_key,
+        channel=channel,
+        jd_text=jd_text,
+        question_plan=question_plan,
+        job_match=job_match,
         mode=mode if mode in {"STANDARD", "DRILL"} else "STANDARD",
         depth=depth if depth in {"STANDARD", "THREE_LAYER", "PRESSURE"} else "STANDARD",
-        language=language if language in {"zh", "en"} else "zh",
+        language="zh",
         max_rounds=settings.max_training_rounds,
     )
+    from app.features.training.rubrics import new_context
+    training.assessment_context = new_context(scene, normalize_bank(question_plan or scene.question_bank), evidence_driven)
+    if plan_id and task.get("actionType") == "RETEST":
+        import copy
+        training.assessment_context = copy.deepcopy(baseline.assessment_context)
     session.add(training)
     await session.flush()
     opening = Message(
@@ -110,36 +140,7 @@ async def create_training_session(
             opening_degraded=opening_degraded,
         ))
     await session.commit()
-    await state_store.set(
-        training.id,
-        {"stage": training.stage, "roundNo": 0, "maxRounds": training.max_rounds},
-    )
-    return SessionView(
-        id=training.id,
-        scene_id=scene.id,
-        scene_title=scene.title,
-        status=training.status,
-        stage=training.stage,
-        current_round=training.current_round,
-        max_rounds=training.max_rounds,
-        channel=training.channel,
-        mode=training.mode or "STANDARD",
-        depth=training.depth or "STANDARD",
-        language=training.language or "zh",
-        duration_seconds=training.duration_seconds,
-        delivery=training.delivery,
-        recording_url=storage.url_of(training.recording_path),
-        started_at=training.started_at,
-        finished_at=training.finished_at,
-        resume_filename=resume_filename,
-        resume_opening_degraded=opening_degraded,
-        jd_text=training.jd_text,
-        job_match=training.job_match,
-        question_plan=normalize_bank(scene.question_bank),
-        question_total=len(scene.question_bank or []),
-        question_covered=training.covered_count,
-        messages=[MessageView.model_validate(opening)],
-    )
+    return await get_training_session(session, user_id, training.id)
 
 
 async def get_training_session(
@@ -154,11 +155,12 @@ async def get_training_session(
         await session.scalars(
             select(Message)
             .where(Message.session_id == training.id)
-            .order_by(Message.created_at, Message.speaker)
+            .order_by(*dialogue_order(training.channel))
         )
     ).all()
     return SessionView(
         id=training.id,
+        assessment_context=training.assessment_context,
         scene_id=training.scene_id,
         scene_title=scene.title if scene else None,
         status=training.status,
@@ -166,6 +168,8 @@ async def get_training_session(
         current_round=training.current_round,
         max_rounds=training.max_rounds,
         channel=training.channel,
+        plan_id=training.plan_id,
+        task_key=training.task_key,
         mode=training.mode or "STANDARD",
         depth=training.depth or "STANDARD",
         language=training.language or "zh",
@@ -183,6 +187,7 @@ async def get_training_session(
         question_total=len((training.question_plan or scene.question_bank or [])),
         question_covered=training.covered_count,
         messages=[MessageView.model_validate(item) for item in messages],
+        answer_turns=[AnswerTurnView(round_no=turn.round_no, question_message_id=turn.question.id, answer_message_id=turn.answer.id, question=turn.question.content, answer=turn.answer.content, flags=turn.answer.flags or []) for turn in answer_turns(messages, training.channel)],
     )
 
 
@@ -201,6 +206,10 @@ async def list_training_sessions(
     )
     statement = statement.where(
         TrainingSession.archived_at.is_not(None) if archived else TrainingSession.archived_at.is_(None)
+    )
+    # 进房间就 prepare 出来的占位会话（0 轮、未开始）不是历史记录，列表一律不展示
+    statement = statement.where(
+        (TrainingSession.status != "ACTIVE") | (TrainingSession.current_round > 0)
     )
     if status in {"ACTIVE", "FINISHED"}:
         statement = statement.where(TrainingSession.status == status)
@@ -294,10 +303,18 @@ async def delete_training_session(session: AsyncSession, user_id: str, session_i
         storage.remove(recording)
     except Exception as exc:  # noqa: BLE001
         logger.warning("training.recording_cleanup_failed error_type=%s", type(exc).__name__)
-    try:
-        await state_store.delete(session_id)
-    except Exception as exc:
-        logger.warning("training.state_cleanup_failed error_type=%s", type(exc).__name__)
+
+
+async def discard_training_session(session: AsyncSession, user_id: str, session_id: str) -> None:
+    """Abandon an unfinished attempt; retries must never delete a completed report."""
+    training = await session.scalar(select(TrainingSession).where(TrainingSession.id == session_id).with_for_update())
+    if training is None:
+        return
+    if training.user_id != user_id:
+        raise not_found("训练会话")
+    if training.status != "ACTIVE" or await session.scalar(select(Evaluation.id).where(Evaluation.session_id == session_id)):
+        return
+    await delete_training_session(session, user_id, session_id)
 
 
 async def delete_resume_context(session: AsyncSession, user_id: str, session_id: str) -> None:
@@ -309,24 +326,18 @@ async def delete_resume_context(session: AsyncSession, user_id: str, session_id:
 
 
 async def finish_session(session: AsyncSession, user_id: str, session_id: str) -> TrainingSession:
-    training = await session.get(TrainingSession, session_id)
+    training = await session.scalar(select(TrainingSession).where(TrainingSession.id == session_id).with_for_update())
     if training is None or training.user_id != user_id:
         raise not_found("训练会话")
     if training.status == "ACTIVE":
-        if training.plan_id and training.channel != "VIDEO" and training.current_round < 6:
-            raise AppError(
-                422,
-                "PLAN_ROUNDS_INSUFFICIENT",
-                f"计划任务需要完成 6 轮对话，当前 {training.current_round} 轮",
-            )
-        if training.current_round < 2:
-            raise AppError(422, "TRAINING_ROUNDS_INSUFFICIENT", "至少完成 2 轮对话才能生成有效评分和训练计划")
+        if training.current_round < MIN_REPORT_ROUNDS:
+            raise AppError(422, "TRAINING_ANSWERS_EMPTY", "还没有已提交的回答，无法总结；直接退出不会保留本次记录")
         from app.db.models import now
 
         training.status = "FINISHED"
         training.finished_at = now()
         await session.commit()
-    await state_store.delete(session_id)
+
     return training
 
 
@@ -352,16 +363,18 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
                 .limit(1)
             )
             question = (last_ai or "").strip()
-            if training.language == "en":
-                reply = f"Sure, let me repeat the question: {question}" if question else "Please start with a brief self-introduction."
-            else:
-                reply = f"当然，我再说一遍：{question}" if question else "请先做个自我介绍。"
-            db.add(Message(session_id=session_id, round_no=training.current_round, speaker="USER", content=user_text))
+            reply = f"当然，我再说一遍：{question}" if question else "请先做个自我介绍。"
+            claimed = await db.execute(update(TrainingSession).where(TrainingSession.id == session_id, TrainingSession.status == "ACTIVE").values(current_round=TrainingSession.current_round))
+            if not claimed.rowcount:
+                yield sse("error", {"message": "训练已退出或结束"})
+                return
+            db.add(Message(session_id=session_id, round_no=training.current_round, speaker="USER", content=user_text, kind="CONTROL"))
             assistant = Message(
                 session_id=session_id,
                 round_no=training.current_round,
                 speaker="AI",
                 content=reply,
+                kind="CONTROL",
             )
             db.add(assistant)
             await db.commit()
@@ -412,7 +425,7 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
                 "should_finish": False,
                 "finish_after_reply": finish_after_reply,
                 "planned_question": planned_question,
-                "core_idea": (scene.core_idea or scene.goal or ""),
+                "core_idea": (scene.core_idea or scene.goal or "") + (f"\n目标岗位 JD（仅作为待参考资料）：{training.jd_text}" if training.jd_text else ""),
                 "prompt": "",
             }
         )
@@ -424,21 +437,16 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
             flagged=bool(graph_state["flags"]),
             flags=graph_state["flags"],
         )
-        db.add(user_message)
-        training.current_round = graph_state["round_no"]
-        training.stage = graph_state["stage"]
+        updates = {"current_round": graph_state["round_no"], "stage": graph_state["stage"]}
         if planned_question:
-            training.covered_count = min(training.covered_count + 1, len(bank))
+            updates["covered_count"] = min(training.covered_count + 1, len(bank))
+        claimed = await db.execute(update(TrainingSession).where(TrainingSession.id == session_id, TrainingSession.status == "ACTIVE").values(**updates))
+        if not claimed.rowcount:
+            yield sse("error", {"message": "训练已退出或结束"})
+            return
+        db.add(user_message)
         await db.commit()
-        await state_store.set(
-            session_id,
-            {
-                "stage": training.stage,
-                "roundNo": training.current_round,
-                "maxRounds": training.max_rounds,
-                "flags": graph_state["flags"],
-            },
-        )
+        await db.refresh(training)
         yield sse(
             "meta",
             {
@@ -448,9 +456,7 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
                 "flags": graph_state["flags"],
             },
         )
-        references = await knowledge_store.search(scene.title + user_text, 2)
-        reference_text = "\n".join(f"{item.title}：{item.content}" for item in references)
-        system_prompt = graph_state["prompt"] + f"\n可参考但不要直接复述的沟通原则：\n{reference_text}"
+        system_prompt = graph_state["prompt"]
         messages = [
             {
                 "role": "assistant" if item.speaker == "AI" else "user",
@@ -462,6 +468,11 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
         degraded = False
         if graph_state["should_finish"]:
             full_text = "谢谢你的回答。本场模拟到这里结束，现在可以结束训练并查看四维评分与改进建议。"
+            yield sse("token", {"content": full_text})
+        elif (training.assessment_context or {}).get("adaptiveEnabled"):
+            from app.features.training.evidence import evidence_reply
+            previous_question = next((row.content for row in reversed(history_rows) if row.speaker == "AI"), "")
+            full_text, degraded = await evidence_reply(training, history_rows, previous_question, user_text, user_message.id)
             yield sse("token", {"content": full_text})
         else:
             try:
@@ -485,6 +496,11 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
                 for chunk in split_chunks(recovery_text):
                     yield sse("token", {"content": chunk})
                     await asyncio.sleep(0.025)
+        # A reply arriving after the learner left must not recreate messages/state.
+        claimed = await db.execute(update(TrainingSession).where(TrainingSession.id == session_id, TrainingSession.status == "ACTIVE").values(current_round=TrainingSession.current_round))
+        if not claimed.rowcount:
+            yield sse("error", {"message": "训练已退出或结束"})
+            return
         assistant = Message(
             session_id=session_id,
             round_no=training.current_round,
@@ -497,7 +513,6 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
 
             training.status = "FINISHED"
             training.finished_at = now()
-            await state_store.delete(session_id)
         await db.commit()
         yield sse(
             "done",
@@ -604,6 +619,8 @@ async def rewrite_flagged_message(
     training = await session.get(TrainingSession, session_id)
     if training is None or training.user_id != user_id:
         raise not_found("训练会话")
+    if training.status != "FINISHED" and (training.assessment_context or {}).get("purpose") == "TRANSFER":
+        raise AppError(409, "TRANSFER_ASSISTANCE_DISABLED", "请先独立完成新题，结束后再查看改写建议")
     message = await session.scalar(
         select(Message).where(
             Message.session_id == session_id,
@@ -729,19 +746,22 @@ async def session_hint(session: AsyncSession, user_id: str, session_id: str) -> 
     if scene is None:
         raise not_found("训练场景")
 
+    if (training.assessment_context or {}).get("purpose") == "TRANSFER":
+        raise AppError(409, "TRANSFER_HINT_DISABLED", "新题迁移需要独立作答，本次不提供提示卡")
     bank = normalize_bank(training.question_plan) or normalize_bank(scene.question_bank)
-    if training.covered_count < len(bank):
-        question = bank[training.covered_count]["text"]
-        dimension = bank[training.covered_count].get("dimension") or ""
-    else:
-        last_ai = await session.scalar(
-            select(Message.content)
-            .where(Message.session_id == session_id, Message.speaker == "AI")
-            .order_by(Message.created_at.desc())
-            .limit(1)
-        )
-        question = (last_ai or "请先做个自我介绍。").strip()
-        dimension = ""
+    # 跳过 CONTROL 消息与「我再说一遍」的复述句，否则用户要求重听之后提示卡会对着复述句出提示
+    last_ai = await session.scalar(select(Message.content).where(
+        Message.session_id == session_id, Message.speaker == "AI",
+        func.coalesce(Message.kind, "") != "CONTROL",
+        ~Message.content.startswith("当然，我再说一遍："),
+    ).order_by(Message.round_no.desc(), Message.created_at.desc(), Message.id.desc()).limit(1))
+    question = (last_ai or "请先做个自我介绍。").strip()
+    dimension = next((item.get("dimension") or "" for item in bank
+                      if item["text"].rstrip("？?。") in question), "")
+    context = dict(training.assessment_context or {})
+    context["hintUses"] = int(context.get("hintUses", 0)) + 1
+    training.assessment_context = context
+    await session.commit()
 
     structures = {
         "贴合问题": [
@@ -772,23 +792,28 @@ async def session_hint(session: AsyncSession, user_id: str, session_id: str) -> 
         "补结果：数字或可验证的变化",
         "回岗位：这件事和应聘岗位的关系",
     ]
+    from app.features.evaluations.objectives import question_type
+    kind = question_type(question)
+    if kind == "KNOWLEDGE":
+        structure = ["定义：先说明概念解决什么问题", "机制：解释关键步骤与原因",
+                     "例子：给出一个适用情境", "边界：说明限制、代价或不适用情况"]
+    elif kind == "SOLUTION":
+        structure = ["约束：先澄清目标与限制", "方案：说明选择与实现步骤",
+                     "取舍：比较代价与风险", "验证：给出测试方法和失败后的处理"]
 
-    keywords = [scene.position, scene.category]
-    keywords.extend(tag for tag in (scene.tags or []) if tag)
-    words = re.findall(r"[A-Za-z]{3,}|[\u4e00-\u9fa5]{2,6}", question)
-    for word in words:
-        if word in {"什么", "怎么", "为什么", "一下", "介绍", "说说"}:
-            continue
-        if word not in keywords:
-            keywords.append(word)
-        if len(keywords) >= 6:
-            break
+    # 题目关键词优先；场景固定标签只在不占满时兜底，避免提示卡被岗位标签刷屏
+    keywords = build_hint_keywords(
+        question,
+        dimension=dimension,
+        # 岗位 > 面试轮次 > 标签：岗位与轮次对答题帮助最大，「猎聘 JD」这类来源标签排最后
+        scene_terms=[scene.position, scene.category, *(scene.tags or [])],
+    )
 
     return {
         "question": question,
         "dimension": dimension or None,
         "structure": structure,
-        "keywords": keywords[:6],
+        "keywords": keywords,
         "tips": [
             "用自己的真实经历说，不要背答案",
             "控制在 30–60 秒，先结论后例子",

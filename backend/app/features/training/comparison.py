@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import not_found
 from app.db.models import Evaluation, Message, TrainingSession
+from app.features.training.answer_turns import answer_turns
 
 SIMILARITY = 0.55
 PUNCT = re.compile(r"[\s，。！？、；：""''（）()《》〈〉…—·.!?;:'\"()\[\]{}-]")
@@ -38,17 +39,16 @@ async def same_question_attempts(
     current = await session.get(TrainingSession, session_id)
     if current is None or current.user_id != user_id:
         raise not_found("训练会话")
+    if (current.assessment_context or {}).get("purpose") == "TRANSFER":
+        return []
 
     current_messages = (
         await session.scalars(
             select(Message).where(Message.session_id == session_id).order_by(Message.round_no, Message.created_at)
         )
     ).all()
-    question = ""
-    for index, message in enumerate(current_messages):
-        if message.speaker == "AI" and message.round_no == round_no:
-            question = message.content
-            break
+    current_turn = next((turn for turn in answer_turns(current_messages, current.channel) if turn.round_no == round_no), None)
+    question = current_turn.question.content if current_turn else ""
     if not question:
         raise not_found("这一轮的题目")
 
@@ -67,6 +67,8 @@ async def same_question_attempts(
 
     attempts: list[dict] = []
     for item in candidates:
+        if (item.assessment_context or {}).get("purpose") == "TRANSFER":
+            continue
         if item.id == session_id:
             continue  # 当前这次不算「历史作答」
         messages = (
@@ -74,15 +76,10 @@ async def same_question_attempts(
                 select(Message).where(Message.session_id == item.id).order_by(Message.round_no, Message.created_at)
             )
         ).all()
-        for index, message in enumerate(messages):
-            if message.speaker != "AI":
+        for turn in answer_turns(messages, item.channel):
+            if _similar(question, turn.question.content) < SIMILARITY:
                 continue
-            if _similar(question, message.content) < SIMILARITY:
-                continue
-            answer = next(
-                (later.content for later in messages[index + 1:] if later.speaker == "USER"),
-                "",
-            )
+            answer = turn.answer.content
             if not answer.strip():
                 continue
             evaluation = await session.scalar(select(Evaluation).where(Evaluation.session_id == item.id))
@@ -91,9 +88,9 @@ async def same_question_attempts(
                     "sessionId": item.id,
                     "startedAt": item.started_at.isoformat(),
                     "isCurrent": item.id == session_id,
-                    "question": message.content,
+                    "question": turn.question.content,
                     "answer": answer,
-                    "roundNo": message.round_no,
+                    "roundNo": turn.round_no,
                     "overallScore": evaluation.overall_score if evaluation else None,
                     "scores": {
                         "logic": evaluation.logic_score,

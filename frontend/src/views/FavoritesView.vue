@@ -1,58 +1,28 @@
 <script setup lang="ts">
-import { computed, onMounted, shallowRef } from 'vue'
-
-import ScriptVersionCard from '@/components/scenes/ScriptVersionCard.vue'
+import { onMounted, shallowRef } from 'vue'
 import { api, errorMessage } from '@/lib/api'
 import { difficultyTone } from '@/lib/sceneTaxonomy'
-import type { ApiEnvelope, Scene, ScriptVersion } from '@/lib/types'
-
+import type { ApiEnvelope, Scene } from '@/lib/types'
 const scenes = shallowRef<Scene[]>([])
-const scripts = shallowRef<ScriptVersion[]>([])
-const scriptCount = shallowRef(8)
-const shownScripts = computed(() => scripts.value.slice(0, scriptCount.value))
-const remainingScripts = computed(() => Math.max(0, scripts.value.length - scriptCount.value))
-const allScenes = shallowRef<Scene[]>([])
 const loading = shallowRef(true)
 const error = shallowRef('')
-const sceneTitles = computed(() => new Map(allScenes.value.map((scene) => [scene.id, scene.title])))
-
-async function load(): Promise<void> {
+async function load() {
   loading.value = true
   error.value = ''
-  try {
-    const [sceneResponse, scriptResponse, catalogResponse] = await Promise.all([
-      api.get<ApiEnvelope<Scene[]>>('/scenes/favorites'),
-      api.get<ApiEnvelope<ScriptVersion[]>>('/scripts/favorites'),
-      // 目录仅用于补场景标题，失败时降级为「历史场景」
-      api.get<ApiEnvelope<Scene[]>>('/scenes', { params: { size: 100 } }).catch(() => null),
-    ])
-    scenes.value = sceneResponse.data.data
-    scripts.value = scriptResponse.data.data
-    allScenes.value = catalogResponse ? catalogResponse.data.data : []
-  } catch (reason) { error.value = errorMessage(reason) }
+  try { scenes.value = (await api.get<ApiEnvelope<Scene[]>>('/scenes/favorites')).data.data }
+  catch (reason) { error.value = errorMessage(reason) }
   finally { loading.value = false }
 }
-
-async function removeScene(scene: Scene): Promise<void> {
-  try {
-    await api.post(`/scenes/${scene.id}/favorite`)
-    scenes.value = scenes.value.filter((item) => item.id !== scene.id)
-  } catch (reason) { error.value = errorMessage(reason) }
+async function removeScene(scene: Scene) {
+  try { await api.post(`/scenes/${scene.id}/favorite`); scenes.value = scenes.value.filter((item) => item.id !== scene.id) }
+  catch (reason) { error.value = errorMessage(reason) }
 }
-
-async function removeScript(script: ScriptVersion): Promise<void> {
-  try {
-    await api.post(`/scripts/${script.id}/favorite`)
-    scripts.value = scripts.value.filter((item) => item.id !== script.id)
-  } catch (reason) { error.value = errorMessage(reason) }
-}
-
 onMounted(load)
 </script>
 
 <template>
   <div class="page favorites-page">
-    <header class="page-heading"><div><p class="eyebrow">收藏</p><h1 class="page-title">个人收藏</h1><p class="page-lead">收藏的场景和话术都在这里，取消收藏不会删除原记录。</p></div></header>
+    <header class="page-heading"><div><p class="eyebrow">收藏</p><h1 class="page-title">收藏场景</h1><p class="page-lead">收藏的场景在这里，话术统一在话术库中管理。</p></div></header>
     <div v-if="error" class="error-banner" role="alert">{{ error }} <button type="button" @click="load">重试</button></div>
     <div v-if="loading" class="panel skeleton loading" />
     <template v-else>
@@ -66,13 +36,7 @@ onMounted(load)
           </article>
         </div>
       </section>
-      <section class="panel collection-section">
-        <div class="section-heading"><h2>话术</h2><span>{{ scripts.length }} 个</span></div>
-        <div v-if="!scripts.length" class="empty-note">还没有收藏话术。<RouterLink to="/scripts">去话术优化看看 →</RouterLink></div>
-        <div v-else class="script-list"><ScriptVersionCard v-for="script in shownScripts" :key="script.id" :version="script" :scene-title="sceneTitles.get(script.sceneId ?? '') ?? '历史场景'" show-actions @favorite="removeScript" />
-          <button v-if="remainingScripts" class="button secondary load-more" type="button" @click="scriptCount += 8">显示更多（还有 {{ remainingScripts }} 个）</button>
-        </div>
-      </section>
+      <RouterLink class="button secondary" to="/scripts/saved">进入话术库（含收藏） →</RouterLink>
     </template>
   </div>
 </template>
@@ -97,7 +61,6 @@ onMounted(load)
 .item-actions { display:flex;align-items:center;gap:12px;flex:none; }
 .item-actions button:not(.button) { border:0;background:transparent;color:var(--text-2);cursor:pointer; }
 .error-banner button { border:0;background:transparent;color:inherit;text-decoration:underline;cursor:pointer; }
-@media (max-width:680px) { .collection-section { padding:20px; }.scene-item { align-items:stretch;flex-direction:column; }.item-actions { justify-content:space-between; } }
 </style>
 <style scoped>
 .favorites-page { max-width: 820px; }
@@ -118,7 +81,6 @@ onMounted(load)
 .item-actions button:not(.button) { font-size: 12.5px; color: var(--text-3); }
 .empty-note { padding: 18px 0; color: var(--text-3); font-size: 13.5px; }
 .empty-note a { color: var(--text-2); }
-@media (max-width: 680px) { .scene-item { flex-direction: column; align-items: flex-start; } }
 :root[data-theme='light'] .favorites-page .scene-item { background: transparent; border: 0; border-bottom: 1px solid var(--divider); box-shadow: none; }
 :root[data-theme='light'] .favorites-page .collection-section { background: transparent; }
 </style>

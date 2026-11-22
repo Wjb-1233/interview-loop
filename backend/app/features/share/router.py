@@ -36,6 +36,8 @@ from app.db.models import (
     TrainingSession,
 )
 from app.features.recordings import storage
+from app.features.evaluations.quality import quality, verified_rows
+from app.features.evaluations.report_queries import score_unavailable_reason
 
 router = APIRouter(prefix="/share", tags=["教练查看"])
 DbSession = Annotated[AsyncSession, Depends(get_session)]
@@ -111,6 +113,9 @@ async def read_shared(token: str, session: DbSession) -> dict:
     scene = await session.get(Scene, training.scene_id)
     evaluation = await session.scalar(select_evaluation(session_id))
     delivery = training.delivery or {}
+    report_quality, _ = await shared_quality(session, evaluation, training)
+    # 与主报告同一口径：矛盾未消解时不给数字，只给原因，库内历史值不动。
+    unavailable_reason = score_unavailable_reason(evaluation) if evaluation else None
     # 文字/语音会话结束时不写 delivery.transcript，这里回退到消息表重建
     transcript = delivery.get("transcript") or await transcript_from_messages(
         session, session_id
@@ -120,7 +125,8 @@ async def read_shared(token: str, session: DbSession) -> dict:
             "sceneTitle": scene.title if scene else "历史场景",
             "channel": training.channel,
             "startedAt": training.started_at.isoformat(),
-            "overallScore": evaluation.overall_score if evaluation else None,
+            "overallScore": None if unavailable_reason or evaluation is None else evaluation.overall_score,
+            "scoreUnavailableReason": unavailable_reason,
             "scores": {
                 "logic": evaluation.logic_score,
                 "relevance": evaluation.relevance_score,
@@ -130,6 +136,8 @@ async def read_shared(token: str, session: DbSession) -> dict:
             if evaluation
             else None,
             "summary": evaluation.summary if evaluation else None,
+            "qualityStatus": report_quality.get("quality_status"),
+            "eligibleForGrowth": report_quality.get("eligible_for_growth", False),
             "recordingUrl": storage.signed_url(training.recording_path),
             "transcript": transcript,
             "annotations": delivery.get("annotations") or [],
@@ -157,11 +165,7 @@ async def shared_report(token: str, session: DbSession) -> HTMLResponse:
     session_id, training = await load_shared_token(session, token)
     scene = await session.get(Scene, training.scene_id)
     evaluation = await session.scalar(select_evaluation(session_id))
-    evidence = (
-        list((await session.scalars(select_evidence(evaluation.id))).all())
-        if evaluation is not None
-        else []
-    )
+    report_quality, evidence = await shared_quality(session, evaluation, training)
     page = render_report(
         scene_title=scene.title if scene else "历史场景",
         channel=training.channel,
@@ -169,6 +173,8 @@ async def shared_report(token: str, session: DbSession) -> HTMLResponse:
         rounds=await round_summaries(session, session_id),
         evaluation=evaluation,
         evidence=evidence,
+        quality_status=report_quality.get("quality_status"),
+        score_unavailable_reason=score_unavailable_reason(evaluation) if evaluation else None,
     )
     return HTMLResponse(content=page, headers={"Cache-Control": "no-store"})
 
@@ -311,6 +317,8 @@ section > h2 {
 .overall { display: flex; align-items: baseline; gap: 12px; margin: 0; }
 .overall b { font-size: 52px; font-weight: 300; line-height: 1; letter-spacing: -.02em; }
 .overall i { color: #8b8578; font-size: 13px; font-style: normal; }
+.overall b.off { font-size: 30px; font-weight: 400; letter-spacing: .02em; }
+.dim-note { margin: 12px 0 0; color: #7b766b; font-size: 12.5px; }
 table { width: 100%; border-collapse: collapse; margin-top: 18px; }
 th, td { padding: 8px 0; border-bottom: 1px solid #eceae3; text-align: left; font-weight: 400; font-size: 13.5px; }
 th { width: 108px; color: #7b766b; }
@@ -357,6 +365,16 @@ def _brief(text: object, limit: int = 200) -> str:
     return clean if len(clean) <= limit else f"{clean[:limit]}…"
 
 
+async def shared_quality(session, evaluation, training):
+    if evaluation is None:
+        return {}, []
+    from sqlalchemy import select
+    rows = (await session.scalars(select_evidence(evaluation.id))).all()
+    messages = (await session.scalars(select(Message).where(Message.session_id == training.id))).all()
+    evidence = verified_rows(rows, messages, training)
+    return quality(evaluation, training, evidence), evidence
+
+
 def render_report(
     *,
     scene_title: str,
@@ -365,6 +383,8 @@ def render_report(
     rounds: list[dict],
     evaluation: Evaluation | None,
     evidence: list[EvaluationEvidence],
+    quality_status: str | None = None,
+    score_unavailable_reason: str | None = None,
 ) -> str:
     """拼一页自带样式的 HTML：不引用任何外部资源，也不依赖脚本。"""
     stamp = started_at.strftime("%Y-%m-%d %H:%M") if hasattr(started_at, "strftime") else ""
@@ -375,16 +395,34 @@ def render_report(
             '<section><h2>成绩</h2><p class="empty">这一场还没有评分报告，稍后再打开这个链接。</p></section>'
         )
     else:
+        notices = {
+            "PENDING_RESCORE": "转写已修改，等待重新评分。当前分数仅供参考，暂不计入成长统计。",
+            "INSUFFICIENT_EVIDENCE": "评分依据不完整。当前分数仅供参考，暂不计入成长统计。",
+            "REVIEW_REQUIRED": "评分与专业核查存在待确认差异。当前分数仅供参考，暂不计入成长统计。",
+            "RULE_BASED": "本报告由本地评分规则生成，分数仅供参考，暂不计入成长统计。",
+            "LIMITED_SAMPLE": "本次作答较少，总结仅针对已有回答；分数仅供参考，暂不计入成长统计。",
+        }
+        status_line = score_unavailable_reason or notices.get(quality_status)
+        if status_line:
+            blocks.append(f'<section><h2>评分状态</h2><p>{_esc(status_line)}</p></section>')
         rows = "".join(
             f'<tr><th>{label}</th><td class="num">{_esc(getattr(evaluation, field))}</td>'
             f'<td><span class="bar"><b style="width:{max(0.0, min(100.0, float(getattr(evaluation, field)) * 20)):.0f}%"></b></span></td></tr>'
             for _, label, field in SCORE_FIELDS
         )
-        blocks.append(
-            "<section><h2>综合成绩</h2>"
-            f'<p class="overall"><b>{_esc(round(float(evaluation.overall_score), 1))}</b><i>/ 100</i></p>'
-            f"<table>{rows}</table></section>"
-        )
+        if score_unavailable_reason:
+            blocks.append(
+                "<section><h2>综合成绩</h2>"
+                '<p class="overall"><b class="off">暂不可用</b></p>'
+                '<p class="dim-note">四维分值为原记录值，仅作参考。</p>'
+                f"<table>{rows}</table></section>"
+            )
+        else:
+            blocks.append(
+                "<section><h2>综合成绩</h2>"
+                f'<p class="overall"><b>{_esc(round(float(evaluation.overall_score), 1))}</b><i>/ 100</i></p>'
+                f"<table>{rows}</table></section>"
+            )
         blocks.append(
             '<section><h2>教练总评</h2><p class="summary">'
             f"{_esc(_brief(evaluation.summary, 900))}</p></section>"
@@ -410,7 +448,7 @@ def render_report(
     elif evaluation is not None:
         blocks.append(
             '<section><h2>证据与整改（引原话）</h2><p class="empty">'
-            "本场由本地评分规则生成，没有逐维引用原话，可从下面的改写建议里挑一句重写。</p></section>"
+            "本场暂无可核验的逐维原话证据，改写建议可供参考。</p></section>"
         )
 
     suggestions = list((evaluation.suggestions or []) if evaluation is not None else [])

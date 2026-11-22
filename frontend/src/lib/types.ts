@@ -1,3 +1,5 @@
+import type { TrainingDelivery } from './contracts/trainingMetadata'
+
 export interface ApiEnvelope<T> {
   data: T
   meta: { timestamp: string }
@@ -45,7 +47,12 @@ export interface TrainingMessage {
 }
 
 export interface TrainingSession {
+  assessmentContext?: { purpose?: 'PRACTICE' | 'TRANSFER'; adaptiveEnabled?: boolean; hintUses?: number } | null
+  answerTurns?: Array<{ roundNo: number; questionMessageId: string; answerMessageId: string; question: string; answer: string; flags: readonly string[] }>
   id: string
+  planId?: string | null
+  taskKey?: string | null
+  depth?: string
   sceneId: string
   sceneTitle: string
   status: string
@@ -56,22 +63,7 @@ export interface TrainingSession {
   mode?: 'STANDARD' | 'DRILL'
   recordingUrl?: string | null
   durationSeconds?: number | null
-  delivery?: {
-    speechRate: number
-    articulationRate: number
-    pauseCount: number
-    longestPause: number
-    durationSeconds: number
-    charCount: number
-    fillerTotal: number
-    engine?: string
-    vision?: { framing?: number; onCamera?: number; stability?: number; lighting?: number; tips?: string[] } | null
-    marks?: Array<{ text: string; start: number; end?: number }>
-    selfReview?: Array<{ roundNo: number; camera: boolean; structure: boolean; opening: boolean; note: string | null }>
-    transcript?: Array<{ roundNo: number; question: string; text: string; startMs: number | null; endMs: number | null; confidence: number | null; edited: boolean }>
-    rescoreRequired?: boolean
-    segments?: Array<{ roundNo: number; question: string; startMs: number; endMs: number; file: string; url: string | null }>
-  } | null
+  delivery?: TrainingDelivery | null
   startedAt: string
   finishedAt: string | null
   resumeFilename: string | null
@@ -178,10 +170,20 @@ export interface MessageRewrite {
 }
 
 export interface Evaluation {
+  assessment?: import('./contracts/interviewAssessment').InterviewAssessment | null
+  qualityStatus?: 'VERIFIED' | 'PENDING_RESCORE' | 'INSUFFICIENT_EVIDENCE' | 'RULE_BASED' | 'LIMITED_SAMPLE' | 'REVIEW_REQUIRED'
+  answeredRounds?: number
+  missingEvidenceDimensions?: Array<keyof Scores>
+  eligibleForGrowth?: boolean
+  revision?: number
+  revisionHistory?: Array<{ revision: number; createdAt: string; overallScore: number; summary: string; evidence: ScoreEvidence[] }>
+  questionTypes?: Array<{ roundNo: number; type: 'EXPERIENCE' | 'KNOWLEDGE' | 'SOLUTION' | 'MOTIVATION' }>
   id: string
   sessionId: string
   scores: Scores
-  overallScore: number
+  overallScore: number | null
+  scoreUnavailableReason?: string | null
+  riskFlags?: string[]
   summary: string
   suggestions: Array<{ roundNo: number; problem: string; original: string; rewrite: string; reference?: string }>
   styleTags: string[]
@@ -192,6 +194,7 @@ export interface Evaluation {
   stability?: { samples: number; maxSpread: number; reliable: boolean } | null
   evidence: ScoreEvidence[]
   planId: string | null
+  technicalChecks?: Array<{ roundNo: number; quote: string; verdict: string; reason: string }>
   previousScores: Scores | null
   previousOverall: number | null
   speechStats: {
@@ -243,6 +246,7 @@ export interface QuestionItem {
   text: string
   dimension: string | null
   difficulty: string | null
+  rubric?: import('./contracts/interviewAssessment').QuestionRubric | null
 }
 
 export interface AdminSceneRecord extends Omit<Scene, 'favorite'> {
@@ -293,6 +297,23 @@ export interface LessonResponse {
   source: { title: string; description: string; content: string }
 }
 
+export interface LessonVideoChapter {
+  title: string
+  start: number
+  duration: number
+}
+
+/** 微课视频生成进度（GET/POST /training-plans/{id}/lesson/video[/state]） */
+export interface LessonVideoState {
+  jobId?: string | null
+  status: 'PENDING' | 'RUNNING' | 'DONE' | 'FAILED'
+  progress: number
+  stage?: string | null
+  url?: string | null
+  chapters?: ReadonlyArray<LessonVideoChapter>
+  error?: string | null
+}
+
 export interface TrainingPlanTask {
   key: string
   day: number
@@ -312,6 +333,9 @@ export interface TrainingPlanTask {
   practiceFeedback: string | null
   practicePassed: boolean
   practiceDegraded: boolean
+  channel?: string
+  depth?: string
+  learned?: boolean
   rewriteFeedback: string | null
   rewritePassed: boolean
   rewriteDegraded: boolean
@@ -333,6 +357,7 @@ export interface ScoreComparison {
 }
 
 export interface TrainingPlan {
+  transfer?: import('./contracts/interviewAssessment').TransferOverview | null
   sequence: number
   id: string
   title: string

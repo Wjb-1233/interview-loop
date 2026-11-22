@@ -470,26 +470,6 @@ textarea.input { resize: vertical; line-height: 1.8; }
 
 .form-error { margin: 0; color: #cf9a92; font-size: 12px; }
 .card-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 4px; }
-
-@media (max-width: 860px) {
-  .card-grid { grid-template-columns: 1fr; }
-  .hero-card { padding: 22px; }
-  .hero-identity h2 { font-size: 21px; }
-  .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .metrics div { padding: 12px 12px; }
-  .metric-num { font-size: 20px; }
-  .metrics dt { font-size: 10px; }
-  .profile-page { padding-bottom: 84px; }
-}
-
-@media (max-width: 480px) {
-  .hero-top { gap: 14px; }
-  .avatar-ring { width: 62px; height: 62px; }
-  .avatar-img, .avatar-fallback { width: 58px; height: 58px; font-size: 22px; }
-  .hero-identity h2 { font-size: 19px; }
-  .metrics dt { letter-spacing: 0; }
-  .card { padding: 20px 18px 22px; }
-}
 .danger-card { border-color: color-mix(in srgb, #b4553f 35%, var(--border)); }
 .button.danger { background: #b4553f; border-color: #b4553f; color: #fff; }
 .button.danger:hover { background: #9c4635; border-color: #9c4635; }

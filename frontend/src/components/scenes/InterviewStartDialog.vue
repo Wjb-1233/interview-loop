@@ -6,11 +6,13 @@ import { isFoundationScene } from '@/lib/sceneTaxonomy'
 
 const props = defineProps<{
   scene: Scene
-  mode: 'text' | 'voice'
+  mode: 'text' | 'voice' | 'video'
   busy: boolean
   error: string
 }>()
-const emit = defineEmits<{ confirm: [file: File | null]; cancel: [] }>()
+const emit = defineEmits<{ confirm: [options: { file: File | null; jd: string; duration: number }]; cancel: [] }>()
+const jd = shallowRef('')
+const duration = shallowRef(10)
 const dialog = useTemplateRef<HTMLDialogElement>('dialog')
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput')
 const selectedFile = shallowRef<File | null>(null)
@@ -43,7 +45,7 @@ function clearFile(): void {
 }
 
 function confirm(): void {
-  if (!props.busy && !selectionError.value) emit('confirm', selectedFile.value)
+  if (!props.busy && !selectionError.value) emit('confirm', { file: selectedFile.value, jd: jd.value, duration: duration.value })
 }
 
 function cancel(event?: Event): void {
@@ -59,7 +61,7 @@ function cancel(event?: Event): void {
   <dialog ref="dialog" class="interview-dialog" aria-labelledby="start-title" @cancel="cancel" @close="cancel">
     <div class="dialog-body">
       <p class="eyebrow">{{ foundation ? '能力对练' : scene.category }}</p>
-      <h2 id="start-title">开始{{ mode === 'voice' ? '语音' : '文字' }}{{ foundation ? '能力对练' : '面试' }}</h2>
+      <h2 id="start-title">开始{{ mode === 'video' ? '视频' : mode === 'voice' ? '语音' : '文字' }}{{ foundation ? '能力对练' : '面试' }}</h2>
       <p class="scene-name">{{ scene.title }} · {{ scene.position }}</p>
       <p v-if="foundation" class="description">{{ scene.goal }} 系统会通过连续追问观察你的实际表达，不需要上传简历。</p>
       <template v-else>
@@ -69,6 +71,8 @@ function cancel(event?: Event): void {
       <div v-if="selectedFile" class="file-summary"><span>{{ selectedFile.name }}</span><button type="button" :disabled="busy" @click="clearFile">移除</button></div>
       <p class="file-hint">仅支持文字版 .docx，最大 2 MB。原始文件不保存；提取文字会发送给已配置的大模型用于面试提问，也可在训练页清除。</p>
       </template>
+      <label v-if="!foundation" class="upload-label">目标岗位 JD（可选）<textarea v-model="jd" class="field" rows="3" maxlength="4000" placeholder="粘贴至少 20 字的岗位职责与要求" /></label>
+      <label v-if="mode !== 'text'" class="upload-label">本场时长<select v-model="duration" class="field"><option v-for="n in [5, 10, 15, 30, 60]" :key="n" :value="n">{{ n }} 分钟</option></select></label>
       <p v-if="selectionError || error" class="error-banner" role="alert">{{ selectionError || error }}</p>
       <div class="dialog-actions">
         <button class="button secondary" type="button" :disabled="busy" @click="cancel()">取消</button>
@@ -91,7 +95,6 @@ function cancel(event?: Event): void {
 .file-summary button { flex: none; border: 0; background: transparent; color: #9c3f33; cursor: pointer; }
 .file-hint { margin: 12px 0 0; color: var(--ink-soft); font-size: 12px; line-height: 1.6; }
 .dialog-actions { margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
-@media (max-width: 600px) { .dialog-body { padding: 22px; } .dialog-actions .button { flex: 1; } }
 .interview-dialog { border-color:var(--border);background:var(--card);color:var(--text);box-shadow:var(--shadow);backdrop-filter:none;animation:dialog-in .2s ease both; }
 .interview-dialog::backdrop { background:rgba(3,7,18,.76);backdrop-filter:none; }
 .scene-name { color:var(--text-2); }

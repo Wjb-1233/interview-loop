@@ -17,12 +17,11 @@ const props = defineProps<{
   sending: boolean
   finished: boolean
   flags: readonly string[]
-  minimumRounds?: number
-  mode: 'text' | 'voice'
-  finishAfterNext: boolean
+  inputMode: 'text' | 'voice'
+  assistanceAllowed?: boolean
   startedAt?: string
 }>()
-const emit = defineEmits<{ send: [content: string]; finish: []; report: [] }>()
+const emit = defineEmits<{ send: [content: string]; report: [] }>()
 const input = shallowRef('')
 // T-01：整场计时与本题作答计时
 const elapsedSeconds = shallowRef(0)
@@ -159,7 +158,7 @@ function submit() {
 </script>
 
 <template>
-  <section class="dialogue panel" :class="{ 'voice-mode': mode === 'voice' }">
+  <section class="dialogue panel" :class="{ 'voice-mode': inputMode === 'voice' }">
     <header class="dialogue-header">
       <div>
         <p class="eyebrow">实时演练 · {{ stage }}</p>
@@ -181,7 +180,7 @@ function submit() {
         <div v-if="message.flags.length" class="message-flags">
           <span v-for="flag in message.flags" :key="flag">{{ flag }}</span>
           <button
-            v-if="message.speaker === 'USER' && !rewrites[message.roundNo]"
+            v-if="assistanceAllowed !== false && message.speaker === 'USER' && !rewrites[message.roundNo]"
             class="rewrite-trigger"
             type="button"
             :disabled="rewriting === message.roundNo"
@@ -200,12 +199,12 @@ function submit() {
       检测到 {{ flags.join('、') }}，下一轮可尝试“事实—影响—请求”的表达结构。
     </div>
 
-    <VoiceComposer v-if="mode === 'voice'" :latest-reply="latestReply" :sending="sending" :finished="finished" @send="emit('send', $event)" />
-    <div v-if="mode === 'voice' && !finished" class="voice-finish">
-      <span>{{ finishAfterNext ? '回答当前问题后将结束并生成报告' : `至少回答 ${minimumRounds ?? 2} 轮后，可选择回答下一题即结束` }}</span>
-      <button class="button secondary" type="button" :disabled="sending || currentRound < (minimumRounds ?? 0)" @click="emit('finish')">{{ finishAfterNext ? '取消提前结束' : currentRound < (minimumRounds ?? 0) ? `还需 ${(minimumRounds ?? 0) - currentRound} 轮` : '答完下一题结束' }}</button>
+    <VoiceComposer v-if="inputMode === 'voice'" :latest-reply="latestReply" :sending="sending" :finished="finished" @send="emit('send', $event)" />
+    <div v-if="inputMode === 'voice' && !finished" class="voice-finish">
+      <span>结束面试会按已提交的回答生成总结；直接退出不保留记录。</span>
+      <button class="button secondary" type="button" :disabled="sending || currentRound < 1" @click="emit('report')">结束面试</button>
     </div>
-    <section v-if="mode === 'text' && hintOpen && hint" class="hint-card" aria-live="polite">
+    <section v-if="inputMode === 'text' && hintOpen && hint" class="hint-card" aria-live="polite">
       <div class="hint-head">
         <strong>提示卡</strong>
         <span>{{ hint.dimension || '回答结构' }}</span>
@@ -217,23 +216,23 @@ function submit() {
       <ul class="hint-tips"><li v-for="tip in hint.tips" :key="tip">{{ tip }}</li></ul>
     </section>
 
-    <form v-if="!finished && mode === 'text'" class="composer" @submit.prevent="submit">
+    <form v-if="!finished && inputMode === 'text'" class="composer" @submit.prevent="submit">
       <textarea ref="composerInput" v-model="input" class="field" :class="{ 'at-risk': draftWarnings.length }" rows="3" maxlength="2000" aria-label="输入面试回答" placeholder="像真实面试一样回答。清楚说出经历、行动和结果…" @keydown.ctrl.enter.prevent="submit" />
       <ExpressionPreview v-if="draftWarnings.length" :text="input" :warnings="draftWarnings" />
       <div class="composer-actions">
         <span>{{ input.length }} / 2000 <span class="keyboard-hint">· Ctrl + Enter 发送</span></span>
         <div>
-          <button class="button secondary hint-button" type="button" :disabled="sending" @click="toggleHint">
+          <button v-if="assistanceAllowed !== false" class="button secondary hint-button" type="button" :disabled="sending" @click="toggleHint">
             {{ hintLoading ? '生成提示…' : hintOpen ? '收起提示' : '提示卡' }}
           </button>
           <button
             class="button secondary"
             type="button"
-            :disabled="sending || currentRound < (minimumRounds ?? 0)"
-            :title="currentRound < (minimumRounds ?? 0) ? `计划任务至少需要 ${minimumRounds} 轮` : ''"
-            @click="emit('finish')"
-          >{{ finishAfterNext ? '取消提前结束' : currentRound < (minimumRounds ?? 0) ? `还需 ${(minimumRounds ?? 0) - currentRound} 轮` : '答完本题后结束' }}</button>
-          <button class="button" type="submit" :disabled="sending || !input.trim()">{{ sending ? '对方回应中…' : finishAfterNext ? '发送回答并结束' : '发送回答' }}</button>
+            :disabled="sending || currentRound < 1"
+            :title="currentRound < 1 ? '先提交一轮回答，再按已有作答生成总结' : '按已提交的回答生成总结'"
+            @click="emit('report')"
+          >结束面试</button>
+          <button class="button" type="submit" :disabled="sending || !input.trim()">{{ sending ? '对方回应中…' : '发送回答' }}</button>
         </div>
       </div>
     </form>
@@ -332,18 +331,6 @@ function submit() {
 .voice-finish { background:var(--card); }
 .finished-block { background:var(--bg-2); }
 @keyframes message-in { from { opacity:0;transform:translateY(12px) scale(.985); } to { opacity:1;transform:translateY(0) scale(1); } }
-@media (max-width: 650px) {
-  .dialogue-header { padding: 20px; align-items: flex-start; flex-direction: column; gap: 13px; }
-  .message { width: 100%; }
-  .timeline { min-height: 330px; height: 48vh; padding: 18px; }
-  .composer { padding: 18px; }
-  .voice-finish { padding: 12px 18px 20px; align-items: stretch; flex-direction: column; }
-  .finished-block { grid-template-columns: 1fr; }
-  .composer-actions { align-items: flex-start; gap: 10px; }
-  .composer-actions div { flex-direction: column; }
-  .keyboard-hint { display: none; }
-  .message::before { animation-duration:14s; }
-}
 @media (prefers-reduced-motion:reduce) { .message,.message::before { animation:none; } }
 
 .message-flags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
@@ -397,10 +384,6 @@ function submit() {
 .timer-row b { color: var(--text); font-family: var(--font-num); font-size: 13px; font-variant-numeric: tabular-nums; }
 .timer-row .overtime b { color: var(--accent-strong); }
 .remaining { padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; }
-@media (max-width: 720px) {
-  .timer-row { gap: 8px; font-size: 10.5px; }
-  .remaining { display: none; }
-}
 </style>
 <style scoped>
 .dialogue-header { padding: 20px 26px; }
@@ -413,5 +396,4 @@ function submit() {
 .composer { padding: 16px 24px 20px; }
 .composer textarea { min-height: 92px; }
 .composer-actions { font-size: 12.5px; }
-@media (max-width: 720px) { .timeline { height: 40vh; min-height: 240px; padding: 16px; } .message-bubble { max-width: 90%; } }
 </style>

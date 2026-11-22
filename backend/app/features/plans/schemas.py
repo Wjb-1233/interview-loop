@@ -13,6 +13,9 @@ class PlanTaskView(ApiModel):
     day: int
     task: str
     action_type: Literal["COURSE", "TRAINING", "REWRITE", "RETEST", "SCENE", "REVIEW", "VIDEO", "VOICE", "REPORT"]
+    channel: str = "TEXT"
+    depth: str = "STANDARD"
+    learned: bool = False
     completed: bool = False
     completed_at: datetime | None = None
     evidence: str | None = None
@@ -57,6 +60,7 @@ class TrainingPlanView(ApiModel):
     tasks: list[PlanTaskView]
     comparison: ScoreComparison | None = None
     created_at: datetime
+    transfer: dict | None = None
 
 
 class CompleteTaskRequest(ApiModel):

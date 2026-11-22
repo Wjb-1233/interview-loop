@@ -8,11 +8,11 @@ export function taskActionLabel(task: TrainingPlanTask): string {
   if (task.actionType === 'REPORT') return '回看本场复盘'
   if (task.actionType === 'TRAINING') return '进入专项场景对练'
   if (task.actionType === 'REWRITE') return '提交逐轮改写'
-  return '旧题重写（复测）'
+  return '按原条件复测'
 }
 
 export function taskRoute(planId: string, task: TrainingPlanTask) {
-  const query = { planId, taskKey: task.key }
+  const query = { planId, taskKey: task.key, ...(task.actionType === 'RETEST' ? { channel: task.channel ?? 'TEXT', depth: task.depth ?? 'STANDARD' } : {}) }
   if (task.actionType === 'COURSE') {
     return { name: 'plan-lesson', query: { ...query, courseId: task.courseId ?? undefined } }
   }
@@ -28,6 +28,7 @@ export function taskRoute(planId: string, task: TrainingPlanTask) {
   if (task.actionType === 'REPORT' && task.sourceSessionId) {
     return { name: 'report', params: { id: task.sourceSessionId } }
   }
+  if (task.actionType === 'REWRITE') return { name: 'training-plan', params: { id: planId }, hash: '#rewrite-task' }
   if (task.actionType === 'REVIEW') {
     return { name: 'scripts' }
   }
@@ -46,5 +47,5 @@ export function stepTitle(task: TrainingPlanTask): string {
   if (task.actionType === 'REWRITE') return '本场之后 · 话术改写'
   if (task.actionType === 'REVIEW') return '间隔复习 · 到期错题'
   if (task.actionType === 'TRAINING') return '专项练习 · 场景对练'
-  return '旧题重写 · 复测对比'
+  return '同场景复测 · 前后对比'
 }

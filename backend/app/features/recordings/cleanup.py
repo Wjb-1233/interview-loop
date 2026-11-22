@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.db.models import TrainingSession
+from app.db.models import AnalysisTask, TrainingSession
 from app.features.recordings import storage
 
 logger = logging.getLogger(__name__)
@@ -56,6 +56,10 @@ async def purge_expired(session: AsyncSession, *, days: int | None = None) -> di
     referenced = set(
         (await session.scalars(select(TrainingSession.recording_path).where(TrainingSession.recording_path.is_not(None)))).all()
     )
+    # Retired analysis results can still own a recording without a training row.
+    for payload in (await session.scalars(select(AnalysisTask.payload).where(AnalysisTask.created_at >= cutoff))).all():
+        if isinstance(payload, dict) and payload.get("recording"):
+            referenced.add(payload["recording"])
     orphans = 0
     directory = settings.recording_dir_path
     if directory.exists():

@@ -27,6 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from fastapi import Depends
 from app.features.voice.session import create_voice_session
+from app.infrastructure.llm import llm_gateway
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/voice", tags=["语音对话"])
@@ -97,7 +98,8 @@ def realtime_configured() -> bool:
 async def status() -> dict:
     return ok(
         {
-            "enabled": realtime_configured(),
+            "enabled": realtime_configured() or llm_gateway.configured,
+            "engine": settings.voice_engine if settings.voice_engine != "auto" else ("doubao" if realtime_configured() else "pipeline"),
             "provider": "doubao-duplex",
             "voice": settings.doubao_realtime_voice,
             "sampleRate": {"input": 16000, "output": 24000},
@@ -212,6 +214,8 @@ async def save_voice_session(
     turns: Annotated[str, Form()] = "[]",
     durationSeconds: Annotated[int | None, Form()] = None,
     engine: Annotated[str, Form()] = "doubao",
+    preparedSessionId: Annotated[str | None, Form()] = None,
+    channelHint: Annotated[str, Form(pattern="^(VOICE|VIDEO)$")] = "VOICE",
     audio: Annotated[UploadFile | None, File()] = None,
     video: Annotated[UploadFile | None, File()] = None,
 ) -> dict:
@@ -225,9 +229,18 @@ async def save_voice_session(
 
     from app.features.recordings import storage
 
+    require_verified(user)
+    if preparedSessionId:
+        from app.db.models import TrainingSession
+        prepared = await session.get(TrainingSession, preparedSessionId)
+        if prepared is None or prepared.user_id != user.id or prepared.scene_id != sceneId:
+            raise AppError(404, "SESSION_NOT_FOUND", "准备会话不存在")
+        if prepared.current_round:
+            saved_id = await create_voice_session(session, user.id, sceneId, [{"question": turn.question, "answer": turn.answer} for turn in parsed], channel="VIDEO" if video is not None else channelHint, prepared_session_id=preparedSessionId)
+            return ok({"id": saved_id, "delivery": prepared.delivery, "recordingUrl": storage.url_of(prepared.recording_path)})
     delivery: dict | None = None
     recording_path: str | None = None
-    channel = "VOICE"
+    channel = channelHint
     if video is not None:
         # 实时视频房间：浏览器同时录音与录像，这里保存整段视频并做人脸技术指标
         suffix = Path(video.filename or "room.webm").suffix or ".webm"
@@ -280,12 +293,13 @@ async def save_voice_session(
         engine=engine if engine in {"doubao", "pipeline"} else "doubao",
         channel=channel,
         recording_path=recording_path,
+        prepared_session_id=preparedSessionId,
     )
     return ok({"id": session_id, "delivery": delivery or None, "recordingUrl": storage.url_of(recording_path)})
 
 
 @router.websocket("/ws/pipeline")
-async def voice_pipeline_ws(client: WebSocket, sceneId: str | None = None, depth: str = "STANDARD", lang: str = "zh") -> None:
+async def voice_pipeline_ws(client: WebSocket, sceneId: str | None = None, depth: str = "STANDARD", sessionId: str | None = None) -> None:
     """pipecat 引擎：本地 Whisper + DeepSeek + 系统语音。"""
     await client.accept()
     user_id = await authorize(client)
@@ -308,17 +322,11 @@ async def voice_pipeline_ws(client: WebSocket, sceneId: str | None = None, depth
         "你是一名中文面试官，正在做模拟面试。候选人说完后，先用一句话回应，再追问一个具体问题，"
         "每次不超过 60 字，不要自问自答，不要长篇独白。"
     )
-    if lang == "en":
-        instructions = (
-            "You are an English-speaking interviewer. Ask one question at a time in English, "
-            "briefly acknowledge the answer, then ask one specific follow-up. Keep every reply under 40 words. "
-            "Do not answer for the candidate."
-        )
     if depth == "THREE_LAYER":
         instructions += " 本场启用三层追问：先确认基础知识与事实，再让候选人比较方案优劣，最后给出复杂或异常场景；每轮只推进一层。"
     elif depth == "PRESSURE":
         instructions += " 本场是压力面：节奏快、连续追问证据和数字，不接客套，但保持专业尊重。"
-    opening = "Hello, I'm your interviewer today. Please start with a brief self-introduction." if lang == "en" else "你好，我是今天的面试官，请先做个自我介绍。"
+    opening = "你好，我是今天的面试官，请先做个自我介绍。"
     if sceneId:
         from app.db.base import session_factory
         from app.features.scenes.service import get_scene
@@ -334,12 +342,20 @@ async def voice_pipeline_ws(client: WebSocket, sceneId: str | None = None, depth
                     f"你的角色：{scene.role_name}。背景：{scene.background}。目标：{scene.goal}。"
                 )
                 opening = scene.opening_line or f"你好，我是{scene.role_name}，我们先简单聊一聊。"
-                if lang == "en":
-                    opening = "Hello, I'm your interviewer today. Please start with a brief self-introduction."
 
+    if sessionId:
+        from app.features.training.preparation import interview_context_data
+        from app.db.base import session_factory
+        async with session_factory() as db:
+            try:
+                context = await interview_context_data(db, user_id, sessionId)
+            except AppError:
+                await client.close(code=4003, reason="准备会话不可用")
+                return
+        instructions, opening = context["instructions"], context["openingLine"]
     await VOICE_SLOTS.acquire()
     try:
-        task = build_pipeline(client, instructions, opening=opening, lang=lang)
+        task = build_pipeline(client, instructions, opening=opening)
         runner = PipelineRunner(handle_sigint=False, check_dangling_tasks=False)
         await runner.run(task)
     except WebSocketDisconnect:

@@ -86,7 +86,7 @@ const answerParts = computed(() => {
 .panel-heading h2 { margin: 0; font: 700 clamp(25px, 3vw, 34px)/1.2 var(--font-ui); }
 .panel-heading p:last-child { margin: 10px 0 0; color: var(--ink-soft); line-height: 1.6; }
 .plan-link { flex: none; color: var(--signal); font-weight: 800; text-decoration: none; }
-.dimension-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; margin-top: 27px; }
+.dimension-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin-top: 27px; }
 .dimension-tabs button { min-height: 90px; padding: 13px; border: 1px solid var(--line); border-radius:var(--radius); background: var(--overlay-2); color: var(--ink); text-align: left; cursor: pointer; }
 .dimension-tabs button.active { border-color: var(--mint); background: var(--sky); box-shadow: inset 0 0 0 1px var(--mint); }
 .dimension-tabs span, .dimension-tabs strong, .dimension-tabs small { display: block; }
@@ -105,7 +105,6 @@ const answerParts = computed(() => {
 .reason-grid > div { padding: 17px 18px; border-radius:var(--radius); background:var(--card); }
 .empty-evidence strong { display: block; color: var(--ink); }
 .empty-evidence p { margin: 8px 0 0; color: var(--ink-soft); line-height: 1.7; }
-@media (max-width: 720px) { .panel-heading { align-items: flex-start; flex-direction: column; } .dimension-tabs { grid-template-columns: repeat(2, 1fr); } .reason-grid { grid-template-columns: 1fr; } }
 .dimension-tabs button { border-color:var(--border);background:var(--overlay-1);color:var(--text);transition:transform var(--ease),border-color var(--ease),box-shadow var(--ease); }
 .dimension-tabs button:hover { transform:translateY(-2px);border-color:var(--border-bright); }
 .dimension-tabs button.active { border-color:var(--accent);background:var(--bg-2);box-shadow:none; }

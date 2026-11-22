@@ -22,7 +22,6 @@ os.environ.update(
         "DATABASE_URL": f"sqlite+aiosqlite:///{TEST_DATABASE.as_posix()}",
         "AUTO_CREATE_SCHEMA": "true",
         "REDIS_ENABLED": "false",
-        "MILVUS_ENABLED": "false",
         "LLM_API_KEY": "",
         "JWT_SECRET": "isolated-test-secret-longer-than-32-characters",
         "CORS_ORIGINS": "http://testserver",

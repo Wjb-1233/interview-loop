@@ -40,6 +40,8 @@ backend/static/recordings/
 # 微课渲染中间文件与试听缓存
 backend/static/lessons/.remotion-*/
 backend/static/tts/*.wav
+backend/static/tts/*.mp3
+backend/static/tts/.preview-*/
 video/public/narration-*.wav
 backend/static/tts/samples/*.mp3
 backend/static/lessons/*.mp3
@@ -52,3 +54,7 @@ video/public/narration-*.mp3
 frontend/playwright-report/
 frontend/test-results/
 backend/e2e.db
+
+# 本地临时脚本与产物
+_work/
+backend/.coverage

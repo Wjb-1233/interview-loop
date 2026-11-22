@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -84,7 +84,7 @@ class Script(Base):
     __tablename__ = "scripts"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    scene_id: Mapped[str] = mapped_column(ForeignKey("scenes.id", ondelete="CASCADE"), index=True)
+    scene_id: Mapped[str | None] = mapped_column(ForeignKey("scenes.id", ondelete="CASCADE"), nullable=True, index=True)
     style: Mapped[str] = mapped_column(String(20))
     original: Mapped[str | None] = mapped_column(Text, nullable=True)
     dimension: Mapped[str | None] = mapped_column(String(20), nullable=True)
@@ -103,21 +103,6 @@ class PasswordResetRequest(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
     handled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-
-class Story(TimestampMixin, Base):
-    """STAR 故事：可复用的项目经历素材。"""
-
-    __tablename__ = "stories"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    title: Mapped[str] = mapped_column(String(60))
-    situation: Mapped[str] = mapped_column(Text, nullable=False)
-    task: Mapped[str] = mapped_column(Text, nullable=False)
-    action: Mapped[str] = mapped_column(Text, nullable=False)
-    result: Mapped[str] = mapped_column(Text, nullable=False)
-    tags: Mapped[list[str]] = mapped_column(JSON, default=list)
-    source_session_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    usage_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class SkillState(TimestampMixin, Base):
@@ -187,6 +172,7 @@ class TrainingSession(Base):
     jd_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     job_match: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     question_plan: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
+    assessment_context: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # 从计划任务发起的训练：记录来源，便于结束时自动完成任务并校验轮次
     plan_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     task_key: Mapped[str | None] = mapped_column(String(20), nullable=True)
@@ -210,6 +196,7 @@ class Message(Base):
     round_no: Mapped[int] = mapped_column(Integer)
     speaker: Mapped[str] = mapped_column(String(20))
     content: Mapped[str] = mapped_column(Text)
+    kind: Mapped[str] = mapped_column(String(12), default="DIALOGUE", server_default="DIALOGUE", nullable=False)
     flagged: Mapped[bool] = mapped_column(Boolean, default=False)
     flags: Mapped[list[str]] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
@@ -234,6 +221,10 @@ class Evaluation(Base):
     reference_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     upgrades: Mapped[list | None] = mapped_column(JSON, nullable=True)
     stability: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    review_required: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), nullable=False)
+    assessment: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    revision_history: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
+    risk_flags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     degraded: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
@@ -297,10 +288,31 @@ class TrainingPlan(Base):
     focus_dimension: Mapped[str] = mapped_column(String(30))
     title: Mapped[str] = mapped_column(String(120))
     tasks: Mapped[list[dict]] = mapped_column(JSON, default=list)
+    tasks_version: Mapped[int] = mapped_column(Integer, default=2, server_default="2", nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="ACTIVE")
     # 每位学员的计划序号（#1、#2…），未完成的计划会累积保留
     sequence: Mapped[int] = mapped_column(Integer, default=1, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class LessonVideoJob(Base):
+    """微课视频后台生成任务：admin 进程内的 worker 单并发消费，前端轮询进度。"""
+
+    __tablename__ = "lesson_video_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    plan_id: Mapped[str] = mapped_column(ForeignKey("training_plans.id", ondelete="CASCADE"))
+    task_key: Mapped[str] = mapped_column(String(40))
+    status: Mapped[str] = mapped_column(String(16), default="PENDING")
+    progress: Mapped[int] = mapped_column(Integer, default=0)
+    stage: Mapped[str] = mapped_column(String(20), default="排队")
+    # PENDING/RUNNING 时存请求引擎（auto/python/remotion），DONE 后换成实际引擎
+    engine: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    video_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    chapters: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now, nullable=False)
+    __table_args__ = (Index("idx_lesson_video_jobs_plan_task", "plan_id", "task_key"),)
 
 
 class AuditLog(Base):
@@ -346,52 +358,7 @@ class PasswordResetToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
-class ResumeDiagnosis(Base):
-    """简历诊断结果（关键词覆盖 + 结构分 + 建议）。"""
 
-    __tablename__ = "resume_diagnoses"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    filename: Mapped[str] = mapped_column(String(180), default="")
-    score: Mapped[int] = mapped_column(Integer, default=0)
-    coverage: Mapped[float] = mapped_column(Float, default=0.0)
-    jd_excerpt: Mapped[str] = mapped_column(Text, default="")
-    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
-
-
-class GroupInterview(Base):
-    """无领导小组讨论（用户 + 两位虚拟候选人 + 主持人）。"""
-
-    __tablename__ = "group_interviews"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    topic_id: Mapped[str] = mapped_column(String(40))
-    topic_title: Mapped[str] = mapped_column(String(120))
-    topic_prompt: Mapped[str] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(String(20), default="ACTIVE", index=True)
-    turns: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
-    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
-
-class CodingSubmission(Base):
-    """编程笔试的提交记录。"""
-
-    __tablename__ = "coding_submissions"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    problem_id: Mapped[str] = mapped_column(String(60), index=True)
-    language: Mapped[str] = mapped_column(String(16))
-    passed: Mapped[int] = mapped_column(Integer, default=0)
-    total: Mapped[int] = mapped_column(Integer, default=0)
-    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
-    results: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
 
 
 class ShareRevocation(Base):

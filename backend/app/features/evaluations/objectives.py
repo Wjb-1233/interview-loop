@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from app.features.evaluations.fillers import count_fillers
+from app.features.training.language import affirmative_occurrences, constructive_uncertainty
 
 FILLERS = ["然后", "就是", "那个", "其实", "反正", "所以说", "嗯", "额", "这个", "的话"]
 STRUCTURE_MARKERS = ["首先", "其次", "然后", "最后", "因此", "所以", "因为", "例如", "举个例子", "总结", "一是", "二是"]
@@ -89,7 +91,7 @@ def redundancy_ratio(text: str) -> float:
 
 def filler_density(text: str) -> float:
     length = max(1, len(re.sub(r"\s", "", text)))
-    hits = sum(text.count(word) for word in FILLERS)
+    hits = sum(count_fillers(text, FILLERS).values())
     return round(hits / length * 100, 2)
 
 
@@ -109,24 +111,35 @@ def number_consistency(answers: list[str], resume_text: str | None) -> float:
 
 
 def evasive_ratio(answers: list[str]) -> float:
-    text = " ".join(answers)
-    hits = sum(text.count(word) for word in EVASIVE)
+    hits = sum(affirmative_occurrences(answer, word) for answer in answers
+               if not constructive_uncertainty(answer) for word in EVASIVE)
     return round(min(1.0, hits / max(1, len(answers))), 2)
 
 
-def completeness(answers: list[str]) -> float:
-    """信息完整度：覆盖「背景/做法/结果/数字」四个槽位的比例。"""
-    text = " ".join(answers)
-    slots = 0
-    if re.search(r"(做过|负责|参与|实习|项目|岗位|专业|学校)", text):
-        slots += 1
-    if re.search(r"(用了|通过|先|然后|实现|设计|方案|方法|步骤)", text):
-        slots += 1
-    if re.search(r"(结果|提升|降低|完成|上线|达到|减少|增长)", text):
-        slots += 1
-    if NUMBERS.search(text):
-        slots += 1
-    return round(slots / 4, 2)
+def question_type(question: str) -> str:
+    if re.search(r"(项目|经历|做过|实习|负责|举.*例|过去.*处理)", question):
+        return "EXPERIENCE"
+    if re.search(r"(设计|方案|取舍|优化|如何处理|怎么解决|故障|场景)", question):
+        return "SOLUTION"
+    if re.search(r"(原理|区别|是什么|解释|定义|索引|复杂度|协议|事务|算法)", question):
+        return "KNOWLEDGE"
+    return "MOTIVATION"
+
+
+def completeness(answers: list[str], questions: list[str | None] | None = None) -> float:
+    """按题型检查信息槽位，数字是可选证据，不作为所有问题的必选项。"""
+    results = []
+    for index, answer in enumerate(answers):
+        question = (questions[index] or "") if questions and index < len(questions) else "项目经历"
+        kind = question_type(question)
+        patterns = {
+            "EXPERIENCE": [r"项目|实习|当时|背景|负责|参与", r"我|本人|主导|负责", r"通过|实现|设计|方案|采用|做了", r"结果|提升|降低|完成|上线|达到|减少|增长|解决"],
+            "KNOWLEDGE": [r"是|指|用于|表示|本质", r"因为|通过|原理|实现|机制", r"例如|比如|场景|当|在", r"但是|不同|区别|限制|代价|不适用|需要|避免"],
+            "SOLUTION": [r"目标|约束|需求|首先|问题", r"方案|设计|采用|使用|通过", r"取舍|代价|但是|相比|风险|成本|缺点", r"验证|监控|测试|指标|回滚|效果|边界"],
+            "MOTIVATION": [r"我|个人|希望|选择|看重", r"因为|原因|考虑|匹配|适合", r"经验|能力|经历|了解|优势|岗位", r"计划|未来|期望|目标|愿意|贡献"],
+        }[kind]
+        results.append(sum(bool(re.search(pattern, answer)) for pattern in patterns) / len(patterns))
+    return round(sum(results) / len(results), 2) if results else 0.0
 
 
 def compute(questions: list[str | None], answers: list[str], resume_text: str | None = None) -> dict:
@@ -138,13 +151,14 @@ def compute(questions: list[str | None], answers: list[str], resume_text: str | 
     content = round(0.45 * structure_ratio(text) + 0.35 * number_consistency(answers, resume_text) + 0.2 * (1 - evasive_ratio(answers)), 2)
     relevance = round(sum(coverage) / len(coverage), 2)
     clarity = round(max(0.0, 1 - redundancy_ratio(text) * 1.5 - filler_density(text) / 20), 2)
-    complete = completeness(answers)
+    complete = completeness(answers, questions)
     return {
         "content": content,
         "relevance": relevance,
         "clarity": clarity,
         "completeness": complete,
         "metrics": {
+            "questionTypes": [question_type(question or "") for question in questions],
             "structure": structure_ratio(text),
             "redundancy": redundancy_ratio(text),
             "fillerDensity": filler_density(text),

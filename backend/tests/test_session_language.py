@@ -1,4 +1,4 @@
-"""英文面试：会话记录语言，提示词切换为英文。"""
+"""中文限定：接口拒绝英文，历史状态不再切换英文提示。"""
 
 import uuid
 
@@ -33,9 +33,9 @@ def _state(language: str) -> dict:
     }
 
 
-def test_english_prompt_requires_english() -> None:
+def test_legacy_english_state_uses_chinese_prompt() -> None:
     prompt = prompt_node(_state("en"))["prompt"]
-    assert "conducted in English" in prompt
+    assert "conducted in English" not in prompt
 
 
 def test_chinese_prompt_has_no_english_directive() -> None:
@@ -60,5 +60,4 @@ def test_create_session_persists_language() -> None:
             json={"sceneId": scene["id"], "language": "en"},
             headers=headers,
         )
-        assert created.status_code == 201
-        assert created.json()["data"]["language"] == "en"
+        assert created.status_code == 422

@@ -12,13 +12,27 @@ def test_repeat_detection() -> None:
     assert is_repeat_request("能再说一遍吗？")
     assert is_repeat_request("抱歉没听清")
     assert is_repeat_request("Could you repeat that?")
+    # 前后夹着别的话也要判出来，否则会被当成正式回答计入轮数与表达统计
+    assert is_repeat_request("没听清，能再说一遍吗？")
+    assert is_repeat_request("不好意思，我没听清，可以再说一次吗？")
     assert not is_repeat_request("我做过订单系统优化")
+    # 带实质内容的追问不算重复请求
+    assert not is_repeat_request("我能再说一遍结论里的第二个数字吗")
 
 
 def test_nervous_detection() -> None:
     assert is_nervous("我有点紧张")
     assert is_nervous("I'm nervous")
     assert not is_nervous("我说完了")
+    assert not is_nervous("我不紧张，准备好了")
+
+
+def test_question_form_is_not_blame() -> None:
+    """疑问句是在确认规则，不该被标成推卸责任。"""
+    from app.features.training.graph import safety_node
+
+    assert safety_node({"user_text": "这个话题不关我的事吗？"})["flags"] == []
+    assert "推卸责任" in safety_node({"user_text": "这不关我的事。"})["flags"]
 
 
 def _prompt(nervous: bool) -> str:

@@ -91,8 +91,4 @@ withDefaults(
 .step-no { padding-top: 2px; color: var(--accent); font-size: 12px; font-variant-numeric: tabular-nums; }
 .empty-steps strong { display: block; color: var(--text); font-size: 13px; font-weight: 600; }
 .empty-steps p { margin: 3px 0 0; color: var(--text-3); font-size: 12.5px; line-height: 1.75; }
-
-@media (max-width: 860px) {
-  .empty-state.guided { grid-template-columns: 1fr; gap: 24px; padding: 24px; }
-}
 </style>

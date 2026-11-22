@@ -82,7 +82,7 @@ export function errorMessage(error: unknown): string {
     if (detail && detail !== 'Not Found' && detail !== 'Method Not Allowed') return detail
     if (error.response?.status === 404) return '服务暂不可用，可能是后端版本较旧，请重启后端后重试'
     if (error.response?.status === 405) return '服务暂不可用，请重启后端后重试'
-    if (error.code === 'ECONNABORTED') return '大模型处理超时，操作可能已完成。请稍后刷新页面查看结果。'
+    if (error.code === 'ECONNABORTED') return '请求处理超时，操作可能已完成。请稍后刷新页面查看结果。'
     if (!error.response) return '无法连接服务，请确认后端已经启动。'
   }
   if (error instanceof Error && error.message) return error.message

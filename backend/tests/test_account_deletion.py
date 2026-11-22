@@ -85,16 +85,12 @@ USER_SCOPED_TABLES = (
     "scripts",
     "skill_states",
     "model_usage_daily",
-    "stories",
     "mistake_states",
     "analysis_tasks",
     "training_plans",
     "course_progress",
     "password_reset_tokens",
     "password_reset_requests",
-    "resume_diagnoses",
-    "group_interviews",
-    "coding_submissions",
     "ability_attempts",
     "evaluations",
     "training_sessions",
@@ -164,7 +160,6 @@ def _seed_child_rows(user_id: str, session_id: str, scene_id: str) -> None:
             RefreshToken,
             Script,
             SkillState,
-            Story,
         )
 
         async with session_factory() as db:
@@ -178,14 +173,6 @@ def _seed_child_rows(user_id: str, session_id: str, scene_id: str) -> None:
                     SkillState(user_id=user_id, dimension="seed-check"),
                     Favorite(user_id=user_id, scene_id=scene_id),
                     Script(user_id=user_id, scene_id=scene_id, style="STAR", content="先给结论，再补依据"),
-                    Story(
-                        user_id=user_id,
-                        title="项目经历",
-                        situation="s",
-                        task="t",
-                        action="a",
-                        result="r",
-                    ),
                     ModelUsageDaily(user_id=user_id, day="2025-01-02", calls=3),
                 ]
             )

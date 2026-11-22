@@ -12,12 +12,10 @@ from app.core.errors import AppError
 from app.core.security import verify_password
 from app.db.models import (
     AnalysisTask,
-    CodingSubmission,
     CourseProgress,
     Evaluation,
     EvaluationEvidence,
     Favorite,
-    GroupInterview,
     Message,
     MistakeState,
     ModelUsageDaily,
@@ -25,11 +23,9 @@ from app.db.models import (
     PasswordResetToken,
     RefreshToken,
     ResumeContext,
-    ResumeDiagnosis,
     Script,
     ShareRevocation,
     SkillState,
-    Story,
     TrainingPlan,
     TrainingSession,
     User,
@@ -48,16 +44,12 @@ OWNED_TABLES = (
     Script,
     PasswordResetRequest,
     PasswordResetToken,
-    Story,
     SkillState,
     MistakeState,
     AnalysisTask,
     CourseProgress,
     TrainingPlan,
     ModelUsageDaily,
-    ResumeDiagnosis,
-    GroupInterview,
-    CodingSubmission,
 )
 
 
@@ -67,16 +59,19 @@ async def purge_user_rows(session: AsyncSession, user: User, session_ids: list[s
     SQLite 历史上不开启 PRAGMA foreign_keys，级联删除不会生效；这里按依赖顺序
     先删引用 evaluations 的行，再删会话与用户的直属行，最后才允许删除 users。
     """
-    evaluation_ids = select(Evaluation.id).where(Evaluation.user_id == user.id)
+    # MySQL 不允许在 DELETE 的子查询里引用同一张表，先取回 id 再删
+    ids_statement = select(Evaluation.id).where(Evaluation.user_id == user.id)
     if session_ids:
-        evaluation_ids = select(Evaluation.id).where(
+        ids_statement = select(Evaluation.id).where(
             or_(Evaluation.user_id == user.id, Evaluation.session_id.in_(session_ids))
         )
+    evaluation_ids = list((await session.scalars(ids_statement)).all())
 
-    await session.execute(
-        delete(EvaluationEvidence).where(EvaluationEvidence.evaluation_id.in_(evaluation_ids))
-    )
-    await session.execute(delete(Evaluation).where(Evaluation.id.in_(evaluation_ids)))
+    if evaluation_ids:
+        await session.execute(
+            delete(EvaluationEvidence).where(EvaluationEvidence.evaluation_id.in_(evaluation_ids))
+        )
+        await session.execute(delete(Evaluation).where(Evaluation.id.in_(evaluation_ids)))
 
     if session_ids:
         await session.execute(delete(Message).where(Message.session_id.in_(session_ids)))

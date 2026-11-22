@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, shallowRef } from 'vue'
+import { computed, onMounted, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import DialoguePanel from '@/components/training/DialoguePanel.vue'
 import { useTrainingSession } from '@/composables/useTrainingSession'
+import { useInterviewExit } from '@/composables/useInterviewExit'
 import { api, errorMessage } from '@/lib/api'
 
 const route = useRoute()
@@ -44,23 +45,18 @@ const loading = shallowRef(true)
 const finishing = shallowRef(false)
 const clearingResume = shallowRef(false)
 const pageError = shallowRef('')
-const finishAfterNext = shallowRef(false)
-const mode = shallowRef<'text' | 'voice'>(route.query.mode === 'voice' ? 'voice' : 'text')
-const planId = computed(() => String(route.query.planId ?? ''))
-const taskKey = computed(() => String(route.query.taskKey ?? ''))
-const isPlanTask = computed(() => Boolean(planId.value && taskKey.value))
-// 计划任务要求至少 6 轮，提前结束会被后端拒绝
+const finishRequested = shallowRef(false)
+const inputMode = shallowRef<'text' | 'voice'>(route.query.mode === 'voice' ? 'voice' : 'text')
+const planId = computed(() => training.session.value?.planId ?? String(route.query.planId ?? ''))
+const taskKey = computed(() => training.session.value?.taskKey ?? String(route.query.taskKey ?? ''))
+const isTransfer = computed(() => training.session.value?.assessmentContext?.purpose === 'TRANSFER')
+const isPlanTask = computed(() => !isTransfer.value && Boolean(planId.value && taskKey.value))
+// 提前结束可生成总结；计划任务达标仍要求至少 6 轮。
 const planMinRounds = 6
 const roundsLeft = computed(() => Math.max(0, planMinRounds - (training.session.value?.currentRound ?? 0)))
 const stageLabel = computed(() => ({ OPENING: '情景开场', DISCOVERY: '深入追问', CHALLENGE: '情景应对', CLOSING: '沟通收尾' }[training.session.value?.stage ?? 'OPENING'] ?? '训练进行中'))
 
-// 一句话没说就离开的会话直接丢弃，避免留下"进行中 0 轮"的空记录
-onBeforeUnmount(() => {
-  const current = training.session.value
-  if (!current) return
-  if (current.status === 'FINISHED' || current.currentRound > 0) return
-  void api.delete(`/training-sessions/${current.id}`).catch(() => {})
-})
+const { leaving } = useInterviewExit(() => sessionId, () => finishRequested.value || training.session.value?.status === 'FINISHED', message => { pageError.value = message })
 
 onMounted(async () => {
   try { await training.load() } catch (reason) { pageError.value = errorMessage(reason) }
@@ -70,24 +66,18 @@ onMounted(async () => {
 async function finish() {
   if (finishing.value) return
   finishing.value = true
+  finishRequested.value = true
   pageError.value = ''
   try {
     await training.finish(!isPlanTask.value)
-    if (isPlanTask.value) {
-      await api.post(`/training-plans/${planId.value}/tasks/${taskKey.value}/complete`, { evidence: sessionId })
-      await router.push(`/plans/${planId.value}`)
-      return
-    }
     await router.push(`/report/${sessionId}`)
   } catch (reason) { pageError.value = errorMessage(reason) }
   finally { finishing.value = false }
 }
 
 async function send(content: string) {
-  const closing = finishAfterNext.value
-  await training.send(content, closing)
+  await training.send(content)
   if (training.session.value?.status === 'FINISHED') {
-    finishAfterNext.value = false
     await finish()
   }
 }
@@ -95,7 +85,7 @@ async function send(content: string) {
 async function restart() {
   try {
     const id = await training.restart()
-    await router.push({ name: 'training', params: { id }, query: route.query })
+    await router.push({ name: 'training', params: { id } })
   } catch (reason) { pageError.value = errorMessage(reason) }
 }
 
@@ -113,22 +103,23 @@ async function clearResume(): Promise<void> {
 </script>
 
 <template>
-  <div class="page training-page" :class="{ 'voice-page': mode === 'voice' }">
+  <div class="page training-page" :class="{ 'voice-page': inputMode === 'voice' }">
     <header class="training-heading">
       <div><p class="eyebrow">角色演练 · {{ stageLabel }}<span v-if="training.session.value?.mode === 'DRILL'" class="drill-tag">深挖模式</span></p><h1>{{ training.session.value?.sceneTitle || '情景训练' }}</h1></div>
       <div class="heading-actions">
         <button v-if="training.session.value?.status === 'FINISHED'" class="button secondary" type="button" @click="restart">同场景重新开始</button>
-        <RouterLink class="back" to="/scenes">退出训练</RouterLink>
+        <RouterLink class="back" to="/scenes">{{ finishRequested ? '返回场景（保留本次总结）' : leaving ? '正在丢弃本次训练…' : '直接退出（不保留记录）' }}</RouterLink>
       </div>
     </header>
+    <div v-if="isTransfer" class="plan-hint">新题迁移 · 本次两道新题，请独立作答。完成后查看应用情况，结果与原题分开记录。</div>
     <div v-if="isPlanTask" class="plan-hint">
-      <template v-if="roundsLeft > 0">这是训练计划里的任务：至少完成 {{ planMinRounds }} 轮才能结束，还差 {{ roundsLeft }} 轮。</template>
+      <template v-if="roundsLeft > 0">计划任务还差 {{ roundsLeft }} 轮达标。可以提前结束查看本次总结，未达标时任务保持未完成。</template>
       <template v-else>已满足计划的 {{ planMinRounds }} 轮要求，可以结束并自动勾掉这项任务。</template>
     </div>
     <details class="setup">
-      <summary>场景设置 <span>{{ mode === 'voice' ? '语音面试' : '文字面试' }}<template v-if="training.session.value?.questionTotal"> · 必问题 {{ training.session.value.questionCovered }}/{{ training.session.value.questionTotal }}</template></span></summary>
+      <summary>场景设置 <span>{{ inputMode === 'voice' ? '语音面试' : '文字面试' }}<template v-if="training.session.value?.questionTotal"> · 必问题 {{ training.session.value.questionCovered }}/{{ training.session.value.questionTotal }}</template></span></summary>
     <div class="mode-bar">
-      <div><strong>训练方式</strong><span>{{ mode === 'voice' ? '说出回答，听面试官回应' : '键入回答，按自己的节奏思考' }}</span></div>
+      <div><strong>训练方式</strong><span>{{ inputMode === 'voice' ? '说出回答，听面试官回应' : '键入回答，按自己的节奏思考' }}</span></div>
     </div>
     <div v-if="training.session.value" class="jd-bar">
       <template v-if="training.session.value.jdText">
@@ -210,12 +201,10 @@ async function clearResume(): Promise<void> {
       :sending="training.sending.value || finishing"
       :finished="training.session.value.status === 'FINISHED'"
       :flags="training.liveFlags.value"
-      :minimum-rounds="isPlanTask ? 6 : 2"
       :started-at="training.session.value.startedAt"
-      :mode="mode"
-      :finish-after-next="finishAfterNext"
+      :input-mode="inputMode"
+      :assistance-allowed="!isTransfer"
       @send="send"
-      @finish="finishAfterNext = !finishAfterNext"
       @report="finish"
     />
   </div>
@@ -273,19 +262,6 @@ async function clearResume(): Promise<void> {
 .resume-bar button { color:#cf9a92; }
 .mode-switch { border:1px solid var(--border);background:var(--bg-2); }
 .mode-switch button.active { background:var(--overlay-3);color:var(--text);box-shadow:none; }
-@media (max-width: 700px) {
-  .training-heading { padding: 23px; align-items: flex-start; flex-direction: column; }
-  .heading-actions { width: 100%; justify-content: space-between; }
-  .mode-bar { align-items: stretch; flex-direction: column; }
-  .resume-bar { align-items: flex-start; flex-direction: column; }
-  .mode-switch button { flex: 1; }
-  .voice-page .training-heading { padding: 14px 18px; margin-bottom: 12px; flex-direction: row; align-items: center; }
-  .voice-page .training-heading .eyebrow, .voice-page .training-subtitle { display: none; }
-  .voice-page .training-heading h1 { font-size: 20px; }
-  .voice-page .heading-actions { width: auto; }
-  .voice-page .mode-bar { margin-bottom: 12px; padding: 8px 12px; }
-  .voice-page .mode-bar > div:first-child { display: none; }
-}
 
 .match-card { margin: 14px 0; padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); display: grid; gap: 12px; }
 .match-card header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }

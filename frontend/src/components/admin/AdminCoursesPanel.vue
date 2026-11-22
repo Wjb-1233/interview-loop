@@ -18,7 +18,7 @@ const formOpen = shallowRef(false)
 const selectedId = shallowRef<string | null>(null)
 const selectedTitle = shallowRef('')
 
-const empty = () => ({ title: '', dimension: '逻辑性', minutes: 15, description: '', content: '', active: true })
+const empty = () => ({ title: '', dimension: '内容与逻辑', minutes: 15, description: '', content: '', active: true })
 const form = reactive(empty())
 
 const visibleCourses = computed(() => filter.value === '全部'
@@ -74,10 +74,9 @@ function submit(): void {
   <section class="courses">
     <header class="section-head">
       <div>
-        <p class="eyebrow">微课素材</p>
-        <h2>微课库</h2>
-        <p class="course-hint">同一维度可以放多门课：学员点开微课时，模型会挑最贴合他这次表现的一门（例如谈薪资用谈判课、解释离职用动机课）。</p>
-        <p class="course-hint">这里的标题与正文是学员微课的底稿。学员点开微课时，系统会结合这份素材和他这次的评分实时生成个性化三步课；模型不可用时回退显示素材原文。</p>
+        <p class="eyebrow">教学内容</p>
+        <h2>微课内容管理</h2>
+        <p class="course-hint">按四个评分维度维护课程方法、示例和练习参考。系统结合课程底稿与学员的评分、回答生成个性化微课；模型不可用时，使用底稿中的方法生成基础课程。</p>
       </div>
       <button class="button" type="button" :disabled="busy" @click="openCreate">新增微课</button>
     </header>
@@ -99,7 +98,7 @@ function submit(): void {
       </label>
 
       <label class="field-label">
-        课程正文
+        课程正文（生成底稿）
         <textarea
           v-model.trim="form.content"
           class="field"
@@ -133,15 +132,17 @@ function submit(): void {
       <span class="count">{{ counts }} 条</span>
     </div>
 
-    <ul v-if="visibleCourses.length" class="list">
-      <li v-for="item in visibleCourses" :key="item.id" class="row" :class="{ inactive: !item.active }">
-        <div class="row-main">
-          <strong>{{ item.title }}</strong>
-          <span class="meta">{{ item.dimension }} · {{ item.active ? '开放中' : '已停用' }}</span>
+    <ul v-if="visibleCourses.length" class="card-grid">
+      <li v-for="item in visibleCourses" :key="item.id" class="course-card" :class="{ off: !item.active }">
+        <div class="card-top">
+          <span class="pill">{{ item.dimension }}</span>
+          <span class="state" :class="{ off: !item.active }"><i />{{ item.active ? '开放中' : '已停用' }}</span>
         </div>
-        <div class="row-actions">
-          <button type="button" class="text-btn" :disabled="busy" @click="edit(item)">编辑</button>
-          <button type="button" class="text-btn" :class="{ danger: item.active }" :disabled="busy" @click="emit('toggle', item)">
+        <h3 :title="item.title">{{ item.title }}</h3>
+        <p class="excerpt">{{ item.content }}</p>
+        <div class="card-actions">
+          <button type="button" class="ghost" :disabled="busy" @click="edit(item)">编辑</button>
+          <button type="button" class="ghost" :class="{ danger: item.active }" :disabled="busy" @click="emit('toggle', item)">
             {{ item.active ? '停用' : '启用' }}
           </button>
         </div>
@@ -198,7 +199,21 @@ textarea { resize: vertical; }
 .chip.active { border-color: var(--border-bright); background: var(--overlay-2); color: var(--text); }
 .count { margin-left: auto; color: var(--text-3); font-size: 11px; letter-spacing: .06em; }
 
-.list { margin: 10px 0 0; padding: 0; list-style: none; }
+.card-grid { margin: 14px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 12px; }
+.course-card { display: grid; gap: 10px; padding: 16px 16px 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel-bg); transition: border-color .16s var(--ease), box-shadow .16s var(--ease), transform .16s var(--ease); }
+.course-card:hover { border-color: var(--border-bright); box-shadow: 0 6px 18px rgba(15,23,42,.07); transform: translateY(-1px); }
+.course-card.off { background: var(--bg-2); }
+.card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pill { padding: 2px 8px; border-radius: 999px; background: var(--overlay-1); color: var(--text-2); font-size: 11px; }
+.state { display: inline-flex; align-items: center; gap: 5px; color: var(--text-3); font-size: 11px; }
+.state i { width: 6px; height: 6px; border-radius: 50%; background: #0f9d58; }
+.state.off i { background: var(--border-bright); }
+.course-card h3 { margin: 0; color: var(--text); font-size: 15px; font-weight: 600; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.excerpt { margin: 0; color: var(--text-3); font-size: 12px; line-height: 1.75; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-actions { display: flex; gap: 6px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--divider); }
+.ghost { padding: 5px 12px; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--text-2); font-size: 12px; cursor: pointer; }
+.ghost:hover { background: var(--overlay-1); color: var(--text); }
+.ghost.danger:hover { background: rgba(248,113,113,.1); color: #c2554a; }
 .row {
   display: flex;
   align-items: center;
@@ -230,12 +245,5 @@ textarea { resize: vertical; }
 .text-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 .empty { margin: 24px 0 0; color: var(--text-3); font-size: 13px; }
-
-@media (max-width: 640px) {
-  .section-head { align-items: flex-start; flex-direction: column; gap: 14px; }
-  .row { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .row-actions { gap: 22px; }
-  .count { margin-left: 0; }
-}
 .course-hint { margin: 8px 0 0; max-width: 62ch; color: var(--text-3); font-size: 12px; line-height: 1.8; }
 </style>

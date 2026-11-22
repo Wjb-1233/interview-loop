@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef } from 'vue'
-import { api, errorMessage } from '@/lib/api'
-import type { ApiEnvelope } from '@/lib/types'
+import { computed } from 'vue'
 
 interface TaskRow {
   id: string
@@ -17,8 +15,6 @@ interface TaskRow {
 
 const props = defineProps<{ tasks: TaskRow[]; loading: boolean }>()
 const emit = defineEmits<{ refresh: [] }>()
-const error = shallowRef('')
-const busy = ref('')
 
 const KIND_LABEL: Record<string, string> = { VIDEO_INTERVIEW: '视频面试分析' }
 const STATUS_LABEL: Record<TaskRow['status'], string> = {
@@ -36,38 +32,25 @@ function timeOf(value: string): string {
   return new Date(value).toLocaleString('zh-CN', { hour12: false })
 }
 
-async function retry(task: TaskRow): Promise<void> {
-  busy.value = task.id
-  error.value = ''
-  try {
-    await api.post<ApiEnvelope<{ id: string }>>(`/admin/tasks/${task.id}/retry`)
-    emit('refresh')
-  } catch (reason) {
-    error.value = errorMessage(reason)
-  } finally {
-    busy.value = ''
-  }
-}
 </script>
 
 <template>
   <section class="panel tasks-panel">
     <header class="tasks-head">
       <div>
-        <h2>后台任务</h2>
-        <p>视频分析这类长任务在后台排队执行，失败可以重跑。</p>
+        <h2>历史分析记录</h2>
+        <p>旧录像上传分析已停用；历史结果保留供核对，当前面试请从场景训练开始。</p>
       </div>
       <button type="button" class="button secondary" @click="emit('refresh')">刷新</button>
     </header>
 
-    <p v-if="error" class="error-banner">{{ error }}</p>
 
     <div v-if="loading" class="skeleton loading-line" />
     <p v-else-if="!rows.length" class="empty">还没有任务记录</p>
 
     <table v-else class="tasks-table">
       <thead>
-        <tr><th>类型</th><th>学员</th><th>状态</th><th>进度</th><th>更新时间</th><th /></tr>
+        <tr><th>类型</th><th>学员</th><th>状态</th><th>进度</th><th>更新时间</th></tr>
       </thead>
       <tbody>
         <tr v-for="task in rows" :key="task.id">
@@ -83,15 +66,6 @@ async function retry(task: TaskRow): Promise<void> {
             <small v-if="task.stage">{{ task.stage }}</small>
           </td>
           <td class="num time">{{ timeOf(task.updatedAt) }}</td>
-          <td>
-            <button
-              v-if="task.status === 'FAILED' || task.status === 'DONE'"
-              type="button"
-              class="link"
-              :disabled="busy === task.id"
-              @click="retry(task)"
-            >{{ task.status === 'FAILED' ? '重跑' : '再跑一次' }}</button>
-          </td>
         </tr>
       </tbody>
     </table>

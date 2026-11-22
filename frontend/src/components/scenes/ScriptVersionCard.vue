@@ -5,7 +5,7 @@ import { diffChars, diffStats } from '@/lib/diff'
 import { scriptPresentation } from '@/lib/scriptPresentation'
 import type { ScriptVersion } from '@/lib/types'
 
-const props = defineProps<{ version: ScriptVersion; sceneTitle?: string; showActions?: boolean; allowDelete?: boolean }>()
+const props = defineProps<{ version: ScriptVersion; sceneTitle?: string; showActions?: boolean; allowDelete?: boolean; previewLoading?: boolean; previewDisabled?: boolean; previewPlaying?: boolean; favoriteLoading?: boolean; deleting?: boolean }>()
 const emit = defineEmits<{ favorite: [version: ScriptVersion]; remove: [version: ScriptVersion]; preview: [version: ScriptVersion] }>()
 const presentation = computed(() => scriptPresentation(props.version.style))
 const segments = computed(() =>
@@ -38,9 +38,9 @@ const hasDiff = computed(() => segments.value?.some((segment) => segment.type !=
       <span v-for="point in version.highlights" :key="point">{{ point }}</span>
     </div>
     <div v-if="showActions" class="actions">
-      <button type="button" @click="emit('preview', version)">▶ 试听</button>
-      <button type="button" @click="emit('favorite', version)">{{ version.favorite ? '★ 已收藏' : '☆ 收藏' }}</button>
-      <button v-if="allowDelete" type="button" class="danger" @click="emit('remove', version)">删除</button>
+      <button type="button" :disabled="previewLoading || previewDisabled" :aria-busy="previewLoading" @click="emit('preview', version)">{{ previewLoading ? '语音生成中…' : previewPlaying ? '■ 停止' : '▶ 试听' }}</button>
+      <button type="button" :disabled="favoriteLoading || deleting" :aria-busy="favoriteLoading" @click="emit('favorite', version)">{{ favoriteLoading ? '保存中…' : version.favorite ? '★ 已收藏' : '☆ 收藏' }}</button>
+      <button v-if="allowDelete" type="button" class="danger" :disabled="deleting || favoriteLoading" @click="emit('remove', version)">{{ deleting ? '删除中…' : '删除' }}</button>
     </div>
   </article>
 </template>
@@ -60,6 +60,7 @@ const hasDiff = computed(() => segments.value?.some((segment) => segment.type !=
 .highlights span { padding:4px 8px; border-radius:6px; background:var(--tone-bg); color:var(--tone-ink); font-size:11px; }
 .actions { display:flex;gap:16px;margin-top:18px; }
 .actions button { padding:0;border:0;background:transparent;color:var(--text-2);font-weight:650;cursor:pointer; }
+.actions button:disabled { opacity:.55;cursor:wait; }
 .actions .danger { color:#cf9a92; }
 
 .diff-detail { margin-top: 12px; }

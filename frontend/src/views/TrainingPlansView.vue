@@ -148,5 +148,4 @@ function formatDate(value: string): string {
 .rows a:hover .row-title { color: var(--text); }
 .row-title { font-size: 14px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-meta { flex: none; font-size: 12.5px; color: var(--text-3); }
-@media (max-width: 640px) { .head .button { position: static; margin-top: 16px; } }
 </style>

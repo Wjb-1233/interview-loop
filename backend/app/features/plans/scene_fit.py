@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Evaluation, Scene, TrainingSession
+from app.features.evaluations.quality import formal_filters
 
 DIMENSIONS = ["logic", "relevance", "correctness", "concision"]
 LABELS = {
@@ -57,7 +58,7 @@ async def historical_fit(session: AsyncSession) -> dict[str, dict[str, float]]:
                 Evaluation.relevance_score,
                 Evaluation.correctness_score,
                 Evaluation.concision_score,
-            ).join(Evaluation, Evaluation.session_id == TrainingSession.id)
+            ).join(Evaluation, Evaluation.session_id == TrainingSession.id).where(*formal_filters())
         )
     ).all()
     buckets: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))

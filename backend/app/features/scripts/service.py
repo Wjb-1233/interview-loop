@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Script
 from app.features.scenes.service import get_scene
 from app.features.scripts.schemas import GenerateScriptsRequest, ScriptGeneration, ScriptVersion
-from app.infrastructure.knowledge import knowledge_store
 from app.infrastructure.llm import llm_gateway
 
 logger = logging.getLogger(__name__)
@@ -43,34 +42,19 @@ SYSTEM_PROMPT = """你是一名严谨的中文求职面试表达教练。请基�
 async def generate(
     session: AsyncSession, user_id: str, body: GenerateScriptsRequest
 ) -> ScriptGeneration:
-    scene = await get_scene(session, body.scene_id, user_id)
-    knowledge = await knowledge_store.search(scene.title + body.objective, 2)
-    references = "\n".join(f"- {item.title}：{item.content}" for item in knowledge)
+    scene = await get_scene(session, body.scene_id, user_id) if body.scene_id else None
     dimension = normalize_dimension(body.dimension)
-    story_block = ""
-    if body.use_stories:
-        stories = await _top_stories(session, user_id)
-        if stories:
-            story_block = (
-                "候选人已收录的真实经历（只可作为事实引用，不得改写或编造细节）：\n"
-                + "\n".join(
-                    f"- {item.title}：情境 {item.situation}；任务 {item.task}；行动 {item.action}；结果 {item.result}"
-                    for item in stories
-                )
-                + "\n"
-            )
-    prompt = f"""面试场景：{scene.title}
-目标行业：{scene.industry}
-应聘岗位：{scene.position}
-对方角色：{scene.role_name}
-背景：{scene.background}
+    prompt = f"""面试场景：{scene.title if scene else '通用面试表达'}
+目标行业：{scene.industry if scene else '未指定'}
+应聘岗位：{scene.position if scene else '未指定'}
+对方角色：{scene.role_name if scene else '面试官'}
+背景：{scene.background if scene else '由用户补充背景'}
 训练目标：{body.objective}
 优化重点：{(DIMENSION_GUIDANCE.get(dimension or '', '保持原意，语气自然、可推进。'))}
 补充信息：{body.extra_context or '无'}
-{story_block}
 用户原话：{body.original_text or '未提供；请只给不包含虚构个人事实的参考表达'}
 可参考的沟通原则：
-{references}
+先回应问题，再用真实事实说明个人行动、依据与结果；不得编造数字。
 请生成三个版本；若原话很短，不要为了凑字数编造细节。"""
     degraded = False
     try:
@@ -82,13 +66,13 @@ async def generate(
     except Exception as exc:
         logger.warning("scripts.llm_degraded error_type=%s", type(exc).__name__)
         degraded = True
-        raw_versions = fallback_versions(scene.title, scene.goal, body.objective, body.original_text)
+        raw_versions = fallback_versions(scene.title if scene else '通用面试', scene.goal if scene else body.objective, body.objective, body.original_text)
         coach_note = "当前使用本地教练模板。配置大模型 Key 后可获得更贴合背景的版本。"
     versions: list[ScriptVersion] = []
     for item in raw_versions[:3]:
         script = Script(
             user_id=user_id,
-            scene_id=scene.id,
+            scene_id=scene.id if scene else None,
             style=str(item.get("style", "正式")),
             original=(body.original_text or None),
             dimension=dimension,
@@ -120,7 +104,6 @@ async def generate(
 def preview_speech(text: str) -> str:
     """把改写结果读出来（系统中文语音），返回可播放的相对地址。"""
     import hashlib
-    import subprocess
     import tempfile
     from pathlib import Path as _Path
 
@@ -133,16 +116,17 @@ def preview_speech(text: str) -> str:
     directory = settings.tts_dir_path
     directory.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha1(cleaned.encode("utf-8")).hexdigest()[:16]
-    target = directory / f"{digest}.wav"
-    if target.exists():
-        return f"/media/tts/{target.name}"
+    for suffix in (".mp3", ".wav"):
+        cached = directory / f"{digest}{suffix}"
+        if cached.is_file() and cached.stat().st_size > 0:
+            return f"/media/tts/{cached.name}"
 
     from app.infrastructure.narration import synthesize_slide
 
-    audio, _, _ = synthesize_slide(cleaned, directory, 0, style="tutor")
-    suffix = audio.suffix
-    final = target.with_suffix(suffix)
-    if audio != final:
+    # 每次生成独立临时文件，避免不同试听请求覆盖同名 slide-0 音频。
+    with tempfile.TemporaryDirectory(prefix=".preview-", dir=directory) as workdir:
+        audio, _, _ = synthesize_slide(cleaned, _Path(workdir), 0, style="tutor", split_text=False)
+        final = directory / f"{digest}{audio.suffix}"
         audio.replace(final)
     return f"/media/tts/{final.name}"
 

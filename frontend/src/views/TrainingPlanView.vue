@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, shallowRef, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
+import PlanRewrite from '@/components/training/PlanRewrite.vue'
+import PlanComparison from '@/components/training/PlanComparison.vue'
+import TransferAssessmentPanel from '@/components/training/TransferAssessmentPanel.vue'
 import { useTrainingPlan } from '@/composables/useTrainingPlan'
 import { api } from '@/lib/api'
 import { taskRoute } from '@/lib/planActions'
-import type { ApiEnvelope, Evaluation, Scores, TrainingPlanTask, TrainingSession } from '@/lib/types'
+import type { ApiEnvelope, Evaluation, LessonVideoState, Scores, TrainingPlanTask, TrainingSession } from '@/lib/types'
 
 const route = useRoute()
 const trainingPlan = useTrainingPlan(String(route.params.id))
@@ -25,6 +28,11 @@ const totalCount = computed(() => plan.value?.tasks.length ?? 0)
 const labels: Record<keyof Scores, string> = { logic: '内容与逻辑', relevance: '贴合问题', correctness: '信息完整', concision: '表达干净' }
 const baseline = shallowRef<Evaluation | null>(null)
 const busyTask = shallowRef('')
+const rewriteTask = computed(() => plan.value?.tasks.find((task) => task.actionType === 'REWRITE'))
+async function submitRewrite(answer: string) {
+  if (!rewriteTask.value) return
+  try { await trainingPlan.complete(rewriteTask.value.key, answer) } catch { /* composable exposes the error */ }
+}
 
 async function completeReview(taskKey: string): Promise<void> {
   if (!plan.value || busyTask.value) return
@@ -39,9 +47,7 @@ async function completeReview(taskKey: string): Promise<void> {
 }
 
 const reviewSession = shallowRef<TrainingSession | null>(null)
-const baselineSessionId = computed(() => plan.value?.tasks.find((task) => task.sourceSessionId)?.sourceSessionId ?? '')
-const fallbackSessionId = shallowRef('')
-const reviewSessionId = computed(() => baselineSessionId.value || fallbackSessionId.value)
+const reviewSessionId = computed(() => plan.value?.tasks.find((task) => task.sourceSessionId)?.sourceSessionId ?? '')
 const focusKey = computed(() => (Object.entries(labels) as Array<[keyof Scores, string]>)
   .find(([, label]) => label === plan.value?.focusDimension)?.[0])
 const focusScore = computed(() => (focusKey.value && baseline.value ? baseline.value.scores[focusKey.value] : 0))
@@ -108,19 +114,72 @@ const sceneTasks = computed(() =>
 const courseTask = computed(() => plan.value?.tasks.find((task) => task.actionType === 'COURSE') ?? null)
 const courseRoute = computed(() => (plan.value && courseTask.value ? taskRoute(plan.value.id, courseTask.value) : null))
 
-onMounted(trainingPlan.load)
+// 微课视频在后端异步渲染：列表里跟着进度走，避免用户以为卡住了
+const courseVideo = shallowRef<LessonVideoState | null>(null)
+const courseVideoGenerating = computed(() => courseVideo.value?.status === 'PENDING' || courseVideo.value?.status === 'RUNNING')
+const courseVideoPercent = computed(() => Math.max(0, Math.min(100, Math.round(courseVideo.value?.progress ?? 0))))
+const courseVideoLabel = computed(() => (courseVideoGenerating.value
+  ? '生成中 ' + courseVideoPercent.value + '%'
+  : stateOf(courseTask.value).label + ' · ' + (courseTask.value?.learningProgress ?? 0) + '%'))
+
+let coursePollTimer: ReturnType<typeof setTimeout> | null = null
+let pageVisible = true
+
+function clearCoursePoll(): void {
+  if (coursePollTimer) {
+    clearTimeout(coursePollTimer)
+    coursePollTimer = null
+  }
+}
+
+function scheduleCoursePoll(): void {
+  clearCoursePoll()
+  if (!courseVideoGenerating.value) return
+  coursePollTimer = setTimeout(() => { void refreshCourseVideo() }, pageVisible ? 3000 : 10000)
+}
+
+async function refreshCourseVideo(): Promise<void> {
+  const current = plan.value
+  const task = courseTask.value
+  if (!current || !task) return
+  try {
+    const response = await api.get<ApiEnvelope<LessonVideoState>>('/training-plans/' + current.id + '/lesson/video/state', {
+      params: { task_key: task.key },
+      timeout: 8000,
+    })
+    courseVideo.value = response.data.data
+  } catch {
+    // 进度是附加信息，取不到就回到普通文案
+    courseVideo.value = null
+  }
+  scheduleCoursePoll()
+}
+
+function onPageVisibilityChange(): void {
+  pageVisible = document.visibilityState === 'visible'
+  if (courseVideoGenerating.value) scheduleCoursePoll()
+}
+
+onMounted(() => {
+  pageVisible = document.visibilityState === 'visible'
+  document.addEventListener('visibilitychange', onPageVisibilityChange)
+  void trainingPlan.load()
+})
+onBeforeUnmount(() => {
+  clearCoursePoll()
+  document.removeEventListener('visibilitychange', onPageVisibilityChange)
+})
+
+watch(() => courseTask.value?.key, () => {
+  courseVideo.value = null
+  clearCoursePoll()
+  if (courseTask.value) void refreshCourseVideo()
+})
 
 watch(reviewSessionId, async (sessionId) => {
-  if (!sessionId) {
-    // 旧计划没有关联会话时，退回到最近一次已评分的训练
-    try {
-      const history = await api.get<ApiEnvelope<Array<{ id: string; overallScore: number | null }>>>('/training-sessions')
-      fallbackSessionId.value = history.data.data.find((item) => item.overallScore !== null)?.id ?? ''
-    } catch {
-      // 忽略，复盘区域留空
-    }
-    return
-  }
+  baseline.value = null
+  reviewSession.value = null
+  if (!sessionId) return
   try {
     baseline.value = (await api.get<ApiEnvelope<Evaluation>>(`/evaluations/${sessionId}`)).data.data
     reviewSession.value = (await api.get<ApiEnvelope<TrainingSession>>(`/training-sessions/${sessionId}`)).data.data
@@ -130,6 +189,12 @@ watch(reviewSessionId, async (sessionId) => {
 }, { immediate: true })
 
 interface TaskState { label: string; tone: 'done' | 'doing' | 'todo' }
+
+function canStart(task: TrainingPlanTask): boolean {
+  if (!reviewSessionId.value) return false
+  const tasks = plan.value?.tasks ?? []
+  return tasks.slice(0, tasks.findIndex((item) => item.key === task.key)).every((item) => item.completed)
+}
 
 function stateOf(task: TrainingPlanTask | null): TaskState {
   if (!task) return { label: '', tone: 'todo' }
@@ -155,6 +220,7 @@ function stateOf(task: TrainingPlanTask | null): TaskState {
       </header>
 
       <p v-if="staleDays >= 7" class="stale-note">这份计划放了 {{ staleDays }} 天还没走完，先做一项也好。</p>
+      <p v-if="!reviewSessionId" class="stale-note" role="status">原训练记录已删除或未关联，无法继续改写和同条件复测。<RouterLink to="/scenes">完成一次新训练</RouterLink>后，可使用新生成的计划。</p>
 
       <section v-if="sceneTasks.length" class="block">
         <h2>接下来</h2>
@@ -162,18 +228,22 @@ function stateOf(task: TrainingPlanTask | null): TaskState {
           <li v-for="task in sceneTasks" :key="task.key">
             <span class="task-name">{{ task.task }}</span>
             <button
-              v-if="task.actionType === 'REVIEW' && !task.completed"
+              v-if="['REPORT', 'REVIEW'].includes(task.actionType) && !task.completed"
               type="button"
               class="text-action"
-              :disabled="busyTask === task.key"
+              :disabled="busyTask === task.key || !canStart(task)"
               @click="completeReview(task.key)"
-            >{{ busyTask === task.key ? '处理中…' : '标记已复习' }}</button>
+            >{{ busyTask === task.key ? '处理中…' : '确认已复盘' }}</button>
+            <span v-else-if="!task.completed && !canStart(task)" class="muted">{{ reviewSessionId ? '先完成前一项' : '原训练记录不可用' }}</span>
             <RouterLink v-else-if="!task.completed" class="text-action" :to="taskRoute(plan.id, task) ?? { name: 'scenes' }">去做 →</RouterLink>
             <span v-else class="done">已完成</span>
           </li>
         </ul>
       </section>
 
+      <PlanRewrite v-if="reviewSessionId && rewriteTask && !rewriteTask.completed" :task="rewriteTask" :suggestions="baseline?.suggestions ?? []" :busy="trainingPlan.submitting.value" @submit="submitRewrite" />
+      <PlanComparison v-if="plan.comparison" :comparison="plan.comparison" />
+      <TransferAssessmentPanel v-if="plan.transfer" :plan-id="plan.id" :transfer="plan.transfer" />
       <section v-if="baseline" class="block">
         <h2>本场复盘 <span class="sub">{{ channelLabel }}</span></h2>
 
@@ -224,7 +294,7 @@ function stateOf(task: TrainingPlanTask | null): TaskState {
         <div class="course-row">
           <div class="course-copy">
             <strong>{{ courseTask.lesson?.title ?? '针对性视频课' }}</strong>
-            <span>{{ stateOf(courseTask).label }} · {{ courseTask.learningProgress }}%</span>
+            <span>{{ courseVideoLabel }}</span>
           </div>
           <RouterLink v-if="courseRoute" class="text-action" :to="courseRoute ?? '/plans'">
             {{ courseTask.completed ? '回看 →' : courseTask.learningProgress > 0 ? '继续学习 →' : '开始学习 →' }}
@@ -288,5 +358,4 @@ function stateOf(task: TrainingPlanTask | null): TaskState {
 .course-copy { display: grid; gap: 4px; min-width: 0; }
 .course-copy strong { font-size: 15px; color: var(--text); }
 .course-copy span { font-size: 12.5px; color: var(--text-3); }
-@media (max-width: 640px) { .stats { grid-template-columns: 1fr 1fr; } }
 </style>

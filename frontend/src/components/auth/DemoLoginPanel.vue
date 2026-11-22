@@ -45,5 +45,4 @@ const emit = defineEmits<Emits>()
 .demo-button:hover:not(:disabled) { border-color:var(--text-3);box-shadow:none; }
 .role-icon { background:var(--bg-2);color:var(--text-2); }
 .admin .role-icon { background:var(--bg-2);color:var(--text-2); }
-@media (max-width: 420px) { .demo-actions { grid-template-columns: 1fr; } }
 </style>

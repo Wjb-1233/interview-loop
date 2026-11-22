@@ -46,6 +46,10 @@ services:
       REDIS_ENABLED: "true"
       AUTO_CREATE_SCHEMA: "false"
       CORS_ORIGINS: ${PUBLIC_ORIGIN:?需要设置 PUBLIC_ORIGIN，例如 https://your-domain.com}
+      # 前面只有 web(nginx) 这一层反向代理：限流键取 X-Forwarded-For 最右一跳（不可伪造）。
+      # 不设或设 0 会退化为按 nginx 容器地址限流（所有人共用一个键）；设大了会取到客户端伪造的条目。
+      # 直连部署（不带本编排、无 nginx）时必须为 0。
+      TRUSTED_PROXY_COUNT: "1"
     depends_on:
       mysql:
         condition: service_healthy

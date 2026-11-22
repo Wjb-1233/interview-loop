@@ -17,7 +17,6 @@ from app.db.models import (
     Message,
     Scene,
     Script,
-    Story,
     TrainingPlan,
     TrainingSession,
     User,
@@ -99,6 +98,9 @@ async def export_user_data(session: AsyncSession, user: User) -> dict:
                         "summary": evaluation.summary,
                         "suggestions": evaluation.suggestions,
                         "degraded": evaluation.degraded,
+                        "reviewRequired": evaluation.review_required,
+                        "assessment": evaluation.assessment,
+                        "revisionHistory": evaluation.revision_history or [],
                         "evidence": [
                             {
                                 "round": evidence.round_no,
@@ -125,11 +127,6 @@ async def export_user_data(session: AsyncSession, user: User) -> dict:
     scripts = (
         await session.scalars(
             select(Script).where(Script.user_id == user.id).order_by(Script.created_at)
-        )
-    ).all()
-    stories = (
-        await session.scalars(
-            select(Story).where(Story.user_id == user.id).order_by(Story.created_at)
         )
     ).all()
 
@@ -164,18 +161,5 @@ async def export_user_data(session: AsyncSession, user: User) -> dict:
                 "createdAt": _iso(item.created_at),
             }
             for item in scripts
-        ],
-        "stories": [
-            {
-                "id": item.id,
-                "title": item.title,
-                "situation": item.situation,
-                "task": item.task,
-                "action": item.action,
-                "result": item.result,
-                "tags": item.tags,
-                "createdAt": _iso(item.created_at),
-            }
-            for item in stories
         ],
     }

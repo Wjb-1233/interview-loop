@@ -1,3 +1,4 @@
+from tests.support.factories import make_docx
 import asyncio
 from io import BytesIO
 from uuid import uuid4
@@ -12,16 +13,6 @@ from app.infrastructure.llm import llm_gateway
 from app.main import app
 
 
-def make_docx(text: str) -> bytes:
-    data = BytesIO()
-    escaped = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    with ZipFile(data, "w") as archive:
-        archive.writestr(
-            "word/document.xml",
-            f'<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
-            f"<w:body><w:p><w:r><w:t>{escaped}</w:t></w:r></w:p></w:body></w:document>",
-        )
-    return data.getvalue()
 
 
 async def resume_record(session_id: str) -> ResumeContext | None:

@@ -107,6 +107,7 @@ def test_report_compares_only_same_scene(monkeypatch) -> None:
             "summary": "稳定发挥。",
             "suggestions": [],
             "styleTags": ["平稳"],
+            "evidence": [dict(dimension=key, roundNo=1, quote="我先说结论，再给一条可核对依据", reason="原话说明了回答结构。", nextAction="补充实际的验证结果。") for key in ["logic", "relevance", "correctness", "concision"]],
         }
 
     monkeypatch.setattr(llm_gateway, "complete_json", fake_complete)

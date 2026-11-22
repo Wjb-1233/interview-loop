@@ -1,0 +1,141 @@
+{
+  "vstats": {
+    "w": 768,
+    "h": 768,
+    "rs": 4
+  },
+  "cls": "avatar-presenter interviewer-art active listening connected",
+  "injected": true,
+  "probe": {
+    "taps": 1,
+    "maxTapPeak": 61,
+    "speakingSeen": true
+  },
+  "simliStatus": [
+    200
+  ],
+  "frames": [
+    {
+      "tag": "silent",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-00-silent.png",
+      "t": 9434,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "silent",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-01-silent.png",
+      "t": 10334,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "silent",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-02-silent.png",
+      "t": 11134,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "silent",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-03-silent.png",
+      "t": 11939,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-04-speak.png",
+      "t": 12935,
+      "tapPeak": 53,
+      "speaking": true
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-05-speak.png",
+      "t": 13833,
+      "tapPeak": 52,
+      "speaking": true
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-06-speak.png",
+      "t": 14736,
+      "tapPeak": 61,
+      "speaking": true
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-07-speak.png",
+      "t": 15735,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-08-speak.png",
+      "t": 16537,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-09-speak.png",
+      "t": 17434,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-10-speak.png",
+      "t": 18237,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-11-speak.png",
+      "t": 19137,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "speak",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-12-speak.png",
+      "t": 20037,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "silent2",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-13-silent2.png",
+      "t": 22234,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "silent2",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-14-silent2.png",
+      "t": 23134,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "silent2",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-15-silent2.png",
+      "t": 23937,
+      "tapPeak": 0,
+      "speaking": false
+    },
+    {
+      "tag": "silent2",
+      "file": "C:/Users/wjb/AppData/Local/Temp/shots-simli6/g-16-silent2.png",
+      "t": 24837,
+      "tapPeak": 0,
+      "speaking": false
+    }
+  ],
+  "errors": [
+    "console: Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ]
+}

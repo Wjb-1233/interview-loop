@@ -10,6 +10,8 @@ interface SharedPayload {
   channel: string
   startedAt: string
   overallScore: number | null
+  qualityStatus: string | null
+  eligibleForGrowth: boolean
   scores: { logic: number; relevance: number; correctness: number; concision: number } | null
   summary: string | null
   recordingUrl: string | null
@@ -107,6 +109,7 @@ onMounted(load)
 
     <template v-else-if="data">
       <section v-if="dimensions.length" class="panel summary">
+        <p v-if="data.qualityStatus && data.qualityStatus !== 'VERIFIED'" class="coach-summary">{{ data.qualityStatus === 'PENDING_RESCORE' ? '转写已修改，等待重新评分。' : data.qualityStatus === 'RULE_BASED' ? '本报告由本地评分规则生成。' : data.qualityStatus === 'LIMITED_SAMPLE' ? '本次作答较少，总结仅针对已有回答。' : '评分依据不完整。' }}当前分数仅供参考，暂不计入成长统计。</p>
         <dl>
           <div v-for="[label, value] in dimensions" :key="label">
             <dt>{{ label }}</dt>
@@ -118,7 +121,7 @@ onMounted(load)
 
       <section v-if="data.recordingUrl" class="panel">
         <h2>录像</h2>
-        <video ref="video" :src="data.recordingUrl" controls playsinline preload="metadata" @pause="captureTime" />
+        <video ref="video" :src="data.recordingUrl" controls preload="metadata" @pause="captureTime" />
       </section>
 
       <section v-if="data.transcript.length" class="panel">

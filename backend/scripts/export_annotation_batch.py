@@ -97,7 +97,32 @@ async def main() -> None:
     parser = argparse.ArgumentParser(description="导出人工标注样本")
     parser.add_argument("--size", type=int, default=40)
     parser.add_argument("--out", default="annotation.csv")
+    parser.add_argument("--blind", action="store_true", help="按完整报告导出四维盲评；size 表示报告数")
+    parser.add_argument("--email", default=None, help="只导出指定账号的数据")
+    parser.add_argument("--key-out", default="", help="盲评模型分对照文件，必须与标注表分开保存")
     args = parser.parse_args()
+
+    if not 1 <= args.size <= 200:
+        raise SystemExit("size 必须在 1–200 之间")
+    if args.blind:
+        from app.features.evaluations.blind_study import collect_blind
+        async with session_factory() as db:
+            annotations, key = await collect_blind(db, args.size, args.email)
+        if not annotations:
+            raise SystemExit("没有符合正式评分条件的完整报告，不能生成盲评材料")
+        target = Path(args.out)
+        key_target = Path(args.key_out) if args.key_out else target.with_name(target.stem + "-model-key.csv")
+        if target.resolve() == key_target.resolve():
+            raise SystemExit("盲评表与模型对照表不能使用同一路径")
+        for path, values in ((target, annotations), (key_target, key)):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("w", newline="", encoding="utf-8-sig") as handle:
+                writer = csv.DictWriter(handle, fieldnames=list(values[0]))
+                writer.writeheader()
+                writer.writerows(values)
+        print(f"已准备 {len(annotations) // 4} 份独立报告、{len(annotations)} 条维度盲评，人工分数留空。")
+        print(f"标注表：{target.resolve()}\n模型对照表（不交给盲评者）：{key_target.resolve()}")
+        return
 
     rows = await collect(args.size)
     if not rows:
@@ -105,6 +130,7 @@ async def main() -> None:
         return
 
     target = Path(args.out)
+    target.parent.mkdir(parents=True, exist_ok=True)
     fields = ["session_id", "round_no", "dimension", "question", "answer", "quote", "model_score", "human_score", "note"]
     with target.open("w", newline="", encoding="utf-8-sig") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)

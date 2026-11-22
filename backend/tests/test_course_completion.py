@@ -1,4 +1,4 @@
-"""微课只要求看完视频：一次调用完成课程任务。"""
+"""完成学习不等于练习通过。"""
 
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -56,9 +56,10 @@ async def test_complete_course_task_marks_done(factory) -> None:
     async with factory() as session:
         view = await complete_course_task(session, user.id, plan_id, "course")
         task = next(item for item in view.tasks if item.key == "course")
-        assert task.completed is True
-        assert task.evidence == "已看完微课视频"
+        assert task.completed is False
+        assert task.learned is True
+        assert task.evidence == "已完成学习，等待练习通过"
 
     async with factory() as session:
         saved = await session.get(TrainingPlan, plan_id)
-        assert saved.status == "COMPLETED"
+        assert saved.status == "ACTIVE"

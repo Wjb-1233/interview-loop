@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from 'lucide-vue-next'
 
 import LiveInterviewRoom from '@/components/training/LiveInterviewRoom.vue'
+import { useInterviewExit } from '@/composables/useInterviewExit'
 import { api } from '@/lib/api'
 import type { ApiEnvelope, Scene } from '@/lib/types'
 
@@ -11,17 +12,17 @@ const route = useRoute()
 const router = useRouter()
 const scene = shallowRef<Scene | null>(null)
 const sceneId = computed(() => (typeof route.query.sceneId === 'string' ? route.query.sceneId : ''))
-const planId = computed(() => (typeof route.query.planId === 'string' ? route.query.planId : ''))
-const taskKey = computed(() => (typeof route.query.taskKey === 'string' ? route.query.taskKey : ''))
 
 const started = shallowRef(false)
-const duration = shallowRef(30)
+const duration = shallowRef(Number(route.query.duration) || 10)
+const preparedSessionId = typeof route.query.sessionId === 'string' ? route.query.sessionId : ''
+const activeSessionId = shallowRef(preparedSessionId)
+const finishRequested = shallowRef(false)
 const initialDepth = (useRoute().query.depth as 'STANDARD' | 'THREE_LAYER' | 'PRESSURE') || 'STANDARD'
-const language = (useRoute().query.lang as 'zh' | 'en') || 'zh'
 const depth = shallowRef<'STANDARD' | 'THREE_LAYER' | 'PRESSURE'>(initialDepth)
 const engine = shallowRef<'doubao' | 'pipeline'>('doubao')
-const advanced = shallowRef(false)
 const serviceError = shallowRef('')
+useInterviewExit(() => activeSessionId.value, () => finishRequested.value, message => { serviceError.value = message })
 
 onMounted(async () => {
   if (sceneId.value) {
@@ -33,26 +34,23 @@ onMounted(async () => {
     }
   }
   try {
-    const status = await api.get<ApiEnvelope<{ enabled: boolean }>>('/voice/status')
+    const status = await api.get<ApiEnvelope<{ enabled: boolean; engine: 'doubao' | 'pipeline' }>>('/voice/status')
+    engine.value = status.data.data.engine
     if (!status.data.data.enabled) serviceError.value = '语音服务未配置，暂时无法开始面试'
   } catch {
     serviceError.value = '无法读取语音服务状态'
   }
 })
 
-function onEnded(sessionId: string): void {
-  if (planId.value && taskKey.value) {
-    void api
-      .post(`/training-plans/${planId.value}/tasks/${taskKey.value}/complete`, { evidence: sessionId })
-      .catch(() => undefined)
-  }
-  void router.push(`/report/${sessionId}`)
+async function onEnded(sessionId: string): Promise<void> {
+  await router.push(`/report/${sessionId}`)
 }
 </script>
 
 <template>
   <div class="page voice-page">
-    <RouterLink class="back" to="/scenes"><ArrowLeft :size="13" :stroke-width="1.8" aria-hidden="true" /> 返回场景训练</RouterLink>
+    <RouterLink class="back" to="/scenes"><ArrowLeft :size="13" :stroke-width="1.8" aria-hidden="true" /> {{ finishRequested ? '返回场景（保留本次总结）' : '直接退出（不保留记录）' }}</RouterLink>
+    <p v-if="started && serviceError" class="error-banner">{{ serviceError }}</p>
 
     <template v-if="!started">
       <header class="page-heading">
@@ -71,7 +69,7 @@ function onEnded(sessionId: string): void {
         <div class="setup-block">
           <p class="label">面试时长</p>
           <div class="chip-group" role="group" aria-label="面试时长">
-            <button v-for="minutes in [30, 60]" :key="minutes" type="button" class="chip" :class="{ active: duration === minutes }" @click="duration = minutes">
+            <button v-for="minutes in [5, 10, 15, 30, 60]" :key="minutes" type="button" class="chip" :class="{ active: duration === minutes }" @click="duration = minutes">
               {{ minutes }} 分钟
             </button>
           </div>
@@ -84,22 +82,13 @@ function onEnded(sessionId: string): void {
           <p class="brief-text">{{ scene.background }}</p>
         </div>
 
-        <div class="setup-block">
-          <button type="button" class="advanced-toggle" @click="advanced = !advanced">
-            {{ advanced ? '收起高级选项' : '高级选项' }}
-          </button>
-          <div v-if="advanced" class="chip-group" role="group" aria-label="语音引擎">
-            <button type="button" class="chip" :class="{ active: engine === 'doubao' }" @click="engine = 'doubao'">标准引擎</button>
-            <button type="button" class="chip" :class="{ active: engine === 'pipeline' }" @click="engine = 'pipeline'">本地管线</button>
-          </div>
-        </div>
 
         <div class="setup-block">
           <span class="block-label">追问强度</span>
           <div class="chip-group" role="group" aria-label="追问强度">
-            <button type="button" class="chip" :class="{ active: depth === 'STANDARD' }" @click="depth = 'STANDARD'">标准</button>
-            <button type="button" class="chip" :class="{ active: depth === 'THREE_LAYER' }" @click="depth = 'THREE_LAYER'">三层深挖</button>
-            <button type="button" class="chip" :class="{ active: depth === 'PRESSURE' }" @click="depth = 'PRESSURE'">压力面</button>
+            <button type="button" class="chip" :disabled="Boolean(preparedSessionId)" :class="{ active: depth === 'STANDARD' }" @click="depth = 'STANDARD'">标准</button>
+            <button type="button" class="chip" :disabled="Boolean(preparedSessionId)" :class="{ active: depth === 'THREE_LAYER' }" @click="depth = 'THREE_LAYER'">三层深挖</button>
+            <button type="button" class="chip" :disabled="Boolean(preparedSessionId)" :class="{ active: depth === 'PRESSURE' }" @click="depth = 'PRESSURE'">压力面</button>
           </div>
         </div>
 
@@ -115,13 +104,16 @@ function onEnded(sessionId: string): void {
 
     <LiveInterviewRoom
       v-else
-      mode="voice"
+      capture-mode="voice"
       :scene="scene"
       :engine="engine"
       :duration-minutes="duration"
         :depth="depth"
-        :language="language"
+        :prepared-session-id="preparedSessionId"
+      :exit-error="serviceError"
       @ended="onEnded"
+      @prepared="activeSessionId = $event"
+      @finishing="finishRequested = true"
     />
   </div>
 </template>

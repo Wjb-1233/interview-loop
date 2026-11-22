@@ -105,7 +105,7 @@ def test_degraded_evaluation_still_creates_plan(monkeypatch) -> None:
         assert len(plans) == 1, "降级评分同样生成计划（走 generate_plan 的兜底分支）"
 
 
-def test_plan_session_requires_six_rounds_and_auto_completes(monkeypatch) -> None:
+def test_plan_can_end_early_but_requires_six_rounds_for_task_completion(monkeypatch) -> None:
     async def fake_complete(system_prompt: str, _user: str, **_kwargs):
         if "提升计划" in system_prompt:
             return PLAN_DRAFT
@@ -136,10 +136,13 @@ def test_plan_session_requires_six_rounds_and_auto_completes(monkeypatch) -> Non
                 json={"content": f"第{index + 1}轮：先结论，后依据。"},
             )
         early = client.post(f"/api/v1/training-sessions/{session_id}/finish", headers=headers)
-        assert early.status_code == 422
-        assert early.json()["title"] == "PLAN_ROUNDS_INSUFFICIENT"
+        assert early.status_code == 200
+        refreshed = client.get(f"/api/v1/training-plans/{plan['id']}", headers=headers).json()["data"]
+        assert next(item for item in refreshed["tasks"] if item["key"] == key)["completed"] is False
 
-        for index in range(4, 6):
+        session_id = client.post("/api/v1/training-sessions", headers=headers, json={"sceneId": scene, "planId": plan["id"], "taskKey": key}).json()["data"]["id"]
+
+        for index in range(6):
             client.post(
                 f"/api/v1/training-sessions/{session_id}/messages/complete",
                 headers=headers,

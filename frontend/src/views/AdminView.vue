@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, shallowRef } from 'vue'
+import { computed, onMounted, shallowRef } from 'vue'
 
 import AdminCoursesPanel from '@/components/admin/AdminCoursesPanel.vue'
 import AdminMetricsPanel from '@/components/admin/AdminMetricsPanel.vue'
@@ -7,16 +7,15 @@ import AdminTasksPanel from '@/components/admin/AdminTasksPanel.vue'
 import AdminScenesPanel from '@/components/admin/AdminScenesPanel.vue'
 import AdminSessionsPanel from '@/components/admin/AdminSessionsPanel.vue'
 import AdminUsersPanel from '@/components/admin/AdminUsersPanel.vue'
-import AdminQuestionBankPanel from '@/components/admin/AdminQuestionBankPanel.vue'
+import MiniBarChart from '@/components/admin/MiniBarChart.vue'
+import MiniDonut from '@/components/admin/MiniDonut.vue'
 import LearnerReportPanel from '@/components/admin/LearnerReportPanel.vue'
 import { api, errorMessage } from '@/lib/api'
 import type { AdminCourseRecord, AdminLearnerRow, AdminSceneRecord, AdminUserRecord, ApiEnvelope } from '@/lib/types'
 
 interface Overview { users: number; activeUsers: number; scenes: number; activeScenes: number; courses: number; activeCourses: number; sessions: number; averageScore: number }
 interface LearnerReport { learner: { id: string; name: string; email: string; active: boolean; bio?: string; avatar?: string | null; createdAt?: string | null }; trainingCount: number; evaluationCount: number; averageScore: number; dimensions: Record<string, number>; weakestDimension: string | null; styleTags: string[]; trends: Array<{ date: string; score: number; dimensions: Record<string, number> }> }
-type Tab = 'users' | 'scenes' | 'bank' | 'courses' | 'sessions' | 'coverage' | 'tasks' | 'metrics'
-interface MistakeStat { name: string; count: number }
-interface MistakeStats { total: number; resolvedRate: number; byDimension: MistakeStat[]; byScene: MistakeStat[] }
+type Tab = 'users' | 'scenes' | 'courses' | 'sessions' | 'coverage' | 'tasks' | 'metrics'
 interface CoverageItem { sceneId: string; title: string; category: string; questions: number; sessions: number; coveredSessions: number }
 interface Coverage { totalScenes: number; scenesWithBank: number; scenesWithoutBank: number; totalQuestions: number; neverTrained: number; items: CoverageItem[] }
 interface RecordingUsage { count: number; totalBytes: number; totalMb: number; retentionDays: number }
@@ -38,11 +37,19 @@ const scenes = shallowRef<AdminSceneRecord[]>([])
 const courses = shallowRef<AdminCourseRecord[]>([])
 const learners = shallowRef<AdminLearnerRow[]>([])
 const coverage = shallowRef<Coverage | null>(null)
+// 图表取训练次数最多的前 12 个场景，避免 70+ 场景把图表拉成列表
+const coverageCharts = computed(() => {
+  const items = [...(coverage.value?.items ?? [])].sort((left, right) => right.sessions - left.sessions).slice(0, 12)
+  return {
+    trained: coverage.value ? coverage.value.totalScenes - coverage.value.neverTrained : 0,
+    sessions: items.map((item) => ({ label: item.title, value: item.sessions, hint: `${item.questions} 题` })),
+    covered: items.map((item) => ({ label: item.title, value: Math.round((item.coveredSessions / Math.max(item.sessions, 1)) * 100), hint: `${item.coveredSessions}/${item.sessions}` })),
+  }
+})
 const recordings = shallowRef<RecordingUsage | null>(null)
 const purging = shallowRef(false)
 const tasks = shallowRef<TaskRow[]>([])
 const metrics = shallowRef<Record<string, never> | null>(null)
-const mistakeStats = shallowRef<MistakeStats | null>(null)
 const tab = shallowRef<Tab>('users')
 const report = shallowRef<LearnerReport | null>(null)
 const busyId = shallowRef('')
@@ -51,32 +58,42 @@ const passwordRequests = shallowRef<Array<{ id: string; userId: string; name: st
 const loading = shallowRef(true)
 const error = shallowRef('')
 
+// 学员名单按页拉全，避免只看到前 100 个账号
+async function loadAllUsers(): Promise<AdminUserRecord[]> {
+  const all: AdminUserRecord[] = []
+  for (let page = 0; page < 20; page += 1) {
+    const response = await api.get<ApiEnvelope<AdminUserRecord[]>>('/admin/users', { params: { size: 100, page } })
+    const batch = response.data.data
+    all.push(...batch)
+    if (batch.length < 100) break
+  }
+  return all
+}
+
 async function load() {
   loading.value = true
   error.value = ''
   try {
-    const [summary, userList, sceneList, courseList, learnerList, requestList, coverageResult, mistakeStatsResult, recordingsResult, tasksResult, metricsResult] = await Promise.all([
+    const [summary, userList, sceneList, courseList, learnerList, requestList, coverageResult, recordingsResult, tasksResult, metricsResult] = await Promise.all([
       api.get<ApiEnvelope<Overview>>('/admin/overview'),
-      api.get<ApiEnvelope<AdminUserRecord[]>>('/admin/users?size=100'),
+      loadAllUsers(),
       api.get<ApiEnvelope<AdminSceneRecord[]>>('/admin/scenes'),
       api.get<ApiEnvelope<AdminCourseRecord[]>>('/admin/courses'),
       api.get<ApiEnvelope<AdminLearnerRow[]>>('/admin/learners'),
       // 旧版后端没有这个接口时不应拖垮整个管理页
       api.get<ApiEnvelope<typeof passwordRequests.value>>('/admin/password-requests').catch(() => null),
       api.get<ApiEnvelope<Coverage>>('/admin/question-coverage'),
-      api.get<ApiEnvelope<MistakeStats>>('/admin/mistake-stats'),
       api.get<ApiEnvelope<RecordingUsage>>('/admin/recordings').catch(() => null),
       api.get<ApiEnvelope<TaskRow[]>>('/admin/tasks?limit=20').catch(() => null),
       api.get<ApiEnvelope<never>>('/admin/metrics').catch(() => null),
     ])
     overview.value = summary.data.data
-    users.value = userList.data.data
+    users.value = userList
     scenes.value = sceneList.data.data
     courses.value = courseList.data.data
     learners.value = learnerList.data.data
     passwordRequests.value = requestList ? requestList.data.data : []
     coverage.value = coverageResult.data.data
-    mistakeStats.value = mistakeStatsResult.data.data
     recordings.value = recordingsResult ? recordingsResult.data.data : null
     tasks.value = tasksResult ? tasksResult.data.data : []
     metrics.value = metricsResult ? (metricsResult.data.data as never) : null
@@ -90,6 +107,7 @@ async function updateUser(user: AdminUserRecord, patch: { active?: boolean }) {
   catch (reason) { error.value = errorMessage(reason) }
   finally { busyId.value = '' }
 }
+
 
 async function purgeRecordings() {
   purging.value = true
@@ -194,7 +212,7 @@ onMounted(load)
     <div v-if="overview" class="admin-metrics">
       <div class="panel"><strong>{{ overview.users }}</strong><span>学员账号（{{ overview.activeUsers }} 启用）</span></div>
       <div class="panel"><strong>{{ overview.scenes }}</strong><span>面试场景（{{ overview.activeScenes }} 开放）</span></div>
-      <div class="panel"><strong>{{ overview.courses }}</strong><span>微课素材（{{ overview.activeCourses }} 开放）</span></div>
+      <div class="panel"><strong>{{ overview.courses }}</strong><span>微课内容（{{ overview.activeCourses }} 开放）</span></div>
       <div class="panel"><strong>{{ overview.sessions }}</strong><span>训练会话</span></div>
       <div class="panel"><strong>{{ overview.averageScore }}</strong><span>平均综合评分</span></div>
       <div class="panel recording-metric">
@@ -204,59 +222,51 @@ onMounted(load)
       </div>
     </div>
     <nav class="admin-tabs" aria-label="管理功能">
-      <button v-for="item in [{ id: 'users', label: '学员与权限' }, { id: 'scenes', label: '场景设计' }, { id: 'bank', label: '题库管理' }, { id: 'courses', label: '微课素材' }, { id: 'sessions', label: '训练与报告' }, { id: 'coverage', label: '题库与错题' }, { id: 'tasks', label: '后台任务' }, { id: 'metrics', label: '运行指标' }]" :key="item.id" :class="{ active: tab === item.id }" @click="tab = item.id as Tab">{{ item.label }}</button>
+      <button v-for="item in [{ id: 'users', label: '学员与权限' }, { id: 'scenes', label: '场景设计' }, { id: 'courses', label: '微课内容管理' }, { id: 'sessions', label: '训练与报告' }, { id: 'coverage', label: '题目覆盖' }, { id: 'tasks', label: '历史分析记录' }, { id: 'metrics', label: '运行指标' }]" :key="item.id" :class="{ active: tab === item.id }" @click="tab = item.id as Tab">{{ item.label }}</button>
     </nav>
     <div v-if="loading" class="panel loading" aria-label="正在加载管理数据"><div class="skeleton loading-line" /><div class="skeleton loading-line short" /><div class="skeleton loading-card" /></div>
     <AdminUsersPanel v-else-if="tab === 'users'" :users="users" :busy-id="busyId" :requests="passwordRequests" @update="updateUser" @reset="resetPassword" @resolve-request="resolveRequest" @dismiss-request="dismissRequest" />
     <AdminScenesPanel v-else-if="tab === 'scenes'" :scenes="scenes" :busy="loading" @save="saveScene" @deactivate="deactivateScene" />
-    <AdminQuestionBankPanel v-else-if="tab === 'bank'" :scenes="scenes" :busy="loading" @save="saveScene" />
     <AdminCoursesPanel v-else-if="tab === 'courses'" :courses="courses" :busy="loading" @save="saveCourse" @toggle="toggleCourse" />
     <AdminMetricsPanel v-else-if="tab === 'metrics'" :metrics="metrics as never" />
     <AdminTasksPanel v-else-if="tab === 'tasks'" :tasks="tasks" :loading="loading" @refresh="load" />
     <AdminSessionsPanel v-else-if="tab === 'sessions'" :learners="learners" :loading="loading" @export="download('/admin/reports/export', '学员训练能力报告.csv')" @report="showLearnerReport" />
     <section v-else-if="tab === 'coverage'" class="panel coverage panel-pad">
       <template v-if="coverage">
-        <dl class="coverage-stats">
-          <div><dt>场景总数</dt><dd class="num">{{ coverage.totalScenes }}<small>个</small></dd></div>
-          <div><dt>从未被训练</dt><dd class="num">{{ coverage.neverTrained }}<small>个</small></dd></div>
-        </dl>
-        <div class="coverage-list">
-          <div v-for="item in coverage.items" :key="item.sceneId" class="coverage-row">
-            <span class="coverage-title">{{ item.title }}</span>
-            <span class="coverage-cat">{{ item.category }}</span>
-            <span class="coverage-num num">{{ item.questions }} 题</span>
-            <span class="coverage-num num">{{ item.sessions }} 次训练</span>
-            <span class="coverage-bar"><b :style="{ width: `${item.questions ? Math.min(100, Math.round((item.coveredSessions / Math.max(item.sessions, 1)) * 100)) : 0}%` }" /></span>
-          </div>
-        </div>
-
-        <template v-if="mistakeStats">
-          <dl class="coverage-stats mistake-stats">
-            <div><dt>错题总数</dt><dd class="num">{{ mistakeStats.total }}</dd></div>
-            <div><dt>已解决比例</dt><dd class="num">{{ Math.round(mistakeStats.resolvedRate * 100) }}%</dd></div>
-            <div><dt>涉及维度</dt><dd class="num">{{ mistakeStats.byDimension.filter((item) => item.count > 0).length }}</dd></div>
-            <div><dt>涉及场景</dt><dd class="num">{{ mistakeStats.byScene.length }}</dd></div>
+        <div class="coverage-top">
+          <dl class="coverage-stats">
+            <div><dt>场景总数</dt><dd class="num">{{ coverage.totalScenes }}<small>个</small></dd></div>
+            <div><dt>从未被训练</dt><dd class="num">{{ coverage.neverTrained }}<small>个</small></dd></div>
           </dl>
-          <div class="stat-columns">
-            <section>
-              <h3>最常错的维度</h3>
-              <div v-for="item in mistakeStats.byDimension" :key="item.name" class="stat-row">
-                <span>{{ item.name }}</span>
-                <i class="coverage-bar"><b :style="{ width: `${mistakeStats.total ? Math.round((item.count / mistakeStats.total) * 100) : 0}%` }" /></i>
-                <span class="coverage-num num">{{ item.count }}</span>
-              </div>
+          <MiniDonut v-if="coverage.totalScenes > 0" :value="coverageCharts.trained" :total="coverage.totalScenes" caption="已有训练记录" :size="104" />
+        </div>
+        <template v-if="coverage.items.length">
+          <div class="coverage-charts">
+            <section class="coverage-chart">
+              <header class="coverage-chart-head"><h3>各场景训练次数</h3><span>训练次数前 12 个场景</span></header>
+              <MiniBarChart :items="coverageCharts.sessions" orientation="horizontal" unit="次" />
             </section>
-            <section>
-              <h3>错得最多的场景</h3>
-              <div v-for="item in mistakeStats.byScene" :key="item.name" class="stat-row">
-                <span class="scene-name">{{ item.name }}</span>
-                <i class="coverage-bar"><b :style="{ width: `${mistakeStats.byScene[0]?.count ? Math.round((item.count / mistakeStats.byScene[0].count) * 100) : 0}%` }" /></i>
-                <span class="coverage-num num">{{ item.count }}</span>
-              </div>
-              <p v-if="!mistakeStats.byScene.length" class="block-empty">还没有错题数据。</p>
+            <section class="coverage-chart">
+              <header class="coverage-chart-head"><h3>题目覆盖情况</h3><span>已问到的题量 ÷ 训练次数</span></header>
+              <MiniBarChart :items="coverageCharts.covered" orientation="horizontal" unit="%" :max="100" />
             </section>
           </div>
-        
+          <details class="coverage-details">
+            <summary>查看全部场景明细（{{ coverage.items.length }} 个场景）</summary>
+            <div class="coverage-list">
+              <div v-for="item in coverage.items" :key="item.sceneId" class="coverage-row">
+                <span class="coverage-title">{{ item.title }}</span>
+                <span class="coverage-cat">{{ item.category }}</span>
+                <span class="coverage-num num">{{ item.questions }} 题</span>
+                <span class="coverage-num num">{{ item.sessions }} 次训练</span>
+                <span class="coverage-bar"><b :style="{ width: `${item.questions ? Math.min(100, Math.round((item.coveredSessions / Math.max(item.sessions, 1)) * 100)) : 0}%` }" /></span>
+              </div>
+            </div>
+          </details>
+        </template>
+        <p v-else class="coverage-empty">还没有场景数据</p>
+      </template>
+    </section>
     <div v-if="resetResult" class="reset-backdrop" role="presentation" @click.self="resetResult = null">
       <section class="reset-dialog" role="dialog" aria-modal="true" aria-label="临时密码">
         <h3>已重置 {{ resetResult.name }} 的密码</h3>
@@ -265,35 +275,43 @@ onMounted(load)
         <div class="reset-actions"><button class="button" type="button" @click="resetResult = null">知道了</button></div>
       </section>
     </div>
-</template>
-      </template>
-    </section>
     <LearnerReportPanel v-if="report" :report="report" @close="report = null" @export="download(`/admin/learners/${report.learner.id}/report/export`, `${report.learner.name}-能力报告.csv`)" />
   </div>
 </template>
 
 <style scoped>
-.admin-page { max-width: 1100px; } .workflow { display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:20px;padding:16px 20px;color:var(--text-2);font-size:13px; } .workflow span { color:var(--primary-hover);font-weight:700; } .workflow i {font-style:normal;color:var(--text-3)}.admin-metrics { margin-bottom:20px; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; } .admin-metrics div { min-height:96px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; } .admin-metrics strong { font-size:30px;line-height:1;font-weight:750; } .admin-metrics span { color:var(--text-2); font-size:11px; } .admin-tabs { margin:0 0 16px; display:flex; gap:8px; overflow:auto; } .admin-tabs button { padding:10px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--card); color:var(--text-2); white-space:nowrap; cursor:pointer;transition:all .2s ease; } .admin-tabs button:hover{color:var(--text-2)}.coverage.panel-pad { padding: 22px; }
+.admin-page { max-width: 1100px; } .workflow { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:20px;padding:16px 20px;color:var(--text-2);font-size:13px; } .workflow span { flex:1 1 0; min-width:120px; text-align:center; color:var(--primary-hover);font-weight:700; } .workflow i {flex:0 0 auto;font-style:normal;color:var(--text-3)}.admin-metrics { margin-bottom:20px; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; } .admin-metrics div { min-height:96px; padding:16px; display:flex; flex-direction:column; justify-content:space-between; } .admin-metrics strong { font-size:30px;line-height:1;font-weight:750; } .admin-metrics span { color:var(--text-2); font-size:11px; } .admin-tabs { margin:0 0 16px; display:flex; gap:8px; overflow:auto; } .admin-tabs button { padding:10px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--card); color:var(--text-2); white-space:nowrap; cursor:pointer;transition:all .2s ease; } .admin-tabs button:hover{color:var(--text-2)}.coverage.panel-pad { padding: 22px; display: grid; gap: 16px; }
 .recording-metric strong small { margin-left: 4px; font-size: 12px; color: var(--text-3); }
 .recording-metric .link { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--primary-hover); font-size: 12px; cursor: pointer; }
 .recording-metric .link:disabled { opacity: .6; cursor: default; }
-@media (max-width: 900px) { .admin-metrics { grid-template-columns: repeat(2, 1fr); } }
-.coverage-stats { display: flex; justify-content: space-between; gap: 18px; margin: 0 0 22px; }
-.coverage-stats.mistake-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); justify-content: initial; }
+.coverage-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.coverage-stats { display: flex; gap: 40px; margin: 0; }
 .coverage-stats dt { color: var(--text-3); font-size: 11px; letter-spacing: .14em; }
 .coverage-stats dd { margin: 8px 0 0; color: var(--text); font-family: var(--font-num); font-size: 26px; font-weight: 300; }
 .coverage-stats dd small { margin-left: 4px; color: var(--text-3); font-size: 11px; font-weight: 400; }
-.stat-columns { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 32px; }
-.stat-columns h3 { margin: 0 0 12px; color: var(--text-3); font-size: 11px; font-weight: 400; letter-spacing: .14em; }
-.stat-row { display: grid; grid-template-columns: 96px minmax(0,1fr) 40px; align-items: center; gap: 12px; padding: 8px 0; color: var(--text-2); font-size: 12.5px; }
-.scene-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.coverage-charts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.coverage-chart { display: grid; gap: 14px; align-content: start; padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--overlay-1); }
+.coverage-chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.coverage-chart-head h3 { margin: 0; color: var(--text); font-size: 13.5px; font-weight: 650; }
+.coverage-chart-head span { color: var(--text-3); font-size: 11.5px; }
+.coverage-details { border-top: 1px solid var(--divider); }
+.coverage-details summary { padding: 14px 0 2px; color: var(--text-2); font-size: 12.5px; cursor: pointer; list-style: none; }
+.coverage-details summary::-webkit-details-marker { display: none; }
+.coverage-details summary::before { content: '▸'; display: inline-block; width: 12px; margin-right: 6px; color: var(--text-3); }
+.coverage-details[open] summary::before { content: '▾'; }
+.coverage-details summary:hover { color: var(--text); }
+.coverage-empty { margin: 0; padding: 22px 0; text-align: center; color: var(--text-3); font-size: 12.5px; }
 .coverage-list { display: grid; gap: 0; }
 .coverage-row { display: grid; grid-template-columns: minmax(0,1fr) 92px 64px 82px 90px; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--divider); font-size: 12.5px; color: var(--text-2); }
 .coverage-cat { color: var(--text-3); font-size: 11px; }
 .coverage-num { color: var(--text-3); font-size: 11.5px; text-align: right; }
 .coverage-bar { height: 2px; background: var(--track); }
 .coverage-bar b { display: block; height: 100%; background: var(--accent); }
-.admin-tabs button.active { border-color:var(--border);background:var(--accent);color:#1a1207;box-shadow:none; } .loading { padding:28px; display:grid;gap:14px; } .loading-line{height:20px;width:60%}.loading-line.short{width:36%}.loading-card{height:150px;width:100%} @media(max-width:900px){.admin-metrics{grid-template-columns:repeat(2,1fr)}}
+@media (min-width: 1000px) {
+.coverage-charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.coverage-chart { padding: 24px; }
+}
+.admin-tabs button.active { border-color:var(--border);background:var(--accent);color:#1a1207;box-shadow:none; } .loading { padding:28px; display:grid;gap:14px; } .loading-line{height:20px;width:60%}.loading-line.short{width:36%}.loading-card{height:150px;width:100%}
 
 .admin-tabs button:hover { border-color:var(--border-bright);color:var(--text); }
 
@@ -316,7 +334,7 @@ onMounted(load)
 .page-title { font-size: clamp(28px, 3vw, 34px); letter-spacing: -.02em; }
 .page-lead { margin-top: 8px; font-size: 13.5px; }
 .workflow { padding: 12px 16px; font-size: 12.5px; margin-bottom: 18px; }
-.workflow span { font-weight: 600; }
+.workflow span { min-width: 96px; font-weight: 600; }
 .admin-metrics { gap: 12px; margin-bottom: 22px; }
 .admin-metrics div { min-height: 100px; padding: 18px; border-radius: 12px; }
 .admin-metrics strong { font-size: 32px; font-weight: 650; }

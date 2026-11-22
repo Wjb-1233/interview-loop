@@ -130,10 +130,4 @@ a:hover { border-bottom-color: var(--accent-strong); }
 
 .doc-foot { margin-top: 8px; padding-top: 28px; border-top: 1px solid var(--divider); }
 .back-link { font-size: 14px; border: 0; }
-
-@media (max-width: 620px) {
-  .privacy-page { padding: 48px 20px 88px; }
-  h1 { font-size: 25px; }
-  .privacy-doc { font-size: 14.5px; }
-}
 </style>

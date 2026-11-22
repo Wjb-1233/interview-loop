@@ -1,0 +1,52 @@
+{
+ "method": "页面内 AudioContext 采样（40ms）测两条音频时间线的起播差；Simli 回流流同时承载音轨与嘴部画面，故该差值即“听到的声音”与“看到的嘴”的偏移。逐帧拼图用于核对。",
+ "returnedStream": "document.querySelector(\".simli-audio\").srcObject.getAudioTracks().length = 1（回流带音轨；LiveKit attach 甚至会把它解静音）",
+ "before": [
+  {
+   "scene": "开场提问",
+   "localTTS_ms": 6875,
+   "returnedStream_ms": 7876,
+   "offset_ms": 1001
+  },
+  {
+   "scene": "回答后回应",
+   "localTTS_ms": 32921,
+   "returnedStream_ms": 34040,
+   "offset_ms": 1119
+  },
+  {
+   "scene": "重听",
+   "localTTS_ms": 42243,
+   "returnedStream_ms": 43279,
+   "offset_ms": 1036
+  },
+  {
+   "scene": "重听(第二轮)",
+   "localTTS_ms": 33559,
+   "returnedStream_ms": 34517,
+   "offset_ms": 958
+  },
+  {
+   "scene": "回答后回应(第二轮)",
+   "localTTS_ms": 42638,
+   "returnedStream_ms": 43838,
+   "offset_ms": 1200
+  }
+ ],
+ "before_summary": {
+  "median_ms": 1036,
+  "min_ms": 958,
+  "max_ms": 1200,
+  "jitter_ms": 242
+ },
+ "after": {
+  "audibleSource": "前端唯一声源=Simli 回流音轨（analyser→destination 已断开，<audio> 解静音）",
+  "offset": "音画同一条流，帧级不可分辨（≤1 帧 ≈33ms）",
+  "regression": {
+   "replay": "重听可播，回流音起播正常",
+   "interrupt": "打断后 0.6s 内 a/sa 归零，元素静音",
+   "end": "结束面试触发 dispose→回流音在 1.6s 内归零",
+   "fallback": "屏蔽 simli-session 后回落本地形象，本地 TTS 仍直连扬声器（analyser→speaker 保持）"
+  }
+ }
+}

@@ -81,7 +81,8 @@ def analyze(audio_path: str | Path) -> dict:
 
     pause_total = sum(item["seconds"] for item in pauses)
     speaking = max(0.001, duration - pause_total)
-    filler_hits = {word: text.count(word) for word in FILLERS if text.count(word)}
+    from app.features.evaluations.fillers import count_fillers
+    filler_hits = count_fillers(text, FILLERS)
 
     return {
         "durationSeconds": round(duration, 1),

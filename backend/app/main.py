@@ -24,6 +24,7 @@ from app.db.seed import seed_database
 from app.features.admin.router import router as admin_router
 from app.features.ability.router import router as ability_router
 from app.features.auth.router import router as auth_router
+from app.features.avatar.router import router as avatar_router
 from app.features.courses.router import router as courses_router
 from app.features.dashboard.router import router as dashboard_router
 from app.features.evaluations.router import router as evaluations_router
@@ -38,7 +39,6 @@ from app.features.tasks.router import router as tasks_router
 from app.features.telemetry.router import router as telemetry_router
 from app.features.video.router import router as video_router
 from app.features.voice.router import router as voice_router
-from app.infrastructure.state_store import state_store
 from app.infrastructure.rate_limit import rate_limiter
 from app.infrastructure.llm import llm_gateway
 
@@ -62,6 +62,32 @@ async def _recording_janitor() -> None:
         await _asyncio.sleep(6 * 3600)
 
 
+LESSON_VIDEO_POLL_SECONDS = 3
+
+
+async def _lesson_video_worker() -> None:
+    """每 3 秒取一条待办微课视频任务渲染；单并发，异常不外抛。"""
+    import asyncio as _asyncio
+
+    from app.db.base import session_factory as _session_factory
+    from app.features.plans.lesson_videos import fail_overdue_jobs, process_next_job, reset_stale_jobs
+
+    try:
+        async with _session_factory() as db:
+            await reset_stale_jobs(db)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("lesson_video.reset_failed error_type=%s", type(exc).__name__)
+    while True:
+        try:
+            async with _session_factory() as db:
+                # 运行期看门狗：进程被杀/线程卡死留下的 RUNNING 不会永久堵住单并发队列
+                await fail_overdue_jobs(db)
+                await process_next_job(db)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("lesson_video.worker_failed error_type=%s", type(exc).__name__)
+        await _asyncio.sleep(LESSON_VIDEO_POLL_SECONDS)
+
+
 async def warmup_models() -> None:
     """后台预热语音与人脸模型，避免第一个用户等 20 多秒。"""
     import asyncio as _asyncio
@@ -83,7 +109,6 @@ async def lifespan(_: FastAPI):
     elif settings.auto_create_schema:
         async with engine.begin() as connection:
             await connection.run_sync(Base.metadata.create_all)
-    await state_store.initialize()
     await rate_limiter.initialize()
     if settings.environment == "production":
         await llm_gateway.health_status(force=True)
@@ -97,28 +122,25 @@ async def lifespan(_: FastAPI):
 
         warmup_task = _asyncio.create_task(warmup_models())
 
-    worker_enabled = settings.environment != "test"
-    if worker_enabled:
-        from app.features.tasks.service import start_worker
-
-        start_worker()
-
     janitor_task = None
     if settings.environment == "production" and settings.recording_janitor_enabled:
         import asyncio as _asyncio
 
         janitor_task = _asyncio.create_task(_recording_janitor())
+
+    lesson_video_task = None
+    if settings.environment != "test":
+        import asyncio as _asyncio
+
+        lesson_video_task = _asyncio.create_task(_lesson_video_worker())
     yield
     if warmup_task is not None:
         warmup_task.cancel()
     if janitor_task is not None:
         janitor_task.cancel()
-    if worker_enabled:
-        from app.features.tasks.service import stop_worker
-
-        await stop_worker()
+    if lesson_video_task is not None:
+        lesson_video_task.cancel()
     await rate_limiter.close()
-    await state_store.close()
     await engine.dispose()
 
 
@@ -249,6 +271,7 @@ for api_router in (
     tasks_router,
     share_router,
     telemetry_router,
+    avatar_router,
 ):
     app.include_router(api_router, prefix=settings.api_prefix)
 

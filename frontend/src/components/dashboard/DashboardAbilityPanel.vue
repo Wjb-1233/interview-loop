@@ -7,7 +7,7 @@ import type { Scores } from '@/lib/types'
 const props = defineProps<{
   scores: Scores
   focus: string
-  trainingCount: number
+  sampleCount: number
   weaknesses: Array<{ dimension: string; averageScore: number; sampleCount: number }>
 }>()
 
@@ -29,11 +29,11 @@ const weakest = computed(() => props.weaknesses[0] ?? null)
 <template>
   <section class="ability panel" aria-labelledby="ability-title">
     <header class="section-head">
-      <h2 id="ability-title" class="label">四维能力</h2>
-      <span class="note">最近一次 · 每项 5 分</span>
+      <h2 id="ability-title" class="label">近期四维表现</h2>
+      <span class="note">同条件近 {{ sampleCount }} 次均分 · 每项 5 分</span>
     </header>
 
-    <div v-if="trainingCount" class="split">
+    <div v-if="sampleCount" class="split">
       <div class="radar-wrap">
         <ScoreRadar :scores="scores" quiet />
       </div>
@@ -46,7 +46,7 @@ const weakest = computed(() => props.weaknesses[0] ?? null)
           </div>
         </dl>
         <p v-if="weakest" class="weakest">
-          近期最弱：{{ weakest.dimension }}（近 {{ weakest.sampleCount }} 次均值 {{ weakest.averageScore }}）
+          练习关注点：{{ weakest.dimension }}（近 {{ weakest.sampleCount }} 次均值 {{ weakest.averageScore }}）
         </p>
       </div>
     </div>
@@ -87,12 +87,6 @@ const weakest = computed(() => props.weaknesses[0] ?? null)
 
 .weakest { margin: 16px 0 0; color: var(--text-2); font-size: 13px; line-height: 1.7; }
 .empty-note { margin: 0; padding: 64px 0 70px; color: var(--text-3); font-size: 13px; }
-
-@media (max-width: 900px) {
-  .split { grid-template-columns: 1fr; gap: 20px; padding-top: 18px; }
-  .radar-wrap { max-width: 300px; margin: 0 auto; }
-  .weakest { text-align: center; }
-}
 
 /* 进度条：入场时从 0 长到目标值 */
 .bar b {

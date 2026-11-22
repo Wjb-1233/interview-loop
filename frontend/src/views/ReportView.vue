@@ -1,46 +1,40 @@
 <script setup lang="ts">
-import { computed, onMounted, shallowRef, watch } from 'vue'
+import { computed, onMounted, shallowRef } from 'vue'
 import { useRoute } from 'vue-router'
 import type { RouteLocationRaw } from 'vue-router'
 
 import AnimatedNumber from '@/components/report/AnimatedNumber.vue'
 import ScoreEvidencePanel from '@/components/report/ScoreEvidencePanel.vue'
+import EvaluationQuality from '@/components/report/EvaluationQuality.vue'
+import ReportSelfReview from '@/components/report/ReportSelfReview.vue'
+import InterviewEvidencePanel from '@/components/report/InterviewEvidencePanel.vue'
 import ScoreRadar from '@/components/report/ScoreRadar.vue'
+import TrainingComparison from '@/components/report/TrainingComparison.vue'
+import { useTrainingReport } from '@/composables/useTrainingReport'
+import { useReportSharing } from '@/composables/useReportSharing'
+import { reportAnswerTurns } from '@/lib/answerTurns'
 import { api, errorMessage } from '@/lib/api'
-import type { ApiEnvelope, Evaluation, Scores, TrainingMessage, TrainingSession } from '@/lib/types'
+import type { ApiEnvelope, Scores, TrainingSession } from '@/lib/types'
 
 const route = useRoute()
-const evaluation = shallowRef<Evaluation | null>(null)
-const messages = shallowRef<TrainingMessage[]>([])
-const session = shallowRef<TrainingSession | null>(null)
+const { evaluation, messages, session, error, rescoring, loadReport, rescore } = useTrainingReport(() => String(route.params.id))
 
 interface Round { roundNo: number; question: string; answer: string; flags: readonly string[]; annotated: boolean }
 const rounds = computed<Round[]>(() => {
-  const result: Round[] = []
-  let question = ''
-  for (const message of messages.value) {
-    if (message.speaker === 'AI') { question = message.content; continue }
-    if (message.speaker !== 'USER') continue
-    result.push({
-      roundNo: message.roundNo,
-      question,
-      answer: message.content,
-      flags: message.flags,
-      annotated: Boolean(evaluation.value?.suggestions.some((item) => item.roundNo === message.roundNo)),
-    })
-  }
-  return result
+  return reportAnswerTurns(session.value, messages.value).map(turn => ({
+    roundNo: turn.roundNo, question: turn.question, answer: turn.answer, flags: turn.flags,
+    annotated: Boolean(evaluation.value?.suggestions.some(item => item.roundNo === turn.roundNo)),
+  }))
 })
-const error = shallowRef('')
 const deliveryAdvice = computed(() => {
   const raw = deliveryStats.value
   if (!raw) return [] as string[]
   const tips: string[] = []
-  if (raw.speechRate > 260) tips.push('语速偏快（每分钟 ' + raw.speechRate + ' 字），关键信息容易被带过')
-  else if (raw.speechRate < 120) tips.push('语速偏慢（每分钟 ' + raw.speechRate + ' 字），可以更紧凑一些')
-  if (raw.longestPause >= 3) tips.push('最长停顿 ' + raw.longestPause + ' 秒，卡顿时可以用过渡句衔接')
-  else if (raw.pauseCount >= 6) tips.push('停顿 ' + raw.pauseCount + ' 次偏多，先想清结论再开口')
-  if (raw.fillerTotal >= 5) tips.push('填充词 ' + raw.fillerTotal + ' 次，换成短停顿会更稳')
+  if (typeof raw.speechRate === 'number' && raw.speechRate > 260) tips.push('语速偏快（每分钟 ' + raw.speechRate + ' 字），关键信息容易被带过')
+  else if (typeof raw.speechRate === 'number' && raw.speechRate < 120) tips.push('语速偏慢（每分钟 ' + raw.speechRate + ' 字），可以更紧凑一些')
+  if (typeof raw.longestPause === 'number' && raw.longestPause >= 3) tips.push('最长停顿 ' + raw.longestPause + ' 秒，卡顿时可以用过渡句衔接')
+  else if (typeof raw.pauseCount === 'number' && raw.pauseCount >= 6) tips.push('停顿 ' + raw.pauseCount + ' 次偏多，先想清结论再开口')
+  if (typeof raw.fillerTotal === 'number' && raw.fillerTotal >= 5) tips.push('填充词 ' + raw.fillerTotal + ' 次，换成短停顿会更稳')
   return tips
 })
 
@@ -57,50 +51,13 @@ const visionStats = computed(() => {
   }
 })
 
-const replayMarks = computed<Array<{ text: string; start: number }>>(() => {
-  const marks = (session.value?.delivery as { marks?: Array<{ text: string; start: number }> } | undefined)?.marks
-  return Array.isArray(marks) ? marks : []
-})
-
-const comparison = computed(() => {
-  const current = evaluation.value
-  if (!current?.previousScores || current.previousOverall === null) return null
-  const rows = (['logic', 'relevance', 'correctness', 'concision'] as Array<keyof Scores>).map((key) => ({
-    key,
-    label: labels[key],
-    before: current.previousScores![key],
-    after: current.scores[key],
-    delta: current.scores[key] - current.previousScores![key],
-  }))
-  return {
-    before: current.previousScores,
-    after: current.scores,
-    beforeOverall: current.previousOverall,
-    afterOverall: current.overallScore,
-    rows,
-  }
-})
 
 function replaySeek(seconds: number): void {
-  const media = document.querySelector<HTMLVideoElement>('.replay-media')
+  const media = document.querySelector<HTMLMediaElement>('.training-compare video, .training-compare audio, .replay-media')
   if (!media) return
   media.currentTime = seconds
   void media.play().catch(() => undefined)
 }
-
-function exportPdf(): void {
-  window.print()
-}
-
-const upgradeStats = computed(() => {
-  const rows = evaluation.value?.upgrades ?? []
-  const counts = new Map<string, number>()
-  for (const row of rows) counts.set(row.type, (counts.get(row.type) ?? 0) + 1)
-  return {
-    total: rows.length,
-    types: [...counts.entries()].map(([type, count]) => `${type} ×${count}`),
-  }
-})
 
 const deliveryStats = computed(() => {
   const raw = session.value?.delivery
@@ -167,7 +124,7 @@ const weeklyActions = computed<PlannedAction[]>(() => {
     })
   }
   const filler = current.speechStats?.topFillers?.[0]
-  if (filler) {
+  if (filler && filler.count >= 3) {
     actions.push({
       title: `这次只砍一个口头禅：「${filler.word}」`,
       detail: `本场出现 ${filler.count} 次。下一场刻意停顿 0.5 秒代替「${filler.word}」，比硬背稿有效。`,
@@ -194,10 +151,12 @@ function roundRubric(roundNo: number): { dimension: string; score: number; note:
   const planned = session.value?.questionPlan?.[roundNo - 1]
   const evidence = current.evidence.find((item) => item.roundNo === roundNo)
   if (!planned && !evidence) return null
-  const key = (evidence?.dimension ?? planned?.dimension ?? '') as keyof Scores
+  const candidate = evidence?.dimension ?? planned?.dimension ?? ''
+  const key = (Object.keys(labels).find((name) => labels[name as keyof Scores] === candidate) ?? candidate) as keyof Scores
+  if (!(key in labels)) return null
   const dimension = labels[key] ?? evidence?.dimension ?? planned?.dimension ?? '综合表达'
   return {
-    dimension,
+    dimension: `${dimension}（整场维度参考）`,
     score: key in labels ? current.scores[key] : 0,
     note: evidence?.reason ?? '',
   }
@@ -207,20 +166,7 @@ const labels: Record<keyof Scores, string> = { logic: '内容与逻辑', relevan
 
 const DIMS: Array<keyof Scores> = ['logic', 'relevance', 'correctness', 'concision']
 
-const rescoring = shallowRef(false)
 
-async function rescore(): Promise<void> {
-  if (rescoring.value) return
-  rescoring.value = true
-  try {
-    await api.post(`/evaluations/${route.params.id}?force=true`)
-    await loadReport()
-  } catch (reason) {
-    error.value = errorMessage(reason)
-  } finally {
-    rescoring.value = false
-  }
-}
 
 // T-04：逐题 STAR 完整度（启发式，只做提示，不参与评分）
 const STAR_PATTERNS: Array<[keyof StarCoverage, RegExp]> = [
@@ -241,6 +187,10 @@ function starOf(answer: string): StarCoverage {
   }
 }
 
+function isExperienceRound(roundNo: number): boolean {
+  return evaluation.value?.questionTypes?.some((item) => item.roundNo === roundNo && item.type === 'EXPERIENCE') ?? false
+}
+
 function starScore(coverage: StarCoverage): number {
   return Object.values(coverage).filter(Boolean).length
 }
@@ -256,68 +206,10 @@ function starHint(answer: string): string {
   return missing.length ? `缺${missing.join('、')}` : '四要素齐全'
 }
 
-// 教练查看链接（只读 + 时间点批注 + 可撤销 + 服务端打印版报告）
-const API_BASE = import.meta.env.VITE_API_BASE ?? '/api/v1'
-const shareLink = shallowRef('')
-const shareToken = shallowRef('')
-const shareNote = shallowRef('')
-const shareBusy = shallowRef(false)
-const revokingShare = shallowRef(false)
-
-async function issueShareLink(): Promise<{ url: string; token: string }> {
-  const response = await api.post<ApiEnvelope<{ url: string; expiresAt: number }>>(`/share/training-sessions/${session.value!.id}`)
-  const url = response.data.data.url
-  return { url, token: url.split('/').filter(Boolean).pop() ?? '' }
-}
-
-async function createShareLink(): Promise<void> {
-  if (!session.value || shareBusy.value) return
-  shareBusy.value = true
-  try {
-    const issued = await issueShareLink()
-    shareToken.value = issued.token
-    shareLink.value = `${location.origin}${issued.url}`
-    shareNote.value = ''
-    await navigator.clipboard?.writeText(shareLink.value).catch(() => undefined)
-  } catch (reason) {
-    error.value = errorMessage(reason)
-  } finally {
-    shareBusy.value = false
-  }
-}
-
-async function openShareReport(): Promise<void> {
-  if (!session.value || shareBusy.value) return
-  shareBusy.value = true
-  try {
-    if (!shareToken.value) shareToken.value = (await issueShareLink()).token
-    if (!shareToken.value) return
-    window.open(`${API_BASE}/share/${shareToken.value}/report`, '_blank', 'noopener')
-  } catch (reason) {
-    error.value = errorMessage(reason)
-  } finally {
-    shareBusy.value = false
-  }
-}
-
-async function revokeShare(): Promise<void> {
-  if (!shareToken.value || revokingShare.value) return
-  revokingShare.value = true
-  try {
-    await api.delete(`/share/${shareToken.value}`)
-    shareToken.value = ''
-    shareLink.value = ''
-    shareNote.value = '已撤销：这个链接现在打不开了，需要时可以重新生成一个。'
-  } catch (reason) {
-    error.value = errorMessage(reason)
-  } finally {
-    revokingShare.value = false
-  }
-}
+const { shareBusy, openShareReport } = useReportSharing(() => session.value, message => { error.value = message })
 
 // V-04：同场景两次录像并排对比
 const compareSession = shallowRef<TrainingSession | null>(null)
-const compareScore = shallowRef<number | null>(null)
 
 async function loadCompare(): Promise<void> {
   const current = session.value
@@ -332,8 +224,6 @@ async function loadCompare(): Promise<void> {
       && Boolean(item.recordingUrl))
     if (!previous) return
     compareSession.value = previous
-    const score = await api.get<ApiEnvelope<Evaluation>>(`/evaluations/${previous.id}`).catch(() => null)
-    compareScore.value = score ? score.data.data.overallScore : null
   } catch {
     // 对比是增强信息，取不到不影响报告
   }
@@ -384,43 +274,6 @@ function confidenceLabel(value: number | null): string {
   return `置信度 ${Math.round(value * 100)}%`
 }
 
-// V-06：视频逐题自评（镜头位置 / 信息组织 / 开场收尾）
-interface SelfReviewEntry { roundNo: number; camera: boolean; structure: boolean; opening: boolean; note: string }
-const selfReview = shallowRef<SelfReviewEntry[]>([])
-const reviewSaved = shallowRef(false)
-const reviewSaving = shallowRef(false)
-
-function initSelfReview(): void {
-  const marks = session.value?.delivery?.marks ?? []
-  const saved = new Map((session.value?.delivery?.selfReview ?? []).map((item) => [item.roundNo, item]))
-  const source = marks.length ? marks.map((mark, index) => ({ roundNo: index + 1, text: mark.text })) : rounds.value.map((round) => ({ roundNo: round.roundNo, text: round.question }))
-  selfReview.value = source.map((item) => {
-    const existing = saved.get(item.roundNo)
-    return {
-      roundNo: item.roundNo,
-      camera: existing?.camera ?? false,
-      structure: existing?.structure ?? false,
-      opening: existing?.opening ?? false,
-      note: existing?.note ?? '',
-    }
-  })
-}
-
-async function saveSelfReview(): Promise<void> {
-  if (!session.value || reviewSaving.value) return
-  reviewSaving.value = true
-  try {
-    await api.put(`/training-sessions/${session.value.id}/self-review`, { items: selfReview.value })
-    reviewSaved.value = true
-  } catch (reason) {
-    error.value = errorMessage(reason)
-  } finally {
-    reviewSaving.value = false
-  }
-}
-
-watch(session, () => initSelfReview())
-
 const orderedScores = computed(() => evaluation.value
   ? DIMS.map((key) => [key, Number(evaluation.value!.scores[key]) || 0] as [keyof Scores, number])
     .sort((a, b) => b[1] - a[1])
@@ -429,7 +282,7 @@ const weakestScore = computed(() => (orderedScores.value.length ? orderedScores.
 
 const overallDelta = computed(() => {
   const current = evaluation.value
-  if (!current || current.previousOverall === null || current.previousOverall === undefined) return null
+  if (!current || current.overallScore === null || current.previousOverall === null || current.previousOverall === undefined) return null
   return Math.round((current.overallScore - current.previousOverall) * 10) / 10
 })
 
@@ -446,16 +299,9 @@ function deltaLabel(diff: number | null): string {
   return diff > 0 ? `↑ ${Math.abs(diff)}` : `↓ ${Math.abs(diff)}`
 }
 const styleLine = computed(() => evaluation.value?.styleTags?.join(' · ') ?? '')
+// 矛盾未消解时接口不给数字，页面直说原因，不显示 0 或空白。
+const scoreNotice = computed(() => evaluation.value?.scoreUnavailableReason ?? null)
 
-async function loadReport(): Promise<void> {
-  const response = await api.get<ApiEnvelope<Evaluation>>(`/evaluations/${route.params.id}`)
-  const sessionResponse = await api.get<ApiEnvelope<TrainingSession>>(`/training-sessions/${String(route.params.id)}`).catch(() => null)
-  if (sessionResponse) {
-    session.value = sessionResponse.data.data
-    messages.value = sessionResponse.data.data.messages
-  }
-  evaluation.value = response.data.data
-}
 
 onMounted(async () => {
   try {
@@ -474,26 +320,28 @@ onMounted(async () => {
         <p class="lead">评分是起点，不是结论。</p>
       </div>
       <div class="report-actions">
-        <button type="button" class="button secondary" @click="exportPdf">打印本页</button>
         <button type="button" class="button secondary" :disabled="shareBusy" @click="openShareReport">导出报告</button>
-        <button class="button secondary" type="button" :disabled="shareBusy" @click="createShareLink">
-          {{ shareBusy ? '生成中…' : shareLink ? '链接已复制' : '生成教练链接' }}
-        </button>
+
         <RouterLink class="button secondary" to="/scenes">再练一个</RouterLink>
       </div>
     </header>
 
     <div v-if="error" class="error-banner">{{ error }}</div>
-    <div v-else-if="!evaluation" class="skeleton report-loading" />
+    <div v-if="!evaluation && !error" class="skeleton report-loading" />
 
-    <template v-else>
+    <template v-if="evaluation">
+      <EvaluationQuality :evaluation="evaluation" :pending="needsRescore" :rescoring="rescoring" @rescore="rescore" />
       <section class="hero">
         <div class="score">
           <p class="label">综合表现</p>
-          <div class="figure">
-            <span class="num"><AnimatedNumber :value="evaluation.overallScore" /></span>
+          <div v-if="evaluation.overallScore === null" class="figure figure-off">
+            <span class="off">暂不可用</span>
+          </div>
+          <div v-else class="figure">
+            <span class="num"><AnimatedNumber :value="evaluation.overallScore ?? 0" /></span>
             <span class="den">/ 100</span>
           </div>
+          <p v-if="scoreNotice" class="score-notice">{{ scoreNotice }}</p>
           <p v-if="overallDelta !== null" class="overall-delta" :class="{ up: overallDelta > 0, down: overallDelta < 0 }">
             {{ overallDelta === 0 ? '与上次持平' : overallDelta > 0 ? `比上次高 ${overallDelta} 分` : `比上次低 ${Math.abs(overallDelta)} 分` }}
           </p>
@@ -509,6 +357,7 @@ onMounted(async () => {
         <div class="radar"><ScoreRadar :scores="evaluation.scores" /></div>
 
         <ul class="dims">
+          <li v-if="scoreNotice" class="dims-note">四维分值为原记录值，仅作参考</li>
           <li v-for="([key, value], index) in orderedScores" :key="key" :class="{ weakest: value === weakestScore }">
             <span class="name">{{ labels[key] }}</span>
             <span class="bar"><b :style="{ '--w': `${value * 20}%`, animationDelay: `${index * 85}ms` }" /></span>
@@ -521,7 +370,7 @@ onMounted(async () => {
       </section>
 
       <section v-if="weeklyActions.length" class="actions-card panel">
-        <header><h2>接下来只做三件事</h2><span>按顺序做，别一次改所有问题</span></header>
+        <header><h2>下一步怎么练</h2><span>按顺序做，别一次改所有问题</span></header>
         <ol>
           <li v-for="(action, index) in weeklyActions" :key="action.title">
             <span class="action-no num">0{{ index + 1 }}</span>
@@ -540,6 +389,22 @@ onMounted(async () => {
       </section>
 
       <ScoreEvidencePanel :evaluation="evaluation" />
+      <InterviewEvidencePanel v-if="evaluation.assessment" :assessment="evaluation.assessment" />
+      <section v-if="evaluation.technicalChecks?.length" class="panel">
+        <h2>专业内容核查</h2>
+        <article v-for="check in evaluation.technicalChecks" :key="check.roundNo + check.quote">
+          <strong>第 {{ check.roundNo }} 轮 · {{ check.verdict === 'ERROR' ? '需纠正' : check.verdict === 'CORRECT' ? '判断正确' : '待核实' }}</strong>
+          <p>原话：{{ check.quote }}</p><p>{{ check.reason }}</p>
+        </article>
+      </section>
+
+      <section v-if="evaluation.riskFlags?.length" class="panel risk-panel">
+        <h2>表达风险</h2>
+        <ul class="risk-list">
+          <li v-for="item in evaluation.riskFlags" :key="item">{{ item }}</li>
+        </ul>
+        <p class="risk-note">这些表达不计入分数，但容易让面试官感到被命令、被推责或过于绝对，下一场刻意避开。</p>
+      </section>
 
       <section v-if="rounds.length" class="replay">
         <header class="replay-head">
@@ -557,7 +422,7 @@ onMounted(async () => {
                 <span v-if="roundRubric(round.roundNo)?.score" class="rubric-score">{{ roundRubric(round.roundNo)?.score }} / 5</span>
                 <span v-if="roundRubric(round.roundNo)?.note" class="rubric-note">{{ roundRubric(round.roundNo)?.note }}</span>
               </p>
-              <div class="star-row" :class="`star-${starScore(starOf(round.answer))}`">
+              <div v-if="isExperienceRound(round.roundNo)" class="star-row" :class="`star-${starScore(starOf(round.answer))}`">
                 <span class="star-label">STAR {{ starScore(starOf(round.answer)) }}/4</span>
                 <span v-for="key in (['situation','task','action','result'] as const)" :key="key" class="star-dot" :class="{ on: starOf(round.answer)[key] }">
                   {{ { situation: 'S', task: 'T', action: 'A', result: 'R' }[key] }}
@@ -579,10 +444,10 @@ onMounted(async () => {
                     <span>{{ new Date(attempt.startedAt).toLocaleDateString('zh-CN') }}</span>
                     <span v-if="attempt.isCurrent" class="tag">本次</span>
                     <strong v-if="attempt.overallScore !== null" class="num">{{ attempt.overallScore }} 分</strong>
-                    <span class="star-label">STAR {{ starScore(starOf(attempt.answer)) }}/4</span>
+                    <span v-if="isExperienceRound(round.roundNo)" class="star-label">STAR {{ starScore(starOf(attempt.answer)) }}/4</span>
                   </header>
                   <p>{{ attempt.answer }}</p>
-                  <p class="attempt-missing">{{ starHint(attempt.answer) }} · {{ attempt.answer.length }} 字</p>
+                  <p class="attempt-missing"><template v-if="isExperienceRound(round.roundNo)">{{ starHint(attempt.answer) }} · </template>{{ attempt.answer.length }} 字</p>
                 </article>
               </div>
             </div>
@@ -590,45 +455,14 @@ onMounted(async () => {
         </ol>
       </section>
 
-      <section v-if="shareLink || shareNote" class="share-note panel">
-        <h2>教练查看链接</h2>
-        <template v-if="shareLink">
-          <p>链接 7 天内有效，只能查看这份报告、录像与转写，并可添加时间点批注；不能修改评分。撤销后立即失效。</p>
-          <code>{{ shareLink }}</code>
-          <div class="share-actions">
-            <button type="button" class="button secondary compact" :disabled="revokingShare" @click="revokeShare">
-              {{ revokingShare ? '撤销中…' : '撤销分享链接' }}
-            </button>
-            <button type="button" class="button secondary compact" :disabled="shareBusy" @click="openShareReport">
-              打开打印版报告
-            </button>
-          </div>
-        </template>
-        <p v-else class="share-revoked">{{ shareNote }}</p>
-      </section>
 
-      <section v-if="session?.recordingUrl && compareSession?.recordingUrl" class="compare-video panel">
-        <header>
-          <h2>两次录像对比</h2>
-          <span>同一场景 · 左为最近一次，右为上一次</span>
-        </header>
-        <div class="compare-grid">
-          <figure>
-            <video :src="session.recordingUrl ?? undefined" controls playsinline preload="metadata" />
-            <figcaption>
-              <b>本次 {{ evaluation?.overallScore ?? '—' }}</b>
-              <span>{{ new Date(session.startedAt).toLocaleDateString('zh-CN') }}</span>
-            </figcaption>
-          </figure>
-          <figure>
-            <video :src="compareSession.recordingUrl ?? undefined" controls playsinline preload="metadata" />
-            <figcaption>
-              <b>上次 {{ compareScore ?? '—' }}</b>
-              <span>{{ new Date(compareSession.startedAt).toLocaleDateString('zh-CN') }}</span>
-            </figcaption>
-          </figure>
-        </div>
-      </section>
+      <TrainingComparison
+        v-if="session"
+        :session-id="session.id"
+        :current-url="session.recordingUrl ?? null"
+        :previous-url="compareSession?.recordingUrl ?? null"
+        :channel="session.channel"
+      />
 
       <section v-if="segments.length" class="segments panel">
         <header><h2>按题回看</h2><span>每段只包含该题的回答，可逐题复盘</span></header>
@@ -640,7 +474,7 @@ onMounted(async () => {
           </li>
         </ol>
         <div class="segment-player">
-          <video :src="segments[activeSegment]?.url ?? undefined" controls playsinline preload="metadata" />
+          <video :src="segments[activeSegment]?.url ?? undefined" controls preload="metadata" />
           <p>{{ segments[activeSegment]?.question }}</p>
         </div>
       </section>
@@ -674,39 +508,13 @@ onMounted(async () => {
         </ul>
       </section>
 
-      <section v-if="session?.channel === 'VIDEO' && selfReview.length" class="self-review panel">
-        <header><h2>逐题自评</h2><span>回看录像后勾选，指标会随报告保存</span></header>
-        <ul>
-          <li v-for="item in selfReview" :key="item.roundNo">
-            <span class="num">第 {{ item.roundNo }} 题</span>
-            <label><input v-model="item.camera" type="checkbox" /> 镜头位置合适</label>
-            <label><input v-model="item.structure" type="checkbox" /> 信息有结构</label>
-            <label><input v-model="item.opening" type="checkbox" /> 开场与收尾清楚</label>
-            <input v-model="item.note" class="field note" maxlength="200" placeholder="补充一句（可选）" />
-          </li>
-        </ul>
-        <button class="button secondary" type="button" :disabled="reviewSaving" @click="saveSelfReview">
-          {{ reviewSaving ? '保存中…' : reviewSaved ? '已保存 ✓ 再保存一次' : '保存自评' }}
-        </button>
-      </section>
+      <ReportSelfReview :session="session" :rounds="rounds" @error="error = $event" />
 
-      <details class="more-panel panel">
+      <details v-if="deliveryStats || session?.jobMatch || visionStats" class="more-panel panel">
         <summary>
           <span>更多分析</span>
-          <em>表达习惯 · 语速停顿 · 岗位匹配 · 镜头与对比</em>
+          <em>表达节奏 · 岗位匹配 · 镜头表现</em>
         </summary>
-      <section v-if="evaluation.speechStats" class="speech panel">
-        <header class="speech-head"><h2>表达习惯</h2><span>基于本场全部回答的文本统计</span></header>
-        <dl class="speech-grid">
-          <div><dt>口头禅</dt><dd class="num">{{ evaluation.speechStats.fillerTotal }}<small>次</small></dd></div>
-          <div><dt>占比</dt><dd class="num">{{ Math.round(evaluation.speechStats.fillerRate * 100) }}<small>%</small></dd></div>
-          <div><dt>平均句长</dt><dd class="num">{{ evaluation.speechStats.avgSentenceLength }}<small>字</small></dd></div>
-          <div><dt>每轮平均</dt><dd class="num">{{ evaluation.speechStats.avgRoundLength }}<small>字</small></dd></div>
-        </dl>
-        <p v-if="evaluation.speechStats.topFillers.length" class="speech-tags">
-          <span v-for="item in evaluation.speechStats.topFillers" :key="item.word">{{ item.word }} ×{{ item.count }}</span>
-        </p>
-        </section>
 
         <section v-if="deliveryStats" class="speech panel">
         <header class="speech-head"><h2>表达节奏</h2><span>基于本场语音的停顿与语速分析</span></header>
@@ -734,7 +542,7 @@ onMounted(async () => {
               v-for="(mark, index) in pauseMarks"
               :key="index"
               class="pause-mark"
-              :style="{ left: `${mark.percent}%`, height: `${Math.min(22, 8 + mark.seconds * 4)}px` }"
+              :style="{ left: `${mark.percent}%`, height: `${Math.min(72, 18 + mark.seconds * 12)}px` }"
               :title="`${mark.start.toFixed(1)}s 停顿 ${mark.seconds.toFixed(1)}s`"
               @click="replaySeek(mark.start)"
             />
@@ -759,42 +567,7 @@ onMounted(async () => {
         </ul>
         </section>
 
-        <section v-if="comparison" class="compare panel">
-        <header class="speech-head"><h2>与上次对比</h2><span>同一场景的历史最好成绩</span></header>
-        <div class="compare-body">
-          <div class="compare-radars">
-            <div class="compare-radar">
-              <p class="compare-label">上次 {{ comparison.beforeOverall }} 分</p>
-              <ScoreRadar :scores="comparison.before" />
-            </div>
-            <div class="compare-radar">
-              <p class="compare-label now">本次 {{ comparison.afterOverall }} 分</p>
-              <ScoreRadar :scores="comparison.after" />
-            </div>
-          </div>
-          <ul class="compare-rows">
-            <li v-for="row in comparison.rows" :key="row.key">
-              <span class="label">{{ row.label }}</span>
-              <span class="num">{{ row.before }} → {{ row.after }}</span>
-              <span class="delta" :class="{ up: row.delta > 0, down: row.delta < 0 }">{{ row.delta > 0 ? '+' + row.delta : row.delta }}</span>
-            </li>
-          </ul>
-        </div>
-        </section>
 
-        <section v-if="session?.recordingUrl" class="speech panel">
-        <header class="speech-head">
-          <h2>现场回放</h2>
-          <span>{{ session.channel === 'VIDEO' ? '视频面试录像' : '语音对练录音' }}</span>
-        </header>
-        <video v-if="session.channel === 'VIDEO'" :src="session.recordingUrl" controls playsinline class="replay-media" />
-        <audio v-else :src="session.recordingUrl" controls class="replay-media" />
-        <div v-if="replayMarks.length" class="mark-row">
-          <button v-for="(mark, index) in replayMarks" :key="index" type="button" @click="replaySeek(mark.start)">
-            {{ String(index + 1).padStart(2, '0') }} {{ mark.text }}
-          </button>
-        </div>
-        </section>
 
         <section v-if="visionStats" class="speech panel">
         <header class="speech-head"><h2>镜头表现</h2><span>画面里的客观指标，不评价长相</span></header>
@@ -809,26 +582,7 @@ onMounted(async () => {
         </p>
         </section>
 
-        <section v-if="upgradeStats.total" class="speech panel">
-        <header class="speech-head">
-          <h2>措辞升级</h2>
-          <span>{{ upgradeStats.total }} 处 · {{ upgradeStats.types.join(' / ') }}</span>
-        </header>
-        <ul class="upgrade-list">
-          <li v-for="(item, index) in evaluation.upgrades" :key="index">
-            <span class="type">{{ item.type }}</span>
-            <p class="origin">原句：{{ item.original }}</p>
-            <p class="problem">{{ item.problem }}</p>
-            <p class="improved">改后：{{ item.improved }}</p>
-            <RouterLink class="deep-link" :to="{ name: 'scripts', query: { sceneId: session?.sceneId, original: item.original, dimension: item.type, objective: item.problem } }">在话术优化里深入改写 →</RouterLink>
-          </li>
-        </ul>
-        </section>
 
-        <section v-if="evaluation.reference && !evaluation.reference.startsWith('（规则兜底')" class="speech panel">
-        <header class="speech-head"><h2>满分回答参考</h2><span>保留你的真实事实，不编造经历</span></header>
-        <p class="reference-text">{{ evaluation.reference }}</p>
-        </section>
 
       </details>
 
@@ -855,6 +609,10 @@ onMounted(async () => {
                 <p>{{ suggestion.reference }}</p>
               </div>
             </div>
+            <RouterLink
+              class="deep-link"
+              :to="{ name: 'scripts', query: { sceneId: session?.sceneId, original: suggestion.original || '', objective: suggestion.problem } }"
+            >在话术优化里深入改写 →</RouterLink>
           </div>
         </article>
       </section>
@@ -868,10 +626,10 @@ onMounted(async () => {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, .78fr) 260px minmax(0, 1fr);
+  grid-template-columns: minmax(0, .8fr) 240px minmax(0, 1.15fr);
   align-items: center;
-  gap: 40px;
-  padding: 34px 38px;
+  gap: 44px 46px;
+  padding: 40px 44px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--panel-bg);
@@ -893,26 +651,34 @@ onMounted(async () => {
   line-height: .8;
 }
 .figure .den { padding-bottom: 9px; color: var(--text-3); font-family: var(--font-num); font-size: 12px; letter-spacing: .06em; }
-.style-line { margin: 20px 0 0; color: var(--text-2); font-size: 13px; letter-spacing: .04em; }
+.style-line { margin: 24px 0 0; color: var(--text-2); font-size: 13px; line-height: 1.9; letter-spacing: .04em; }
+.figure-off { align-items: baseline; }
+.figure-off .off { color: var(--warning); font-family: var(--font-num); font-size: 44px; font-weight: 200; letter-spacing: .02em; }
+.score-notice { max-width: 34ch; margin: 14px 0 0; color: var(--warning); font-size: 12px; line-height: 1.8; }
+.dims .dims-note { display: block; padding: 0 0 10px; border-bottom: 1px solid var(--divider); color: var(--text-3); font-size: 11px; letter-spacing: .04em; }
+.risk-panel h2 { margin: 0; font-size: 13px; font-weight: 500; color: var(--text-2); letter-spacing: .04em; }
+.risk-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.risk-list li { display: inline-flex; width: fit-content; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-2); font-size: 12px; }
+.risk-note { margin: 12px 0 0; color: var(--text-3); font-size: 11.5px; line-height: 1.75; }
 .degraded { margin: 12px 0 0; color: var(--warning); font-size: 11px; line-height: 1.7; }
 .rescore { margin-left: 8px; padding: 2px 10px; border: 1px solid var(--border-bright); border-radius: 999px; background: transparent; color: var(--text-2); font-size: 11px; cursor: pointer; }
 .rescore:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-strong); }
 
 .radar { display: flex; justify-content: center; }
 
-.dims { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.dims { display: flex; flex-direction: column; width: 100%; max-width: 340px; justify-self: end; margin: 0; padding: 0; list-style: none; }
 .dims .val { display: inline-flex; align-items: baseline; justify-content: flex-end; gap: 3px; white-space: nowrap; }
 .dims li {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr) 66px;
+  grid-template-columns: 88px minmax(0, 1fr) 92px;
   align-items: center;
-  gap: 16px;
-  padding: 9px 0;
+  gap: 14px;
+  padding: 13px 0;
   border-bottom: 1px solid var(--divider);
 }
 .dims li:last-child { border-bottom: 0; }
 .dims .name { color: var(--text-3); font-size: 12px; letter-spacing: .04em; white-space: nowrap; }
-.dims .bar { position: relative; height: 2px; background: var(--track); }
+.dims .bar { position: relative; height: 3px; border-radius: 999px; background: var(--track); overflow: hidden; }
 .dims .bar b { position: absolute; inset: 0 auto 0 0; background: var(--fill); }
 .dims .val { color: var(--text); font-family: var(--font-num); font-size: 14px; text-align: right; }
 .dims li.weakest .name { color: var(--text); }
@@ -974,15 +740,6 @@ onMounted(async () => {
 .quote span { display: block; color: var(--text-3); font-size: 11px; letter-spacing: .14em; }
 .quote p { margin: 9px 0 0; color: var(--text-2); font-size: 13px; line-height: 1.85; white-space: pre-wrap; }
 .quote.rewrite p { color: var(--text); }
-
-@media (max-width: 960px) {
-  .hero { grid-template-columns: 1fr; gap: 26px; padding: 28px 24px; }
-  .radar { max-width: 260px; margin: 0 auto; }
-  .compare { grid-template-columns: 1fr; gap: 16px; }
-}
-@media (max-width: 560px) {
-  .suggestion { grid-template-columns: 1fr; gap: 10px; }
-}
 .dims .delta.up { color: var(--success); }
 .dims .delta.down { color: var(--danger); }
 .delta.num { font-size: 11px; }
@@ -1007,14 +764,7 @@ onMounted(async () => {
 .mark-row button:hover { border-color: var(--accent); color: var(--accent-strong); }
 
 .report-actions { display: flex; gap: 10px; }
-.upgrade-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
-.upgrade-list li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-2); display: grid; gap: 4px; }
-.upgrade-list .type { width: fit-content; padding: 2px 9px; border: 1px solid var(--accent); border-radius: 999px; color: var(--accent-strong); font-size: 11px; }
-.upgrade-list p { margin: 0; font-size: 12.5px; line-height: 1.75; }
-.upgrade-list .origin { color: var(--text-3); }
-.upgrade-list .problem { color: #a4342a; }
-.upgrade-list .improved { color: var(--text); }
-.upgrade-list .deep-link { margin-top: 4px; width: fit-content; color: var(--accent-strong); font-size: 12px; }
+.suggestion .deep-link { display: inline-block; margin-top: 14px; color: var(--accent-strong); font-size: 12px; letter-spacing: .02em; }
 .match-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
 .match-list li { color: var(--text-2); font-size: 12.5px; line-height: 1.8; }
 .match-list b { margin-right: 8px; color: var(--text-3); font-weight: 500; font-size: 11.5px; }
@@ -1031,7 +781,6 @@ onMounted(async () => {
 .compare-rows .delta { text-align: right; color: var(--text-3); }
 .compare-rows .delta.up { color: var(--success); }
 .compare-rows .delta.down { color: var(--danger); }
-@media (max-width: 900px) { .compare-radars { gap: 12px; } .compare-radar { width: 45%; } }
 @media print {
   .app-shell aside, .app-shell header, .report-actions, .mark-row, .replay-media,
   .speech.panel:has(.mark-row), button { display: none !important; }
@@ -1045,14 +794,6 @@ onMounted(async () => {
 .star-dot.on { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
 .star-hint { color: var(--text-3); font-size: 11px; }
 
-.self-review header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.self-review h2 { margin: 0; }
-.self-review header span { color: var(--text-3); font-size: 11.5px; }
-.self-review ul { list-style: none; margin: 14px 0; padding: 0; display: grid; gap: 10px; }
-.self-review li { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
-.self-review li .num { color: var(--text-3); font-size: 11.5px; }
-.self-review label { display: inline-flex; align-items: center; gap: 5px; color: var(--text-2); font-size: 12px; }
-.self-review .note { margin-left: auto; min-width: 180px; max-width: 260px; }
 
 .transcript header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .transcript header span { color: var(--text-3); font-size: 11.5px; }
@@ -1077,20 +818,8 @@ onMounted(async () => {
 .segment-player video { width: 100%; max-height: 46vh; border-radius: 10px; background: #0b0b0e; }
 .segment-player p { margin: 8px 0 0; color: var(--text-3); font-size: 12px; }
 
-.compare-video header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.compare-video header span { color: var(--text-3); font-size: 11.5px; }
-.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
-.compare-grid figure { margin: 0; display: grid; gap: 6px; }
-.compare-grid video { width: 100%; max-height: 34vh; border-radius: 10px; background: #0b0b0e; }
-.compare-grid figcaption { display: flex; align-items: baseline; justify-content: space-between; color: var(--text-3); font-size: 11.5px; }
-.compare-grid figcaption b { color: var(--text); font-size: 13px; }
-@media (max-width: 720px) { .compare-grid { grid-template-columns: 1fr; } }
 
-.share-note h2 { margin: 0 0 6px; }
-.share-note p { margin: 0 0 8px; color: var(--text-3); font-size: 12.5px; line-height: 1.7; }
-.share-note code { padding: 6px 10px; border-radius: 6px; background: var(--bg-2); color: var(--text-2); font-size: 12px; word-break: break-all; }
-.share-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.share-revoked { margin: 0; color: var(--accent-strong); font-size: 12.5px; }
+
 .actions-card header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .actions-card header span { color: var(--text-3); font-size: 11.5px; }
 .actions-card ol { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
@@ -1126,14 +855,14 @@ onMounted(async () => {
 .report-head h1 { margin: 10px 0 0; font-size: clamp(28px, 3.2vw, 38px); font-weight: 650; letter-spacing: -.02em; line-height: 1.25; }
 .report-head .lead { margin: 12px 0 0; color: var(--text-3); font-size: 14px; }
 .report-actions { display: flex; gap: 8px; flex: none; flex-wrap: wrap; }
-.hero { padding: 24px 0; border-top: 1px solid var(--divider); border-bottom: 1px solid var(--divider); }
+.hero { padding: 34px 38px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel-bg); }
 .hero .label { font-size: 12.5px; color: var(--text-3); }
 .summary { margin-top: 32px; }
 .summary .label { font-size: 12.5px; color: var(--text-3); }
 .summary-text { margin: 10px 0 0; max-width: 76ch; color: var(--text); font-size: 15px; line-height: 1.95; }
 .replay { margin-top: 40px; }
-.replay-head h2, .segments h2, .transcript h2, .self-review h2, .compare-video h2, .suggestions h2, .more-panel summary span { font-size: 18px; font-weight: 600; }
-.replay-head span, .segments header span, .transcript header span, .self-review header span, .compare-video header span { display: none; }
+.replay-head h2, .segments h2, .transcript h2, .self-review h2, .suggestions h2, .more-panel summary span { font-size: 18px; font-weight: 600; }
+.replay-head span, .segments header span, .transcript header span, .self-review header span { display: none; }
 .replay-item { padding: 18px 0; }
 .replay-q { color: var(--text-3); font-size: 13px; }
 .replay-a { font-size: 14.5px; line-height: 1.8; }
@@ -1141,10 +870,33 @@ onMounted(async () => {
 .more-panel summary { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 18px 0; cursor: pointer; list-style: none; }
 .more-panel summary::-webkit-details-marker { display: none; }
 .more-panel summary em { font-style: normal; color: var(--text-3); font-size: 12.5px; }
-.more-panel[open] summary { border-bottom: 1px solid var(--divider); margin-bottom: 8px; }
-.more-panel .speech, .more-panel .compare { border: 0; border-bottom: 1px solid var(--divider); border-radius: 0; background: transparent; padding: 20px 0; }
-.more-panel .speech-head h2 { font-size: 15px; }
+.more-panel[open] summary { border-bottom: 1px solid var(--divider); margin-bottom: 0; }
+/* 每块独立成卡：沿用 .panel 的描边与圆角，块之间用留白隔开而不是分割线 */
+.more-panel > .speech,
+.more-panel > .compare { margin-top: 24px; padding: 28px 32px; }
+.more-panel > section:last-child { margin-bottom: 12px; }
+.more-panel .speech-head h2 { font-size: 17px; letter-spacing: .01em; }
 .more-panel .speech-head span { display: none; }
+.more-panel .speech-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 24px; row-gap: 28px; margin: 22px 0 0; }
+.more-panel .speech-grid dt { font-size: 11.5px; }
+.more-panel .speech-grid dd { margin: 10px 0 0; font-size: 32px; line-height: 1.1; }
+.more-panel .speech-grid small { margin-left: 8px; font-size: 13px; }
+.more-panel .delivery-advice { margin: 20px 0 0; gap: 8px; font-size: 12.5px; line-height: 1.8; }
+.more-panel .speech-tags { margin: 20px 0 0; gap: 10px; line-height: 1.6; }
+.more-panel .speech-tags span { line-height: 1.6; }
+.more-panel .match-list { margin: 16px 0 0; gap: 10px; }
+.more-panel .match-list li { line-height: 1.8; }
+.more-panel .upgrade-list { margin: 16px 0 0; gap: 16px; }
+.more-panel .reference-text { margin: 16px 0 0; font-size: 13px; line-height: 1.9; }
+.more-panel .pause-timeline { margin-top: 24px; }
+.more-panel .timeline-head { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 12.5px; line-height: 1.6; }
+.more-panel .timeline-track { height: 90px; margin: 12px 0 0; border-radius: 8px; }
+.more-panel .pause-mark { border-radius: 2px 2px 0 0; }
+.more-panel .timeline-scale { margin-top: 8px; font-size: 12.5px; }
+.more-panel .compare-body { gap: 28px; }
+@media (max-width: 1199px) {
+  .more-panel .speech-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .more-panel > .speech, .more-panel > .compare { padding: 24px 20px; }
+}
 .suggestions { margin-top: 40px; }
-@media (max-width: 760px) { .report-head { flex-direction: column; align-items: flex-start; } }
 </style>

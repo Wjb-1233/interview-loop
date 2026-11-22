@@ -83,7 +83,7 @@ def test_voice_session_rejects_foreign_private_scene() -> None:
         assert blocked.json()["detail"] == "场景不存在"
 
 
-def test_video_interview_rejects_foreign_private_scene() -> None:
+def test_retired_video_upload_does_not_process_foreign_scene() -> None:
     with TestClient(app, client=(f"scope-{uuid4().hex}", 50092)) as client:
         owner = _register(client, "owner")
         stranger = _register(client, "stranger")
@@ -95,8 +95,8 @@ def test_video_interview_rejects_foreign_private_scene() -> None:
             data={"sceneId": scene["id"], "questions": "[]", "durationSeconds": "30"},
             files={"video": ("answer.webm", b"\x1aE\xdf\xa3fake-webm", "video/webm")},
         )
-        assert blocked.status_code == 404
-        assert blocked.json()["detail"] == "场景不存在"
+        assert blocked.status_code == 410
+        assert blocked.json()["title"] == "VIDEO_UPLOAD_RETIRED"
 
 
 def test_public_scene_scripts_generate_unchanged() -> None:
