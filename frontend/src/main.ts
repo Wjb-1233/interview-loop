@@ -4,7 +4,6 @@ import App from './App.vue'
 import router from './router'
 import './assets/main.css'
 import { installErrorReporting, reportClientError } from './lib/errorReporting'
-import { clearRetiredBrowserCache } from './lib/browserCache'
 
 installErrorReporting()
 
@@ -22,5 +21,3 @@ window.addEventListener('auth:expired', () => {
   if (router.currentRoute.value.name === 'login') return
   void router.replace({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
 })
-
-void clearRetiredBrowserCache()

@@ -5,76 +5,53 @@
 
 :root {
   color-scheme: light;
-
-  /* 表面：由暗到亮的层级（冷白 → 淡紫灰） */
-  --bg: #f6f4fb;
-  --bg-2: #fbfaff;
+  --bg: #f7f5fc;
+  --bg-2: #fcfbff;
   --card: #ffffff;
-  --card-2: #f3f0fa;
-  --raised: #ece7f7;
-
-  --border: rgba(17, 24, 39, .10);
-  --border-bright: rgba(17, 24, 39, .20);
-  --divider: rgba(17, 24, 39, .07);
-
-  /* 文字 */
+  --card-2: #f5f2fd;
+  --raised: #ece7f8;
+  --border: rgba(24, 20, 43, .10);
+  --border-bright: rgba(24, 20, 43, .20);
+  --divider: rgba(24, 20, 43, .07);
   --text: #111827;
   --text-2: #4b5563;
   --text-3: #6b7280;
   --on-solid: #ffffff;
-  /* 渐变风格的展示字体：系统无衬线，字重更重、字距更紧 */
-  --font-display: var(--font-ui);
-
-  /* 品牌色：渐变体系（紫 → 洋红）；实心态用可读的深紫，装饰面用渐变 */
+  --font-display: "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", Georgia, serif;
   --accent: #8b1fd4;
   --accent-strong: #6d0fb0;
   --accent-soft: rgba(153, 15, 250, .10);
   --accent-2: #e60076;
-
-  /* 渐变：按钮/标题/卡片高光统一从这里取，避免各处散落写死 */
   --grad-brand: linear-gradient(135deg, #990ffa 0%, #e60076 100%);
   --grad-brand-hover: linear-gradient(135deg, #8b0ee2 0%, #d1006a 100%);
   --grad-soft: linear-gradient(135deg, rgba(153, 15, 250, .12) 0%, rgba(230, 0, 118, .10) 100%);
   --grad-text: linear-gradient(120deg, #8b1fd4 0%, #e60076 100%);
-  --grad-sheen: linear-gradient(180deg, rgba(153, 15, 250, .05) 0%, rgba(255, 255, 255, 0) 45%);
-
-  /* 兼容旧组件里的别名 */
+  --grad-sheen: linear-gradient(180deg, rgba(153, 15, 250, .045) 0%, rgba(255, 255, 255, 0) 46%);
   --primary: var(--accent);
   --primary-hover: var(--accent-strong);
   --primary-soft: var(--accent-soft);
-
-  /* 数据与图表 */
-  --track: rgba(16, 16, 20, .1);
-  --fill: #b7b0a3;
+  --track: rgba(16, 16, 20, .09);
+  --fill: #a9a9b0;
   --muted-progress: #b7b0a3;
-  --chart-line: #8f897d;
-  --chart-dot: #3a362f;
-  --radar-stroke: #2f2c27;
-  --radar-fill: rgba(47, 44, 39, .07);
-  --radar-grid: rgba(16, 16, 20, .1);
-  --radar-grid-outer: rgba(16, 16, 20, .22);
-
-  --success: #4f7452;
-  --warning: #8a6a2f;
-  --danger: #9c4a3f;
-
-  /* 半透明叠加：浅色用墨色，深色用白色 */
-  --overlay-1: rgba(16, 16, 20, .028);
-  --overlay-2: rgba(16, 16, 20, .05);
-  --overlay-3: rgba(16, 16, 20, .08);
-
+  --chart-line: #8b8b93;
+  --chart-dot: #2b2b31;
+  --radar-stroke: var(--accent);
+  --radar-fill: rgba(164, 70, 31, .07);
+  --radar-grid: rgba(16, 16, 20, .09);
+  --radar-grid-outer: rgba(16, 16, 20, .2);
+  --success: #2f6542;
+  --warning: #a56a20;
+  --danger: #b3261e;
+  --overlay-1: rgba(16, 16, 20, .024);
+  --overlay-2: rgba(16, 16, 20, .045);
+  --overlay-3: rgba(16, 16, 20, .07);
   --radius: 12px;
   --radius-sm: 8px;
   --radius-md: 16px;
-  --ease: cubic-bezier(.2, .6, .2, 1);
-  --shadow: none;
-
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --shadow: 0 1px 2px rgba(24, 20, 43, .04), 0 14px 30px -24px rgba(139, 31, 212, .38);
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
   --font-num: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  /* 展示级字体：衬线，用于页面标题与报告主标题；正文仍用无衬线 */
-  --font-display: "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", Georgia, serif;
-
-  /* 兼容旧变量名 */
   --ink: var(--text);
   --ink-soft: var(--text-2);
   --paper: var(--bg);
@@ -89,7 +66,6 @@
   --glow: none;
   --glass: var(--card);
   --glass-strong: var(--card-2);
-
   font-family: var(--font-ui);
   color: var(--text);
   background: var(--bg);
@@ -97,59 +73,93 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --grad-hairline: linear-gradient(90deg, rgba(153, 15, 250, .55) 0%, rgba(230, 0, 118, .45) 100%);
+  --chart-stroke: var(--accent);
+  --chart-fill: var(--accent-soft);
+  --panel-bg: #fffefb;
+  --panel-line: rgba(16, 16, 20, .12);
+  --panel-glow: inset 0 1px 0 rgba(255, 255, 255, .9);
+  --panel-shadow: 0 20px 44px -30px rgba(32, 27, 20, .45);
 }
-
 :root[data-theme='dark'] {
   color-scheme: dark;
-
-  /* 深色：中性石墨面 + 铜色信号（不用蓝紫、不用发光、不用玻璃） */
-  --bg: #0b0b12;
-  --bg-2: rgba(255, 255, 255, .035);
-  --card: linear-gradient(180deg, rgba(255, 255, 255, .13) 0%, rgba(255, 255, 255, .045) 52%, rgba(255, 255, 255, .02) 100%), rgba(16, 13, 26, .62);
-  --card-2: linear-gradient(180deg, rgba(255, 255, 255, .17) 0%, rgba(255, 255, 255, .06) 52%, rgba(255, 255, 255, .03) 100%), rgba(22, 18, 34, .7);
-  --raised: rgba(255, 255, 255, .12);
-
-  --border: rgba(255, 255, 255, .09);
-  --border-bright: rgba(255, 255, 255, .18);
-  --divider: rgba(255, 255, 255, .07);
-
-  --text: #f2f1ef;
-  --text-2: #a3a19d;
-  --text-3: #6e6c68;
-  --on-solid: #0b0b0c;
-
-  --accent: #c98a56;
-  --accent-strong: #dda170;
-  --accent-soft: rgba(201, 138, 86, .12);
-
-  --panel-bg: linear-gradient(180deg, rgba(255, 255, 255, .12) 0%, rgba(255, 255, 255, .04) 55%, rgba(255, 255, 255, .018) 100%), rgba(16, 13, 26, .6);
-  --panel-line: rgba(255, 255, 255, .18);
-  --panel-glow: inset 0 1px 0 rgba(255, 255, 255, .16), inset 0 -1px 0 rgba(0, 0, 0, .25);
-  --panel-shadow: 0 -10px 20px -16px rgba(0, 0, 0, .6), 0 34px 70px -18px rgba(0, 0, 0, .95), 0 0 30px -6px rgba(160, 116, 255, .6);
-
-  --track: rgba(255, 255, 255, .09);
-  --fill: #565350;
+  --bg: #0b0b0e;
+  --bg-2: #121216;
+  --card: #16161b;
+  --card-2: #1d1d23;
+  --raised: #26262d;
+  --border: rgba(255, 255, 255, .08);
+  --border-bright: rgba(255, 255, 255, .16);
+  --divider: rgba(255, 255, 255, .06);
+  --text: #f3f3f5;
+  --text-2: #a6a7b0;
+  --text-3: #8a8b95;
+  --on-solid: #0b0b0e;
+  --font-display: "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", Georgia, serif;
+  --accent: #b06bff;
+  --accent-strong: #cf9bff;
+  --accent-soft: rgba(176, 107, 255, .16);
+  --accent-2: #e60076;
+  --grad-brand: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --grad-brand-hover: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
+  --grad-soft: linear-gradient(135deg, rgba(168, 85, 247, .18) 0%, rgba(236, 72, 153, .14) 100%);
+  --grad-text: linear-gradient(120deg, #c084fc 0%, #f472b6 100%);
+  --grad-sheen: linear-gradient(180deg, rgba(168, 85, 247, .10) 0%, rgba(255, 255, 255, 0) 46%);
+  --primary: var(--accent);
+  --primary-hover: var(--accent-strong);
+  --primary-soft: var(--accent-soft);
+  --track: rgba(255, 255, 255, .08);
+  --fill: #56565f;
   --muted-progress: #565350;
-  --chart-line: #c2bdb6;
-  --chart-dot: #f2f1ef;
-  --radar-stroke: #cfc7bd;
-  --radar-fill: rgba(201, 138, 86, .12);
+  --chart-line: #c6c6cd;
+  --chart-dot: #f3f3f5;
+  --radar-stroke: var(--accent);
+  --radar-fill: rgba(176, 107, 255, .14);
   --radar-grid: rgba(255, 255, 255, .07);
   --radar-grid-outer: rgba(255, 255, 255, .16);
-
   --success: #8fb98d;
   --warning: #cfa964;
   --danger: #d98279;
-
-  --overlay-1: rgba(255, 255, 255, .035);
-  --overlay-2: rgba(255, 255, 255, .06);
-  --overlay-3: rgba(255, 255, 255, .1);
-
+  --overlay-1: rgba(255, 255, 255, .03);
+  --overlay-2: rgba(255, 255, 255, .055);
+  --overlay-3: rgba(255, 255, 255, .09);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  --shadow: none;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --font-num: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ink: var(--text);
+  --ink-soft: var(--text-2);
+  --paper: var(--bg);
+  --surface: var(--card);
+  --line: var(--border);
+  --mint: var(--accent);
+  --mint-dark: var(--accent-strong);
+  --signal: var(--accent);
+  --sky: var(--accent-soft);
+  --warn: var(--danger);
+  --grad: var(--accent);
+  --glow: none;
   --glass: var(--card);
   --glass-strong: var(--card-2);
-  --glow: none;
-  --shadow: 0 28px 60px -34px rgba(0, 0, 0, .85);
+  font-family: var(--font-ui);
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --panel-bg: var(--card);
+  --panel-line: var(--border);
+  --panel-glow: none;
+  --panel-shadow: none;
+  --grad-hairline: linear-gradient(90deg, rgba(168, 85, 247, .6) 0%, rgba(236, 72, 153, .5) 100%);
+  --chart-stroke: var(--accent);
+  --chart-fill: var(--accent-soft);
 }
+
 
 * { box-sizing: border-box; }
 html { min-width: 1200px; background: var(--bg); scroll-behavior: smooth; }
@@ -492,19 +502,6 @@ tbody tr:hover { background: var(--overlay-1); }
 /* ============================================================
    日间模式：暖纸浅色工作台
    ============================================================ */
-:root[data-theme='light'] {
-  --panel-bg: #fffefb;
-  --panel-line: rgba(16, 16, 20, .12);
-  --panel-glow: inset 0 1px 0 rgba(255, 255, 255, .9);
-  --panel-shadow: 0 20px 44px -30px rgba(32, 27, 20, .45);
-  --shadow: 0 16px 34px -26px rgba(32, 27, 20, .4);
-  --overlay-1: rgba(16, 16, 20, .04);
-  --overlay-2: rgba(16, 16, 20, .07);
-  --overlay-3: rgba(16, 16, 20, .1);
-  --success: #2f6542;
-  --warning: #a56a20;
-  --danger: #b3261e;
-}
 
 /* 背景：中性微渐变，不再使用暖纸底 */
 :root[data-theme='light'] .atmos {
@@ -638,11 +635,6 @@ tbody tr:hover { background: var(--overlay-1); }
 :root[data-theme='light'] .hero { border-color: rgba(16, 16, 20, .1); }
 :root[data-theme='light'] .trend,
 :root[data-theme='light'] .ability { background: #fffefb; }
-/* 场景页 Hero：中性面，靠字号与留白撑住，不靠渐变 */
-:root[data-theme='light'] .atmos.is-panel,
-:root[data-theme='light'] .atmos.is-page { display: none; }
-:root[data-theme='dark'] .atmos.is-panel,
-:root[data-theme='dark'] .atmos.is-page { display: none; }
 .scene-hero,
 :root[data-theme='light'] .scene-hero,
 :root[data-theme='dark'] .scene-hero {
@@ -689,104 +681,7 @@ tbody tr:hover { background: var(--overlay-1); }
    - 半径、阴影、动效统一到一套刻度
    ============================================================ */
 
-:root {
-  --bg: #f7f5fc;
-  --bg-2: #fcfbff;
-  --card: #ffffff;
-  --card-2: #f5f2fd;
-  --raised: #ece7f8;
 
-  --border: rgba(24, 20, 43, .10);
-  --border-bright: rgba(24, 20, 43, .20);
-  --divider: rgba(24, 20, 43, .07);
-
-  --text: #111827;
-  --text-2: #4b5563;
-  --text-3: #6b7280;
-  --on-solid: #ffffff;
-
-  --accent: #8b1fd4;
-  --accent-strong: #6d0fb0;
-  --accent-soft: rgba(153, 15, 250, .10);
-
-  /* 渐变体系：按钮、标题、卡片高光统一从这里取 */
-  --grad-brand: linear-gradient(135deg, #990ffa 0%, #e60076 100%);
-  --grad-brand-hover: linear-gradient(135deg, #8b0ee2 0%, #d1006a 100%);
-  --grad-soft: linear-gradient(135deg, rgba(153, 15, 250, .12) 0%, rgba(230, 0, 118, .10) 100%);
-  --grad-text: linear-gradient(120deg, #8b1fd4 0%, #e60076 100%);
-  --grad-sheen: linear-gradient(180deg, rgba(153, 15, 250, .045) 0%, rgba(255, 255, 255, 0) 46%);
-  --grad-hairline: linear-gradient(90deg, rgba(153, 15, 250, .55) 0%, rgba(230, 0, 118, .45) 100%);
-
-  --track: rgba(16, 16, 20, .09);
-  --fill: #a9a9b0;
-  --chart-line: #8b8b93;
-  --chart-dot: #2b2b31;
-  --chart-stroke: var(--accent);
-  --chart-fill: var(--accent-soft);
-  --radar-stroke: var(--accent);
-  --radar-fill: rgba(164, 70, 31, .07);
-  --radar-grid: rgba(16, 16, 20, .09);
-  --radar-grid-outer: rgba(16, 16, 20, .2);
-
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --shadow: 0 1px 2px rgba(24, 20, 43, .04), 0 14px 30px -24px rgba(139, 31, 212, .38);
-  --ease: cubic-bezier(.22, .61, .36, 1);
-
-  --overlay-1: rgba(16, 16, 20, .024);
-  --overlay-2: rgba(16, 16, 20, .045);
-  --overlay-3: rgba(16, 16, 20, .07);
-}
-
-:root[data-theme='dark'] {
-  --bg: #0b0b0e;
-  --bg-2: #121216;
-  --card: #16161b;
-  --card-2: #1d1d23;
-  --raised: #26262d;
-  --panel-bg: var(--card);
-
-  --border: rgba(255, 255, 255, .08);
-  --border-bright: rgba(255, 255, 255, .16);
-  --divider: rgba(255, 255, 255, .06);
-
-  --text: #f3f3f5;
-  --text-2: #a6a7b0;
-  --text-3: #8a8b95;
-  --on-solid: #0b0b0e;
-
-  --accent: #b06bff;
-  --accent-strong: #cf9bff;
-  --accent-soft: rgba(176, 107, 255, .16);
-
-  --grad-brand: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-  --grad-brand-hover: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
-  --grad-soft: linear-gradient(135deg, rgba(168, 85, 247, .18) 0%, rgba(236, 72, 153, .14) 100%);
-  --grad-text: linear-gradient(120deg, #c084fc 0%, #f472b6 100%);
-  --grad-sheen: linear-gradient(180deg, rgba(168, 85, 247, .10) 0%, rgba(255, 255, 255, 0) 46%);
-  --grad-hairline: linear-gradient(90deg, rgba(168, 85, 247, .6) 0%, rgba(236, 72, 153, .5) 100%);
-
-  --track: rgba(255, 255, 255, .08);
-  --fill: #56565f;
-  --chart-line: #c6c6cd;
-  --chart-dot: #f3f3f5;
-  --chart-stroke: var(--accent);
-  --chart-fill: var(--accent-soft);
-  --radar-stroke: var(--accent);
-  --radar-fill: rgba(176, 107, 255, .14);
-  --radar-grid: rgba(255, 255, 255, .07);
-  --radar-grid-outer: rgba(255, 255, 255, .16);
-
-  --shadow: none;
-  --overlay-1: rgba(255, 255, 255, .03);
-  --overlay-2: rgba(255, 255, 255, .055);
-  --overlay-3: rgba(255, 255, 255, .09);
-
-  --panel-line: var(--border);
-  --panel-glow: none;
-  --panel-shadow: none;
-}
 
 /* 统一表面：发丝边 + 极轻投影，深色靠面层级而不是发光 */
 .panel,

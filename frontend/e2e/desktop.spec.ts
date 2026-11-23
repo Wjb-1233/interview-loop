@@ -30,17 +30,10 @@ test('桌面布局保留完整侧栏、折叠和导航，页面没有安装元�
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
 
-test('退出旧缓存只处理本应用，桌面断网提示仍可正常恢复', async ({ page }) => {
-  await page.addInitScript(() => {
-    const observed = { unregister: [] as string[], deleted: [] as string[] }
-    ;(window as any).__cacheRetirement = observed
-    const makeRegistration = (scope: string, script: string) => ({ scope: location.origin + scope, active: { scriptURL: location.origin + script }, waiting: null, installing: null, unregister: async () => { observed.unregister.push(scope); return true } })
-    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: { getRegistrations: async () => [makeRegistration('/', '/sw.js'), makeRegistration('/other/', '/other/worker.js')] } })
-    Object.defineProperty(window, 'caches', { configurable: true, value: { keys: async () => ['yanjie-pwa-v2-static', 'yanjie-pwa-v2-runtime', 'other-app-data'], delete: async (name: string) => { observed.deleted.push(name); return true } } })
-  })
+test('桌面断网提示可正常恢复', async ({ page }) => {
   await mockAccount(page)
   await page.goto('/scripts/saved')
-  await expect.poll(() => page.evaluate(() => (window as any).__cacheRetirement)).toEqual({ unregister: ['/'], deleted: ['yanjie-pwa-v2-static', 'yanjie-pwa-v2-runtime'] })
+  await expect(page.getByRole('heading', { name: '我的话术库', exact: true })).toBeVisible()
   await page.evaluate(() => window.dispatchEvent(new Event('offline')))
   await expect(page.getByRole('status')).toContainText('网络连接已断开')
   await page.evaluate(() => window.dispatchEvent(new Event('online')))

@@ -60,7 +60,7 @@ async function signOut() {
 
 <template>
   <div class="shell" :class="{ collapsed: sidebarCollapsed }">
-    <div class="app-bg" aria-hidden="true"><AtmosphereBackdrop variant="app" /></div>
+    <div class="app-bg" aria-hidden="true"><AtmosphereBackdrop /></div>
     <header class="topbar">
       <div class="topbar-start">
         <button class="menu-toggle" type="button" aria-label="切换导航" :aria-expanded="!sidebarCollapsed" @click="toggleNavigation">

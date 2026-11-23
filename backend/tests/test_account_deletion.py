@@ -95,7 +95,7 @@ USER_SCOPED_TABLES = (
     "evaluations",
     "training_sessions",
 )
-SESSION_SCOPED_TABLES = ("messages", "resume_contexts", "share_revocations")
+SESSION_SCOPED_TABLES = ("messages", "resume_contexts")
 
 
 def _row_counts(user_id: str, session_ids: list[str]) -> dict[str, int]:

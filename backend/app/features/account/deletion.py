@@ -24,7 +24,6 @@ from app.db.models import (
     RefreshToken,
     ResumeContext,
     Script,
-    ShareRevocation,
     SkillState,
     TrainingPlan,
     TrainingSession,
@@ -77,10 +76,6 @@ async def purge_user_rows(session: AsyncSession, user: User, session_ids: list[s
         await session.execute(delete(Message).where(Message.session_id.in_(session_ids)))
         await session.execute(
             delete(ResumeContext).where(ResumeContext.session_id.in_(session_ids))
-        )
-        # 撤销记录没有外键，会话删了也要一起清掉，否则令牌会一直指向空会话
-        await session.execute(
-            delete(ShareRevocation).where(ShareRevocation.session_id.in_(session_ids))
         )
 
     await session.execute(delete(TrainingSession).where(TrainingSession.user_id == user.id))

@@ -1,15 +1,9 @@
 <template>
-  <div class="atmos" :class="`is-${variant}`" aria-hidden="true">
+  <div class="atmos is-app" aria-hidden="true">
     <span class="stars" />
     <span class="glow" />
-    <span class="water" />
-    <span v-if="word" class="word">{{ word }}</span>
   </div>
 </template>
-
-<script setup lang="ts">
-withDefaults(defineProps<{ word?: string; variant?: 'page' | 'panel' | 'app' }>(), { word: '', variant: 'page' })
-</script>
 
 <style scoped>
 .atmos {
@@ -57,43 +51,6 @@ withDefaults(defineProps<{ word?: string; variant?: 'page' | 'panel' | 'app' }>(
     radial-gradient(90% 60% at 50% 70%, rgba(255, 150, 190, .28) 0%, rgba(80, 30, 90, 0) 70%);
 }
 
-.water {
-  position: absolute;
-  left: 0; right: 0; top: 63%; bottom: 0;
-  background:
-    repeating-linear-gradient(180deg,
-      rgba(255, 214, 230, .16) 0px, rgba(255, 214, 230, .16) 1px,
-      transparent 1px, transparent 7px),
-    radial-gradient(26% 120% at 50% 0%, rgba(255, 196, 216, .3) 0%, rgba(255, 196, 216, 0) 70%),
-    radial-gradient(70% 90% at 50% 4%, rgba(255, 178, 205, .22) 0%, rgba(255, 178, 205, 0) 60%),
-    linear-gradient(180deg, rgba(60, 26, 74, .55) 0%, rgba(18, 11, 34, .95) 70%);
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 100%);
-  mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 100%);
-}
-
-.word {
-  position: absolute;
-  right: -18px;
-  top: 12%;
-  color: rgba(255, 255, 255, .05);
-  font-size: 200px;
-  font-weight: 900;
-  line-height: .84;
-  letter-spacing: .06em;
-  user-select: none;
-}
-
-/* 面板变体：只保留天空与地平线，用在页面里的 hero 区块 */
-.atmos.is-panel {
-  background:
-    radial-gradient(70% 90% at 78% 118%, rgba(255, 186, 214, .85) 0%, rgba(226, 120, 170, .35) 22%, rgba(80, 30, 100, 0) 56%),
-    linear-gradient(180deg, #07071c 0%, #100e38 36%, #24154f 58%, #3d1e60 76%, #55286a 90%, #653370 100%);
-}
-.atmos.is-panel .glow { top: auto; bottom: -22%; height: 52%; opacity: .8; filter: blur(22px); }
-.atmos.is-panel .water { display: none; }
-.atmos.is-panel .stars { inset: 0; opacity: .8; }
-.atmos.is-panel .word { font-size: 150px; top: 8%; right: 2%; }
-
 /* 应用变体：顶部两团柔光，没有地平线接缝 */
 .atmos.is-app {
   background:
@@ -123,5 +80,4 @@ withDefaults(defineProps<{ word?: string; variant?: 'page' | 'panel' | 'app' }>(
   background:
     radial-gradient(44% 100% at 50% 50%, rgba(255, 170, 205, .3) 0%, rgba(150, 60, 140, .18) 46%, rgba(60, 24, 70, 0) 78%);
 }
-.atmos.is-app .water, .atmos.is-app .word { display: none; }
 </style>
