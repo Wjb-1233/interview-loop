@@ -32,7 +32,6 @@ from app.features.health.router import router as health_router
 from app.features.plans.router import router as plans_router
 from app.features.scenes.mine_router import router as mine_scenes_router
 from app.features.scenes.router import router as scenes_router
-from app.features.share.router import router as share_router
 from app.features.scripts.router import router as scripts_router
 from app.features.training.router import router as training_router
 from app.features.tasks.router import router as tasks_router
@@ -269,7 +268,6 @@ for api_router in (
     voice_router,
     video_router,
     tasks_router,
-    share_router,
     telemetry_router,
     avatar_router,
 ):

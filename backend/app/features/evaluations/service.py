@@ -28,6 +28,7 @@ from app.db.models import (
 from app.features.evaluations import objectives
 from app.features.evaluations.schemas import DimensionScores, EvaluationPayload, EvaluationView
 from app.infrastructure.llm import llm_gateway
+from app.infrastructure.rate_limit import limit_model_user
 
 # Stable imports for existing endpoints and tests; implementations have one owner.
 from app.features.evaluations.scoring import SYSTEM_PROMPT, FILLER_WORDS, _median_payload, _blend_with_objectives, speech_statistics, validated_evidence, fallback_evaluation, fallback_upgrades, squash_text, validated_risk
@@ -107,6 +108,8 @@ async def evaluate_session(
     failures = 0
     for _ in range(samples):
         try:
+            # 评分是唯一走模型的写接口：读缓存报告不计数，真正调用模型前才过限流与每日额度
+            await limit_model_user(user_id)
             raw = await llm_gateway.complete_json(SYSTEM_PROMPT, user_prompt, temperature=0.1)
             payloads.append(EvaluationPayload.model_validate(raw))
         except Exception as exc:

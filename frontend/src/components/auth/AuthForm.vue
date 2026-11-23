@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, shallowRef } from 'vue'
+import { computed, reactive, shallowRef, watch } from 'vue'
 
 export type AuthMode = 'login' | 'register'
 
@@ -13,6 +13,8 @@ export interface AuthSubmitPayload {
 interface Props {
   loading: boolean
   error: string
+  /** 登录页的演示账号快捷填入；token 变化才重新写入，避免覆盖用户输入 */
+  prefill?: { email: string; password: string; token: number } | null
 }
 
 interface Emits {
@@ -50,6 +52,15 @@ const form = reactive({
   displayName: '',
   confirmPassword: '',
   consent: false,
+})
+
+watch(() => props.prefill, (value) => {
+  if (!value) return
+  mode.value = 'login'
+  form.email = value.email
+  form.password = value.password
+  validationError.value = ''
+  emailError.value = ''
 })
 
 const copy = computed(() => mode.value === 'login'

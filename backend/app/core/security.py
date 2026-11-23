@@ -6,6 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt
 from jwt import InvalidTokenError
 from pwdlib import PasswordHash
+from pwdlib.hashers.argon2 import Argon2Hasher
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -13,7 +14,9 @@ from app.core.errors import AppError
 from app.db.base import get_session
 from app.db.models import User
 
-password_hasher = PasswordHash.recommended()
+# argon2id 默认 64MiB/次，并发登录会把内存打满（实测出现过 HashingError: Memory allocation error）。
+# 按 OWASP 最低推荐取 19MiB / 2 轮，安全性足够且能在低配机器上跑。
+password_hasher = PasswordHash((Argon2Hasher(time_cost=2, memory_cost=19456, parallelism=1),))
 bearer = HTTPBearer(auto_error=False)
 
 # 令牌用途（typ）：同一个签名密钥下按用途隔离，一种令牌不能当另一种用
@@ -23,11 +26,17 @@ VOICE_TICKET_SECONDS = 60
 
 
 def hash_password(password: str) -> str:
-    return password_hasher.hash(password)
+    try:
+        return password_hasher.hash(password)
+    except Exception as exc:  # 内存不足时 argon2 会抛 HashingError
+        raise AppError(503, "HASH_UNAVAILABLE", "服务器繁忙，请稍后重试") from exc
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return password_hasher.verify(password, password_hash)
+    try:
+        return password_hasher.verify(password, password_hash)
+    except Exception as exc:
+        raise AppError(503, "HASH_UNAVAILABLE", "服务器繁忙，请稍后重试") from exc
 
 
 def create_access_token(user: User) -> tuple[str, int]:

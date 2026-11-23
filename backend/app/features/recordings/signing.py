@@ -17,7 +17,13 @@ DEFAULT_TTL_SECONDS = 30 * 60
 
 
 def _key() -> bytes:
-    return (settings.recording_signing_secret or settings.jwt_secret).encode("utf-8")
+    # 回放签名用独立密钥：不再复用 JWT 密钥，避免 轮换 JWT 时旧录像链接全失效 / 或 JWT 泄露殃及录像。
+    # 生产环境启动校验会强制要求配置 RECORDING_SIGNING_SECRET（见 config.validate_production_settings）。
+    if settings.recording_signing_secret:
+        return settings.recording_signing_secret.encode("utf-8")
+    # 开发环境：从 JWT 密钥派生一把与签名用途绑定的独立密钥，不直接用原值
+    derived = hmac.new(b"recording-signing", settings.jwt_secret.encode("utf-8"), hashlib.sha256).digest()
+    return derived
 
 
 def _digest(name: str, expires: int) -> str:

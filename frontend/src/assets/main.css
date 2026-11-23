@@ -6,27 +6,37 @@
 :root {
   color-scheme: light;
 
-  /* 表面：由暗到亮的层级 */
-  --bg: #f5f3ee;
-  --bg-2: #faf8f4;
-  --card: #fffefb;
-  --card-2: #f1eee7;
-  --raised: #e9e5dc;
+  /* 表面：由暗到亮的层级（冷白 → 淡紫灰） */
+  --bg: #f6f4fb;
+  --bg-2: #fbfaff;
+  --card: #ffffff;
+  --card-2: #f3f0fa;
+  --raised: #ece7f7;
 
-  --border: rgba(16, 16, 20, .11);
-  --border-bright: rgba(16, 16, 20, .22);
-  --divider: rgba(16, 16, 20, .075);
+  --border: rgba(17, 24, 39, .10);
+  --border-bright: rgba(17, 24, 39, .20);
+  --divider: rgba(17, 24, 39, .07);
 
   /* 文字 */
-  --text: #1c1b18;
-  --text-2: #5c574f;
-  --text-3: #736d63;
-  --on-solid: #fbf9f5;
+  --text: #111827;
+  --text-2: #4b5563;
+  --text-3: #6b7280;
+  --on-solid: #ffffff;
+  /* 渐变风格的展示字体：系统无衬线，字重更重、字距更紧 */
+  --font-display: var(--font-ui);
 
-  /* 品牌色：赭石 */
-  --accent: #b25c2c;
-  --accent-strong: #96491e;
-  --accent-soft: rgba(178, 92, 44, .1);
+  /* 品牌色：渐变体系（紫 → 洋红）；实心态用可读的深紫，装饰面用渐变 */
+  --accent: #8b1fd4;
+  --accent-strong: #6d0fb0;
+  --accent-soft: rgba(153, 15, 250, .10);
+  --accent-2: #e60076;
+
+  /* 渐变：按钮/标题/卡片高光统一从这里取，避免各处散落写死 */
+  --grad-brand: linear-gradient(135deg, #990ffa 0%, #e60076 100%);
+  --grad-brand-hover: linear-gradient(135deg, #8b0ee2 0%, #d1006a 100%);
+  --grad-soft: linear-gradient(135deg, rgba(153, 15, 250, .12) 0%, rgba(230, 0, 118, .10) 100%);
+  --grad-text: linear-gradient(120deg, #8b1fd4 0%, #e60076 100%);
+  --grad-sheen: linear-gradient(180deg, rgba(153, 15, 250, .05) 0%, rgba(255, 255, 255, 0) 45%);
 
   /* 兼容旧组件里的别名 */
   --primary: var(--accent);
@@ -53,9 +63,9 @@
   --overlay-2: rgba(16, 16, 20, .05);
   --overlay-3: rgba(16, 16, 20, .08);
 
-  --radius: 9px;
-  --radius-sm: 7px;
-  --radius-md: 11px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-md: 16px;
   --ease: cubic-bezier(.2, .6, .2, 1);
   --shadow: none;
 
@@ -174,9 +184,22 @@ button { color: inherit; }
   margin: 0;
   color: var(--text);
   font-size: clamp(26px, 3vw, 32px);
-  font-weight: 600;
-  letter-spacing: -.025em;
+  font-weight: 700;
+  letter-spacing: -.03em;
   line-height: 1.3;
+}
+
+/* 渐变风格：标题用渐变文字（浅色），深色沿用实心以保证对比度 */
+:root:not([data-theme='dark']) .page-title,
+:root:not([data-theme='dark']) #app header h1,
+:root:not([data-theme='dark']) .login-card h1 {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+@media (forced-colors: active) {
+  :root:not([data-theme='dark']) .page-title { background: none; -webkit-text-fill-color: currentColor; color: var(--text); }
 }
 .page-lead { max-width: 640px; margin: 14px 0 0; color: var(--text-2); font-size: 13.5px; line-height: 1.9; }
 
@@ -253,17 +276,19 @@ button { color: inherit; }
   gap: 8px;
   min-height: 38px;
   padding: 0 16px;
-  border: 1px solid var(--accent);
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  background: var(--accent);
+  background: var(--grad-brand);
   color: #fff;
-  font-size: 12.5px;
-  font-weight: 500;
-  letter-spacing: .02em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  box-shadow: 0 6px 16px -10px rgba(153, 15, 250, .55);
   cursor: pointer;
   transition: background .18s var(--ease), border-color .18s var(--ease), color .18s var(--ease), transform .18s var(--ease), box-shadow .18s var(--ease), opacity .14s var(--ease);
 }
-.button:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; transform: none; box-shadow: none; }
+.button:hover { background: var(--grad-brand-hover); border-color: transparent; color: #fff; transform: translateY(-1px); box-shadow: 0 10px 22px -12px rgba(230, 0, 118, .55); }
+.button:disabled:hover { transform: none; box-shadow: none; }
 .button:active { transform: translateY(0); box-shadow: none; }
 .button svg, .button i { transition: transform .18s var(--ease); }
 .button:hover svg, .button:hover i { transform: translateX(3px); }
@@ -274,8 +299,8 @@ button { color: inherit; }
   color: var(--text);
 }
 .button.secondary:hover { border-color: var(--text-3); background: var(--overlay-1); color: var(--text); transform: translateY(-1px); box-shadow: none; }
-.button.signal { background: var(--accent); border-color: var(--accent); color: var(--on-solid); }
-.button.signal:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.button.signal { background: var(--grad-brand); border-color: transparent; color: #fff; }
+.button.signal:hover { background: var(--grad-brand-hover); border-color: transparent; }
 
 /* ---------- 表单 ---------- */
 .field {
@@ -510,7 +535,7 @@ tbody tr:hover { background: var(--overlay-1); }
 :root[data-theme='light'] .nav-link { color: var(--text-3); }
 :root[data-theme='light'] .nav-link:hover { color: var(--text-2); }
 :root[data-theme='light'] .nav-link.active { color: var(--text); }
-:root[data-theme='light'] .nav-link.active::before { background: var(--accent); }
+:root[data-theme='light'] .nav-link.active::before { background: var(--grad-brand); }
 
 /* 面板与卡片：白底 + 细边 + 极浅阴影，去掉深色描边环 */
 :root[data-theme='light'] .panel,
@@ -665,24 +690,32 @@ tbody tr:hover { background: var(--overlay-1); }
    ============================================================ */
 
 :root {
-  --bg: #f5f5f6;
-  --bg-2: #fafafa;
+  --bg: #f7f5fc;
+  --bg-2: #fcfbff;
   --card: #ffffff;
-  --card-2: #f4f4f5;
-  --raised: #ebebed;
+  --card-2: #f5f2fd;
+  --raised: #ece7f8;
 
-  --border: rgba(16, 16, 20, .1);
-  --border-bright: rgba(16, 16, 20, .2);
-  --divider: rgba(16, 16, 20, .07);
+  --border: rgba(24, 20, 43, .10);
+  --border-bright: rgba(24, 20, 43, .20);
+  --divider: rgba(24, 20, 43, .07);
 
-  --text: #15151a;
-  --text-2: #4f5057;
-  --text-3: #6b6d76;
-  --on-solid: #fafafa;
+  --text: #111827;
+  --text-2: #4b5563;
+  --text-3: #6b7280;
+  --on-solid: #ffffff;
 
-  --accent: #a4461f;
-  --accent-strong: #823216;
-  --accent-soft: rgba(164, 70, 31, .08);
+  --accent: #8b1fd4;
+  --accent-strong: #6d0fb0;
+  --accent-soft: rgba(153, 15, 250, .10);
+
+  /* 渐变体系：按钮、标题、卡片高光统一从这里取 */
+  --grad-brand: linear-gradient(135deg, #990ffa 0%, #e60076 100%);
+  --grad-brand-hover: linear-gradient(135deg, #8b0ee2 0%, #d1006a 100%);
+  --grad-soft: linear-gradient(135deg, rgba(153, 15, 250, .12) 0%, rgba(230, 0, 118, .10) 100%);
+  --grad-text: linear-gradient(120deg, #8b1fd4 0%, #e60076 100%);
+  --grad-sheen: linear-gradient(180deg, rgba(153, 15, 250, .045) 0%, rgba(255, 255, 255, 0) 46%);
+  --grad-hairline: linear-gradient(90deg, rgba(153, 15, 250, .55) 0%, rgba(230, 0, 118, .45) 100%);
 
   --track: rgba(16, 16, 20, .09);
   --fill: #a9a9b0;
@@ -695,10 +728,10 @@ tbody tr:hover { background: var(--overlay-1); }
   --radar-grid: rgba(16, 16, 20, .09);
   --radar-grid-outer: rgba(16, 16, 20, .2);
 
-  --radius: 10px;
+  --radius: 12px;
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --shadow: 0 1px 2px rgba(16, 16, 20, .05), 0 1px 1px rgba(16, 16, 20, .03);
+  --radius-md: 16px;
+  --shadow: 0 1px 2px rgba(24, 20, 43, .04), 0 14px 30px -24px rgba(139, 31, 212, .38);
   --ease: cubic-bezier(.22, .61, .36, 1);
 
   --overlay-1: rgba(16, 16, 20, .024);
@@ -723,9 +756,16 @@ tbody tr:hover { background: var(--overlay-1); }
   --text-3: #8a8b95;
   --on-solid: #0b0b0e;
 
-  --accent: #d08a5e;
-  --accent-strong: #e6a678;
-  --accent-soft: rgba(208, 138, 94, .12);
+  --accent: #b06bff;
+  --accent-strong: #cf9bff;
+  --accent-soft: rgba(176, 107, 255, .16);
+
+  --grad-brand: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --grad-brand-hover: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
+  --grad-soft: linear-gradient(135deg, rgba(168, 85, 247, .18) 0%, rgba(236, 72, 153, .14) 100%);
+  --grad-text: linear-gradient(120deg, #c084fc 0%, #f472b6 100%);
+  --grad-sheen: linear-gradient(180deg, rgba(168, 85, 247, .10) 0%, rgba(255, 255, 255, 0) 46%);
+  --grad-hairline: linear-gradient(90deg, rgba(168, 85, 247, .6) 0%, rgba(236, 72, 153, .5) 100%);
 
   --track: rgba(255, 255, 255, .08);
   --fill: #56565f;
@@ -734,7 +774,7 @@ tbody tr:hover { background: var(--overlay-1); }
   --chart-stroke: var(--accent);
   --chart-fill: var(--accent-soft);
   --radar-stroke: var(--accent);
-  --radar-fill: rgba(208, 138, 94, .12);
+  --radar-fill: rgba(176, 107, 255, .14);
   --radar-grid: rgba(255, 255, 255, .07);
   --radar-grid-outer: rgba(255, 255, 255, .16);
 
@@ -754,7 +794,7 @@ tbody tr:hover { background: var(--overlay-1); }
   position: relative;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: var(--card);
+  background: var(--grad-sheen), var(--card);
   box-shadow: var(--shadow);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;

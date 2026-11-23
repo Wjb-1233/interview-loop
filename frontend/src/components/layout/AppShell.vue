@@ -215,17 +215,27 @@ async function signOut() {
 .nav-group { margin: 18px 0 6px; padding: 0 22px; color: var(--text-3); font-size: 10px; letter-spacing: .18em; }
 .nav-group:first-child { margin-top: 4px; }
 .nav-link:hover { color: var(--text-2); transform: translateX(2px); }
-.nav-link.active { color: var(--text); }
+.nav-link.active { color: var(--text); font-weight: 600; }
 .nav-link.active::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 0;
-  width: 2px;
-  height: 14px;
+  width: 3px;
+  height: 18px;
+  border-radius: 0 3px 3px 0;
   transform: translateY(-50%);
-  background: var(--accent);
+  background: var(--grad-brand);
 }
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  inset: 4px 10px 4px 12px;
+  z-index: -1;
+  border-radius: 10px;
+  background: var(--grad-soft);
+}
+.nav-link { z-index: 0; }
 .sidebar-foot {
   display: flex;
   flex-direction: column;

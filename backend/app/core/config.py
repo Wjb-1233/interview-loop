@@ -123,6 +123,8 @@ class Settings(BaseSettings):
             problems.append("LLM_API_KEY 不能为空")
         if not self.redis_enabled:
             problems.append("REDIS_ENABLED 必须为 true")
+        if not self.recording_signing_secret:
+            problems.append("RECORDING_SIGNING_SECRET 生产必须单独配置，不能回落到 JWT 密钥")
         if self.redis_password is None or len(self.redis_password.get_secret_value()) < 24:
             problems.append("REDIS_PASSWORD 必须至少包含 24 个字符")
         if not self.cors_origins or any(not origin.startswith("https://") for origin in self.cors_origins):

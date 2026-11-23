@@ -50,13 +50,6 @@ async def login(session: AsyncSession, email: str, password: str) -> tuple[AuthR
     return await issue_tokens(session, user)
 
 
-async def demo_login(session: AsyncSession, role: str) -> tuple[AuthResponse, str]:
-    demo_ids = {"STUDENT": "demo-student", "ADMIN": "demo-admin"}
-    user = await session.get(User, demo_ids[role])
-    if user is None or not user.active or user.role != role:
-        raise AppError(404, "DEMO_ACCOUNT_MISSING", "演示账号不可用，请联系项目维护者")
-    return await issue_tokens(session, user)
-
 
 async def prune_refresh_tokens(session: AsyncSession, user_id: str | None = None) -> int:
     """删除已过期或已撤销的刷新令牌，避免 token 表无限增长。"""

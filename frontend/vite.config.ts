@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+// 配置文件跑在 Node 里，项目没装 @types/node，这里显式声明用到的全局
+declare const process: { env: Record<string, string | undefined> }
+
 /** simli-client 及其唯一传递依赖 livekit-client 的整棵依赖树：只有 SimliPresenter 动态用到，
  *  单独成 chunk 后不再挂在入口上（入口因此回落约 600 kB）。 */
 const SIMLI_MODULES = /node_modules[\\/](?:simli-client|livekit-client|@livekit|jose|sdp-transform|webrtc-adapter|machina|typed-emitter|events|loglevel)[\\/]/

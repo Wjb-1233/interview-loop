@@ -26,15 +26,6 @@ export function useAuth() {
     }
   }
 
-  async function demoLogin(role: 'STUDENT' | 'ADMIN'): Promise<void> {
-    loading.value = true
-    try {
-      const response = await api.post<ApiEnvelope<AuthResult>>('/auth/demo-login', { role })
-      applyAuthResult(response.data.data)
-    } finally {
-      loading.value = false
-    }
-  }
 
   async function register(email: string, password: string, displayName: string): Promise<void> {
     loading.value = true
@@ -94,7 +85,6 @@ export function useAuth() {
     initialized: readonly(initialized),
     loading: readonly(loading),
     login,
-    demoLogin,
     register,
     restore,
     logout,

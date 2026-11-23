@@ -38,13 +38,6 @@ def test_insufficient_reports_are_reference_only_without_model_calls(client, mon
     assert dashboard['recentAverage'] == 60
     assert dashboard['overview']['trainingCount'] == 2
     assert client.get(f'/api/v1/dashboard?anchor_session_id={ids[-1]}', headers=headers).status_code == 404
-    share = client.post(f'/api/v1/share/training-sessions/{ids[-1]}', headers=headers).json()['data']['url']
-    shared = client.get('/api/v1' + share).json()['data']
-    assert shared['qualityStatus'] == 'INSUFFICIENT_EVIDENCE'
-    printable = client.get('/api/v1' + share + '/report')
-    assert printable.status_code == 200
-    assert '评分依据不完整' in printable.text and '暂不计入成长统计' in printable.text
-    assert '本报告由本地评分规则生成' not in printable.text
 
 
 def test_previous_report_uses_training_time_instead_of_regrading_time(client):

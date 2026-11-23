@@ -11,7 +11,6 @@ import InterviewEvidencePanel from '@/components/report/InterviewEvidencePanel.v
 import ScoreRadar from '@/components/report/ScoreRadar.vue'
 import TrainingComparison from '@/components/report/TrainingComparison.vue'
 import { useTrainingReport } from '@/composables/useTrainingReport'
-import { useReportSharing } from '@/composables/useReportSharing'
 import { reportAnswerTurns } from '@/lib/answerTurns'
 import { api, errorMessage } from '@/lib/api'
 import type { ApiEnvelope, Scores, TrainingSession } from '@/lib/types'
@@ -206,7 +205,7 @@ function starHint(answer: string): string {
   return missing.length ? `缺${missing.join('、')}` : '四要素齐全'
 }
 
-const { shareBusy, openShareReport } = useReportSharing(() => session.value, message => { error.value = message })
+
 
 // V-04：同场景两次录像并排对比
 const compareSession = shallowRef<TrainingSession | null>(null)
@@ -320,7 +319,6 @@ onMounted(async () => {
         <p class="lead">评分是起点，不是结论。</p>
       </div>
       <div class="report-actions">
-        <button type="button" class="button secondary" :disabled="shareBusy" @click="openShareReport">导出报告</button>
 
         <RouterLink class="button secondary" to="/scenes">再练一个</RouterLink>
       </div>

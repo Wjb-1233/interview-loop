@@ -1,6 +1,5 @@
 from typing import Annotated
 
-from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Cookie, Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +17,6 @@ from app.features.auth.schemas import (
     PasswordResetRequest,
     AccountDeleteRequest,
     AvatarRequest,
-    DemoLoginRequest,
     LoginRequest,
     PasswordChangeRequest,
     PasswordRequestInput,
@@ -31,17 +29,6 @@ from app.infrastructure.rate_limit import limit_login, limit_register
 router = APIRouter(prefix="/auth", tags=["认证"])
 DbSession = Annotated[AsyncSession, Depends(get_session)]
 
-
-def demo_request_allowed(request: Request) -> bool:
-    if settings.environment != "development":
-        return False
-    source = request.headers.get("origin") or request.headers.get("referer") or ""
-    parsed = urlsplit(source)
-    try:
-        # 开发环境下，本机任意端口都能用一键登录（预览端口经常换）
-        return parsed.scheme in {"http", "https"} and parsed.hostname in {"localhost", "127.0.0.1", "::1"}
-    except ValueError:
-        return False
 
 
 def set_refresh_cookie(response: Response, token: str, max_age: int | None = None) -> None:
@@ -75,20 +62,16 @@ async def login(body: LoginRequest, response: Response, session: DbSession) -> d
     return ok(result.model_dump(by_alias=True))
 
 
-@router.get("/demo-status")
-async def demo_status(request: Request) -> dict:
-    return ok({"enabled": demo_request_allowed(request)})
 
-
-@router.post("/demo-login", dependencies=[Depends(limit_login)])
-async def demo_login(
-    body: DemoLoginRequest, request: Request, response: Response, session: DbSession
-) -> dict:
-    if not demo_request_allowed(request):
-        raise AppError(404, "DEMO_LOGIN_DISABLED", "演示登录未启用")
-    result, refresh = await service.demo_login(session, body.role)
-    set_refresh_cookie(response, refresh)
-    return ok(result.model_dump(by_alias=True))
+@router.get("/demo-accounts")
+async def demo_accounts() -> dict:
+    """登录页的演示账号：只在非生产环境返回，避免凭证打进前端产物。"""
+    if settings.environment == "production":
+        return ok({"accounts": []})
+    return ok({"accounts": [
+        {"role": "学员", "email": "student@example.com", "password": "Student123!"},
+        {"role": "管理员", "email": "admin@example.com", "password": "Admin123!"},
+    ]})
 
 
 @router.post("/refresh")

@@ -18,10 +18,6 @@ class LoginRequest(ApiModel):
     password: str
 
 
-class DemoLoginRequest(ApiModel):
-    role: Literal["STUDENT", "ADMIN"]
-
-
 class ProfileUpdateRequest(ApiModel):
     display_name: str = Field(min_length=1, max_length=60, alias="displayName")
     bio: str | None = Field(default=None, max_length=500)
