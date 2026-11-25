@@ -16,7 +16,7 @@ const jdBusy = shallowRef(false)
 
 async function applyJd(): Promise<void> {
   const text = jdInput.value.trim()
-  if (text.length < 20 || jdBusy.value) return
+  if (text.length < 20 || jdBusy.value || !conditionsEditable.value || training.sending.value) return
   jdBusy.value = true
   pageError.value = ''
   try {
@@ -31,6 +31,7 @@ async function applyJd(): Promise<void> {
 }
 
 async function clearJd(): Promise<void> {
+  if (!conditionsEditable.value || jdBusy.value || training.sending.value) return
   jdBusy.value = true
   try {
     await api.delete(`/training-sessions/${sessionId}/jd`)
@@ -50,6 +51,10 @@ const inputMode = shallowRef<'text' | 'voice'>(route.query.mode === 'voice' ? 'v
 const planId = computed(() => training.session.value?.planId ?? String(route.query.planId ?? ''))
 const taskKey = computed(() => training.session.value?.taskKey ?? String(route.query.taskKey ?? ''))
 const isTransfer = computed(() => training.session.value?.assessmentContext?.purpose === 'TRANSFER')
+const conditionsEditable = computed(() => training.session.value?.conditionsEditable
+  ?? (training.session.value?.status === 'ACTIVE' && training.session.value.currentRound === 0 && !isTransfer.value))
+const conditionsLockedReason = computed(() => training.session.value?.conditionsLockedReason
+  || '本场岗位和题目已固定；如需调整，请开始新的训练。')
 const isPlanTask = computed(() => !isTransfer.value && Boolean(planId.value && taskKey.value))
 // 提前结束可生成总结；计划任务达标仍要求至少 6 轮。
 const planMinRounds = 6
@@ -107,7 +112,7 @@ async function clearResume(): Promise<void> {
     <header class="training-heading">
       <div><p class="eyebrow">角色演练 · {{ stageLabel }}<span v-if="training.session.value?.mode === 'DRILL'" class="drill-tag">深挖模式</span></p><h1>{{ training.session.value?.sceneTitle || '情景训练' }}</h1></div>
       <div class="heading-actions">
-        <button v-if="training.session.value?.status === 'FINISHED'" class="button secondary" type="button" @click="restart">同场景重新开始</button>
+        <button v-if="training.session.value?.status === 'FINISHED'" class="button secondary" type="button" @click="restart">{{ isTransfer ? '再做一组新题' : '同场景重新开始' }}</button>
         <RouterLink class="back" to="/scenes">{{ finishRequested ? '返回场景（保留本次总结）' : leaving ? '正在丢弃本次训练…' : '直接退出（不保留记录）' }}</RouterLink>
       </div>
     </header>
@@ -124,17 +129,18 @@ async function clearResume(): Promise<void> {
     <div v-if="training.session.value" class="jd-bar">
       <template v-if="training.session.value.jdText">
         <div><strong>已按目标岗位出题</strong><span>{{ training.session.value.questionTotal }} 个考察点 · 来自岗位描述</span></div>
-        <button type="button" :disabled="jdBusy" @click="clearJd">{{ jdBusy ? '处理中…' : '移除 JD' }}</button>
+        <button v-if="conditionsEditable" type="button" :disabled="jdBusy || training.sending.value" @click="clearJd">{{ jdBusy ? '处理中…' : '移除 JD' }}</button>
       </template>
-      <details v-else>
+      <details v-else-if="conditionsEditable">
         <summary>粘贴目标岗位 JD（选填）· 面试官会按岗位考察点出题</summary>
         <textarea v-model="jdInput" class="field" rows="4" maxlength="4000" placeholder="把招聘网站上的岗位职责与要求粘贴进来，至少 20 字" />
         <div class="jd-actions">
           <span>{{ jdInput.trim().length }} / 4000</span>
-          <button class="button" type="button" :disabled="jdBusy || jdInput.trim().length < 20" @click="applyJd">{{ jdBusy ? '生成中…' : '生成考察计划' }}</button>
+          <button class="button" type="button" :disabled="jdBusy || training.sending.value || jdInput.trim().length < 20" @click="applyJd">{{ jdBusy ? '生成中…' : '生成考察计划' }}</button>
         </div>
       </details>
     </div>
+    <p v-if="training.session.value && !conditionsEditable" class="model-notice">{{ conditionsLockedReason }}</p>
     <div v-if="training.session.value?.jobMatch" class="match-card">
       <header>
         <div class="score"><strong>{{ training.session.value.jobMatch.score }}</strong><span>/100 匹配度</span></div>
@@ -165,7 +171,7 @@ async function clearResume(): Promise<void> {
       <details>
         <summary>本场必问题 · {{ training.session.value.questionPlan.length }} 个</summary>
         <ol class="plan-list">
-          <li v-for="(item, index) in training.session.value.questionPlan" :key="index" :class="{ done: index < training.session.value.questionCovered }">
+          <li v-for="(item, index) in training.session.value.questionPlan" :key="index" :class="{ done: training.session.value.coveredQuestionIndexes?.includes(index) ?? index < training.session.value.questionCovered }">
             <span class="num">{{ String(index + 1).padStart(2, '0') }}</span>
             <span class="plan-text">{{ item.text }}</span>
             <span v-if="item.dimension" class="plan-tag">{{ item.dimension }}</span>

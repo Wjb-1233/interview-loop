@@ -6,30 +6,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
-from difflib import SequenceMatcher
 
 from app.db.models import Message, Scene, TrainingSession
 from app.features.scenes.service import get_scene
 from app.features.scenes.taxonomy import normalize_bank
+from app.features.training.transcript import transcript_delivery
+from app.features.training.question_coverage import covered_question_indexes
 
 
 def _coverage(scene: Scene, questions: list[str], bank_override: list[dict] | None = None) -> int:
-    """按文本相似度判断必问题是否真的被问到，而不是直接按轮次算。"""
+    """Use the same actual-question rule as text interviews and reports."""
     bank = normalize_bank(bank_override if bank_override is not None else scene.question_bank)
-    if not bank or not questions:
-        return 0
-    covered = 0
-    for item in bank:
-        target = str(item.get("text", "")).strip()
-        if not target:
-            continue
-        best = max(
-            (SequenceMatcher(None, target, question).ratio() for question in questions),
-            default=0.0,
-        )
-        if best >= 0.55:
-            covered += 1
-    return covered
+    return len(covered_question_indexes(bank, questions))
 
 
 async def create_voice_session(
@@ -49,12 +37,14 @@ async def create_voice_session(
         raise AppError(422, "VOICE_SESSION_EMPTY", "这次通话没有可评分的对话内容")
 
     cleaned: list[tuple[str, str]] = []
+    transcript = []
     for turn in turns:
         question = str(turn.get("question", "")).strip()
         answer = str(turn.get("answer", "")).strip()
         if not answer:
             continue
         cleaned.append((question or "请继续。", answer))
+        transcript.append({"roundNo": len(cleaned), "startMs": turn.get("startMs"), "endMs": turn.get("endMs")})
     if not cleaned:
         raise AppError(422, "VOICE_SESSION_EMPTY", "这次通话没有可评分的回答")
 
@@ -99,8 +89,9 @@ async def create_voice_session(
     session.add(training)
     await session.flush()
 
+    messages = []
     for index, (question, answer) in enumerate(cleaned, start=1):
-        session.add(
+        messages.append(
             Message(
                 session_id=training.id,
                 round_no=index,
@@ -108,7 +99,7 @@ async def create_voice_session(
                 content=question,
             )
         )
-        session.add(
+        messages.append(
             Message(
                 session_id=training.id,
                 round_no=index,
@@ -117,6 +108,9 @@ async def create_voice_session(
             )
         )
 
+    session.add_all(messages)
+    await session.flush()
+    training.delivery = transcript_delivery({**(training.delivery or {}), "transcript": transcript}, messages, channel)
     await session.commit()
     return training.id
 

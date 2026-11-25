@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "executionLabel": "CONTROLLED_STUB",
+  "generatedAt": "2026-11-25T07:14:13.911170+00:00",
+  "target": {
+    "baseUrl": "http://127.0.0.1:8081/api/v1",
+    "sceneId": "scene-interview-03",
+    "virtualUsers": 2,
+    "identityCount": 2,
+    "identityMode": "distinct_tokens",
+    "firstTokenTargetMs": 3000.0,
+    "allowDegraded": false,
+    "tlsVerification": true
+  },
+  "readiness": {
+    "status": "ok",
+    "checks": {
+      "database": "ok",
+      "rateLimit": "disabled",
+      "llm": "ok"
+    }
+  },
+  "summary": {
+    "virtualUsers": 2,
+    "successes": 2,
+    "failures": 0,
+    "degradedResponses": 0,
+    "successRate": 1.0,
+    "wallSeconds": 0.6,
+    "throughputResponsesPerSecond": 3.335,
+    "latencyMs": {
+      "createSession": {
+        "p50": 19.5,
+        "p95": 24.21,
+        "max": 24.73
+      },
+      "responseHeaders": {
+        "p50": 110.92,
+        "p95": 186.56,
+        "max": 194.96
+      },
+      "firstEvent": {
+        "p50": 123.83,
+        "p95": 199.52,
+        "max": 207.93
+      },
+      "firstToken": {
+        "p50": 396.2,
+        "p95": 448.97,
+        "max": 454.83
+      },
+      "totalResponse": {
+        "p50": 488.41,
+        "p95": 561.84,
+        "max": 570.0
+      }
+    },
+    "releaseGates": {
+      "noRequestFailures": true,
+      "noUnexpectedDegradation": true,
+      "firstTokenP95WithinTarget": true,
+      "temporarySessionsRemoved": true
+    },
+    "passed": true
+  },
+  "attempts": [
+    {
+      "virtual_user": 1,
+      "success": true,
+      "status_code": 200,
+      "http_version": "HTTP/1.1",
+      "create_session_ms": 14.26,
+      "response_headers_ms": 194.96,
+      "first_event_ms": 207.93,
+      "first_token_ms": 454.83,
+      "total_response_ms": 570.0,
+      "degraded": false,
+      "error": null,
+      "cleanup_attempted": true,
+      "cleanup_success": true
+    },
+    {
+      "virtual_user": 2,
+      "success": true,
+      "status_code": 200,
+      "http_version": "HTTP/1.1",
+      "create_session_ms": 24.73,
+      "response_headers_ms": 26.89,
+      "first_event_ms": 39.73,
+      "first_token_ms": 337.57,
+      "total_response_ms": 406.83,
+      "degraded": false,
+      "error": null,
+      "cleanup_attempted": true,
+      "cleanup_success": true
+    }
+  ],
+  "resources": {
+    "status": "SAMPLED",
+    "samples": 3,
+    "sampledRssPeakBytes": 653492224.0,
+    "apiCpuSeconds": 0.375,
+    "oneCoreCpuPercent": 62.54,
+    "modelCountersDelta": {
+      "app_events_total{event=\"llm_attempts\",outcome=\"json\"}": 0.0,
+      "app_events_total{event=\"llm_attempts\",outcome=\"stream\"}": 2.0,
+      "app_events_total{event=\"llm_usage\",outcome=\"unreported\"}": 2.0
+    },
+    "cost": null,
+    "note": "仅单个 API worker 的采样峰值，不含浏览器、ASR 子进程、数据库；需单进程隔离环境。未上报 token 不按零费用计算；模型计数不含健康探测。",
+    "samplingErrors": 0
+  },
+  "limitations": "受控本地 HTTP 模型测试桩；样本少，仅检查负载工具/SSE/清理，不代表真实模型性能。"
+}

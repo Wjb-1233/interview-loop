@@ -46,7 +46,7 @@ def test_resume_interview_upload_question_followup_and_clear(monkeypatch) -> Non
         owner = register("简历用户")
         other = register("其他用户")
         scene_id = client.get("/api/v1/scenes", headers=owner).json()["data"][0]["id"]
-        resume_text = "我在毕业项目中负责 Python FastAPI 后端开发，并使用 Redis 做热点数据缓存，MySQL 保存业务数据。"
+        resume_text = "我在订单管理项目中负责 Python FastAPI 后端开发，并使用 Redis 做热点数据缓存，MySQL 保存业务数据。"
         file = ("我的简历.docx", make_docx(resume_text), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
         assert client.post("/api/v1/training-sessions/with-resume", data={"sceneId": scene_id}, files={"file": file}).status_code == 401

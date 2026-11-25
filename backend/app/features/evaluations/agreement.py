@@ -39,6 +39,18 @@ def spearman(xs: list[float], ys: list[float]) -> float | None:
     return round(numerator / denominator, 3)
 
 
+def weighted_kappa(pairs: list[tuple[float, float]]) -> float | None:
+    """Linear weighted Cohen kappa for ordinal 1–5 ratings; no fake constant-case 1.0."""
+    if len(pairs) < 2 or any(a not in range(1, 6) or b not in range(1, 6) for a, b in pairs):
+        return None
+    n = len(pairs)
+    left = [sum(a == score for a, _ in pairs) for score in range(1, 6)]
+    right = [sum(b == score for _, b in pairs) for score in range(1, 6)]
+    observed = sum(abs(a - b) for a, b in pairs) / (4 * n)
+    expected = sum(abs(a - b) * left[a - 1] * right[b - 1] for a in range(1, 6) for b in range(1, 6)) / (4 * n * n)
+    return round(1 - observed / expected, 4) if expected else None
+
+
 def summarize(pairs: list[tuple[float, float]]) -> dict:
     """pairs = [(模型分, 人工分)]，返回相关性、误差与一致率。"""
     if not pairs:
@@ -55,6 +67,7 @@ def summarize(pairs: list[tuple[float, float]]) -> dict:
         "meanModel": round(fmean(model), 2),
         "meanHuman": round(fmean(human), 2),
         "bias": round(fmean(model) - fmean(human), 2),
+        "weightedKappa": weighted_kappa(pairs),
     }
 
 

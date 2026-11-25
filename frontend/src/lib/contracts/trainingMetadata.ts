@@ -29,7 +29,7 @@ export interface TrainingDelivery extends AudioDeliveryMetrics {
   vision?: CameraObservations | null
   marks?: Array<{ text: string; start: number; end?: number }>
   selfReview?: Array<{ roundNo: number; camera: boolean; structure: boolean; opening: boolean; note: string | null }>
-  transcript?: Array<{ roundNo: number; question: string; text: string; startMs: number | null; endMs: number | null; confidence: number | null; edited: boolean }>
+  transcript?: Array<{ roundNo: number; question: string; text: string; questionMessageId?: string; answerMessageId?: string; startMs: number | null; endMs: number | null; confidence: number | null; edited: boolean }>
   rescoreRequired?: boolean
   pendingEvaluationSnapshot?: unknown
   segments?: Array<{ roundNo: number; question: string; startMs: number; endMs: number; file: string; url: string | null }>

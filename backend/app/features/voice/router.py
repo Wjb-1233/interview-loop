@@ -236,7 +236,7 @@ async def save_voice_session(
         if prepared is None or prepared.user_id != user.id or prepared.scene_id != sceneId:
             raise AppError(404, "SESSION_NOT_FOUND", "准备会话不存在")
         if prepared.current_round:
-            saved_id = await create_voice_session(session, user.id, sceneId, [{"question": turn.question, "answer": turn.answer} for turn in parsed], channel="VIDEO" if video is not None else channelHint, prepared_session_id=preparedSessionId)
+            saved_id = await create_voice_session(session, user.id, sceneId, [turn.model_dump() for turn in parsed], channel="VIDEO" if video is not None else channelHint, prepared_session_id=preparedSessionId)
             return ok({"id": saved_id, "delivery": prepared.delivery, "recordingUrl": storage.url_of(prepared.recording_path)})
     delivery: dict | None = None
     recording_path: str | None = None
@@ -287,7 +287,7 @@ async def save_voice_session(
         session,
         user.id,
         sceneId,
-        [{"question": turn.question, "answer": turn.answer} for turn in parsed],
+        [turn.model_dump() for turn in parsed],
         duration_seconds=durationSeconds,
         delivery=delivery or None,
         engine=engine if engine in {"doubao", "pipeline"} else "doubao",

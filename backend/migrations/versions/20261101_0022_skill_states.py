@@ -42,6 +42,4 @@ def downgrade() -> None:
         batch.drop_index("ix_mistake_states_due_at")
         batch.drop_column("due_at")
         batch.drop_column("streak")
-    op.drop_index("ix_skill_states_dimension", table_name="skill_states")
-    op.drop_index("ix_skill_states_user_id", table_name="skill_states")
     op.drop_table("skill_states")

@@ -1,0 +1,13 @@
+﻿participant_id,sequence,consent,disposition,training_minutes,training_notes,pre_session_id,pre_channel,pre_difficulty,pre_depth,pre_standard_hash,post_session_id,post_channel,post_difficulty,post_depth,post_standard_hash,transfer_session_id,transfer_channel,transfer_difficulty,transfer_depth,transfer_standard_hash
+P01,AB,,,,,,,,,,,,,,,,,,,
+P02,BA,,,,,,,,,,,,,,,,,,,
+P03,AB,,,,,,,,,,,,,,,,,,,
+P04,BA,,,,,,,,,,,,,,,,,,,
+P05,AB,,,,,,,,,,,,,,,,,,,
+P06,BA,,,,,,,,,,,,,,,,,,,
+P07,AB,,,,,,,,,,,,,,,,,,,
+P08,BA,,,,,,,,,,,,,,,,,,,
+P09,AB,,,,,,,,,,,,,,,,,,,
+P10,BA,,,,,,,,,,,,,,,,,,,
+P11,AB,,,,,,,,,,,,,,,,,,,
+P12,BA,,,,,,,,,,,,,,,,,,,

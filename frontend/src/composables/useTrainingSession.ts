@@ -45,6 +45,7 @@ export function useTrainingSession(sessionId: string) {
       const response = await api.post<ApiEnvelope<{
         roundNo: number; stage: string; flags: string[]; messageId: string
         content: string; finished: boolean; degraded: boolean
+        questionTotal?: number; questionCovered?: number; coveredQuestionIndexes?: number[]
       }>>(`/training-sessions/${sessionId}/messages/complete`, { content, finishAfterReply }, { timeout: MODEL_REQUEST_TIMEOUT_MS })
       const turn = response.data.data
       liveFlags.value = turn.flags
@@ -54,6 +55,12 @@ export function useTrainingSession(sessionId: string) {
         currentRound: turn.roundNo,
         stage: turn.stage,
         status: turn.finished ? 'FINISHED' : session.value.status,
+        questionTotal: turn.questionTotal ?? session.value.questionTotal,
+        questionCovered: turn.questionCovered ?? session.value.questionCovered,
+        coveredQuestionIndexes: turn.coveredQuestionIndexes ?? session.value.coveredQuestionIndexes,
+        conditionsEditable: turn.roundNo > 0 || turn.finished ? false : session.value.conditionsEditable,
+        conditionsLockedReason: turn.finished ? '本场面试已结束，岗位和题目已固定；如需调整，请开始新的训练。'
+          : turn.roundNo > 0 ? '已开始作答，岗位和题目已固定；如需调整，请开始新的训练。' : session.value.conditionsLockedReason,
         messages: session.value.messages.map((message) => {
           if (message.id === userMessage.id) return { ...message, roundNo: turn.roundNo, flagged: turn.flags.length > 0, flags: turn.flags }
           if (message.id === aiMessage.id) return { ...message, id: turn.messageId, roundNo: turn.roundNo, content: turn.content }

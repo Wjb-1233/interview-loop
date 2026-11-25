@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "executionLabel": "CONTROLLED_STUB",
+  "generatedAt": "2026-11-25T07:14:12.959940+00:00",
+  "target": {
+    "baseUrl": "http://127.0.0.1:8081/api/v1",
+    "sceneId": "scene-interview-03",
+    "virtualUsers": 1,
+    "identityCount": 1,
+    "identityMode": "distinct_tokens",
+    "firstTokenTargetMs": 3000.0,
+    "allowDegraded": false,
+    "tlsVerification": true
+  },
+  "readiness": {
+    "status": "ok",
+    "checks": {
+      "database": "ok",
+      "rateLimit": "disabled",
+      "llm": "ok"
+    }
+  },
+  "summary": {
+    "virtualUsers": 1,
+    "successes": 1,
+    "failures": 0,
+    "degradedResponses": 0,
+    "successRate": 1.0,
+    "wallSeconds": 0.418,
+    "throughputResponsesPerSecond": 2.391,
+    "latencyMs": {
+      "createSession": {
+        "p50": 14.08,
+        "p95": 14.08,
+        "max": 14.08
+      },
+      "responseHeaders": {
+        "p50": 10.82,
+        "p95": 10.82,
+        "max": 10.82
+      },
+      "firstEvent": {
+        "p50": 22.32,
+        "p95": 22.32,
+        "max": 22.32
+      },
+      "firstToken": {
+        "p50": 273.76,
+        "p95": 273.76,
+        "max": 273.76
+      },
+      "totalResponse": {
+        "p50": 389.27,
+        "p95": 389.27,
+        "max": 389.27
+      }
+    },
+    "releaseGates": {
+      "noRequestFailures": true,
+      "noUnexpectedDegradation": true,
+      "firstTokenP95WithinTarget": true,
+      "temporarySessionsRemoved": true
+    },
+    "passed": true
+  },
+  "attempts": [
+    {
+      "virtual_user": 1,
+      "success": true,
+      "status_code": 200,
+      "http_version": "HTTP/1.1",
+      "create_session_ms": 14.08,
+      "response_headers_ms": 10.82,
+      "first_event_ms": 22.32,
+      "first_token_ms": 273.76,
+      "total_response_ms": 389.27,
+      "degraded": false,
+      "error": null,
+      "cleanup_attempted": true,
+      "cleanup_success": true
+    }
+  ],
+  "resources": {
+    "status": "SAMPLED",
+    "samples": 2,
+    "sampledRssPeakBytes": 652963840.0,
+    "apiCpuSeconds": 0.188,
+    "oneCoreCpuPercent": 44.84,
+    "modelCountersDelta": {
+      "app_events_total{event=\"llm_attempts\",outcome=\"json\"}": 0.0,
+      "app_events_total{event=\"llm_attempts\",outcome=\"stream\"}": 1.0,
+      "app_events_total{event=\"llm_usage\",outcome=\"unreported\"}": 1.0
+    },
+    "cost": null,
+    "note": "仅单个 API worker 的采样峰值，不含浏览器、ASR 子进程、数据库；需单进程隔离环境。未上报 token 不按零费用计算；模型计数不含健康探测。",
+    "samplingErrors": 0
+  },
+  "limitations": "受控本地 HTTP 模型测试桩；样本少，仅检查负载工具/SSE/清理，不代表真实模型性能。"
+}

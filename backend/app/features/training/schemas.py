@@ -56,6 +56,9 @@ class TurnReplyView(ApiModel):
     content: str
     finished: bool
     degraded: bool
+    question_total: int = 0
+    question_covered: int = 0
+    covered_question_indexes: list[int] = Field(default_factory=list)
 
 
 class SessionView(ApiModel):
@@ -85,6 +88,9 @@ class SessionView(ApiModel):
     question_plan: list[dict] = Field(default_factory=list)
     question_total: int = 0
     question_covered: int = 0
+    covered_question_indexes: list[int] = Field(default_factory=list)
+    conditions_editable: bool = False
+    conditions_locked_reason: str | None = None
     messages: list[MessageView] = Field(default_factory=list)
     answer_turns: list[AnswerTurnView] = Field(default_factory=list)
     assessment_context: dict | None = None

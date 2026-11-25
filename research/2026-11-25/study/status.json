@@ -1,0 +1,27 @@
+{
+  "status": "AWAITING_PARTICIPANTS",
+  "plannedSlots": 12,
+  "completeParticipants": 0,
+  "incompleteParticipants": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P07",
+    "P08",
+    "P09",
+    "P10",
+    "P11",
+    "P12"
+  ],
+  "outcomes": null,
+  "excludedParticipants": [],
+  "limitations": [
+    "单组前后测没有对照组，不能证明因果关系",
+    "A/B/C 题目尚未真人验证等难度",
+    "用户填写数据，工具未独立核验实际参与者或会话真实性",
+    "小样本结果仅供探索；按参与者而非维度行重采样"
+  ]
+}

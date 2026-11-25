@@ -2,6 +2,7 @@
 import { markRaw, nextTick, onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch, type Component } from 'vue'
 import type { LocalAvatar } from '@/lib/live2d'
 import PhotoPresenter from '@/components/media/PhotoPresenter.vue'
+import { avatarAssets, avatarOrder } from '@/lib/avatarConfig'
 
 /**
  * VRM 3D 人物按需加载：three + three-vrm 只在这条分支确实被选中后才下载，
@@ -51,33 +52,7 @@ let avatar: LocalAvatar | null = null
 let opening: Promise<boolean> | null = null
 let disposed = false
 
-const PHOTO_URL = '/avatars/presenter/teacher.png'
-const VRM_URL = '/avatars/vrm/sample.vrm'
-const HUMAN_URL = '/avatars/human/Business_Male_01.fbx'
-
-/**
- * VRM 3D 面试官开关。产品口径：3D 形象彻底验收通过前线上先用静态照片，所以默认关闭，
- * 代码与模型都随仓库保留。打开方式：把下面改成 true，或开发/验收时在面试页 URL 加 ?avatar=vrm
- * （仅开发构建认这个参数，生产构建始终按本常量走）。
- */
-const VRM_ENABLED = false
-const vrmRequested = (): boolean => VRM_ENABLED
-  || (import.meta.env.DEV && new URLSearchParams(window.location.search).get('avatar') === 'vrm')
-
-/**
- * 写实向 3D 面试官（Microsoft Rocketbox 商务男性）开关。默认关闭：等验收看过截图再决定是否上线，
- * 关闭时行为与现在完全一致（静态照片）。开发/验收时在面试页 URL 加 ?avatar=human 即可临时启用。
- */
-/**
- * 在线数字人（Simli）优先开关。只有后端真的发得出会话令牌、SDK 也连上视频流才用，
- * 密钥缺失（503）、上游失败（502）、建连超时或中途掉线都自动回退本地 3D 形象。
- */
-const SIMLI_ENABLED = true
 let simliDisabled = false
-
-const HUMAN_ENABLED = true
-const humanRequested = (): boolean => HUMAN_ENABLED
-  || (import.meta.env.DEV && new URLSearchParams(window.location.search).get('avatar') === 'human')
 
 /** VRM 模型探测：只发 HEAD，不下载整份模型就能决定走 3D 还是回退照片模式。 */
 async function probeVrm(url: string): Promise<boolean> {
@@ -152,33 +127,32 @@ async function boot(): Promise<boolean> {
   if (disposed) return false
   mode.value = 'probe'
   state.value = 'loading'
-  // 在线数字人优先：连不上就整体回退，本地 3D 与照片的原有顺序保持不变
-  if (SIMLI_ENABLED && !simliDisabled) {
+  for (const provider of avatarOrder()) {
     if (disposed) return false
-    if (await bootSimli()) return true
-    if (disposed) return false
-    simliNotice.value = '数字人不可用，已切换本地形象'
+    try {
+      if (provider === 'simli' && !simliDisabled) {
+        if (await bootSimli()) return true
+        simliNotice.value = '数字人不可用，已切换本地形象'
+      }
+      if (provider === 'human' && await probeVrm(avatarAssets.human) && await bootHuman()) return true
+      if (provider === 'vrm' && await probeVrm(avatarAssets.vrm) && await bootVrm()) return true
+      if (provider === 'photo' && await probePhoto(avatarAssets.photo)) {
+        if (disposed) return false
+        mode.value = 'photo'
+        return true
+      }
+      if (provider === 'live2d') {
+        if (disposed || !container.value) return false
+        mode.value = 'live2d'
+        return load()
+      }
+    } catch {
+      // A missing dynamic chunk or WebGL failure must not prevent the next fallback.
+      if (provider === 'simli') simliNotice.value = '数字人不可用，已切换本地形象'
+      if (!disposed) { mode.value = 'probe'; await nextTick() }
+    }
   }
-  // 写实 3D 面试官优先：模型探测失败就落回静态照片，页面不会因为素材缺失而白屏
-  if (humanRequested() && await probeVrm(HUMAN_URL)) {
-    if (disposed) return false
-    if (await bootHuman()) return true
-    if (disposed) return false
-  }
-  if (vrmRequested() && await probeVrm(VRM_URL)) {
-    if (disposed) return false
-    if (await bootVrm()) return true
-    if (disposed) return false
-  }
-  if (disposed || !container.value) return false
-  if (await probePhoto(PHOTO_URL)) {
-    if (disposed) return false
-    mode.value = 'photo'
-    return true
-  }
-  if (disposed || !container.value) return false
-  mode.value = 'live2d'
-  return load()
+  return false
 }
 
 async function load(): Promise<boolean> {

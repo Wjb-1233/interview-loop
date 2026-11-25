@@ -65,6 +65,13 @@ def test_valid_production_settings_pass() -> None:
 
 def test_test_suite_uses_disposable_database() -> None:
     assert settings.environment == "test"
-    assert settings.database_url.startswith("sqlite+aiosqlite:///")
-    assert "career-coach-pytest-" in settings.database_url
+    if settings.database_url.startswith("mysql"):
+        from sqlalchemy.engine import make_url
+        url = make_url(settings.database_url)
+        assert url.host in {"localhost", "127.0.0.1"}
+        assert url.database.startswith("career_coach_test_")
+        assert url.username.startswith("cc_test_")
+    else:
+        assert settings.database_url.startswith("sqlite+aiosqlite:///")
+        assert "career-coach-pytest-" in settings.database_url
 

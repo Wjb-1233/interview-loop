@@ -35,6 +35,7 @@ class Smoke:
         self.base = base.rstrip("/")
         self.client = httpx.Client(base_url=self.base, timeout=TIMEOUT, trust_env=False, follow_redirects=True)
         self.results: list[tuple[str, bool, str]] = []
+        self.temporary_token: str | None = None
 
     def check(self, name: str, ok: bool, detail: str = "") -> None:
         self.results.append((name, ok, detail))
@@ -42,16 +43,7 @@ class Smoke:
         print(f"[{mark}] {name}{(' · ' + detail) if detail else ''}")
 
     def login(self, api: str) -> str | None:
-        """优先演示登录；不可用时注册一个临时账号，保证冒烟可以跑在真实生产。"""
-        demo = self.client.post(
-            f"{api}/auth/demo-login",
-            json={"role": "STUDENT"},
-            headers={"Referer": self.base + "/"},
-        )
-        if demo.status_code == 200:
-            self.check("登录（演示账号）", True)
-            return demo.json()["data"]["accessToken"]
-
+        """只创建本次测试自己的账号，结束后注销，不依赖已移除的演示登录。"""
         suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         register = self.client.post(
             f"{api}/auth/register",
@@ -59,17 +51,37 @@ class Smoke:
                 "email": f"smoke-{suffix}@example.com",
                 "password": "SmokeTest12345!",
                 "displayName": "冒烟测试",
+                "consent": True,
             },
             headers={"Referer": self.base + "/"},
         )
         if register.status_code in (200, 201):
-            self.check("登录（临时账号）", True, f"演示登录 HTTP {demo.status_code}，改用注册账号")
-            return register.json()["data"]["accessToken"]
-        self.check("登录", False, f"demo={demo.status_code} register={register.status_code}")
+            self.check("登录（临时账号）", True)
+            self.temporary_token = register.json()["data"]["accessToken"]
+            return self.temporary_token
+        self.check("登录", False, f"register={register.status_code}")
         return None
 
     def run(self) -> int:
-        api = "/api/v1" if self.base.endswith("/api/v1") else f"{self.base}/api/v1"
+        try:
+            self._run_checks()
+        except Exception as exc:
+            self.check("冒烟请求", False, type(exc).__name__)
+        finally:
+            if self.temporary_token:
+                api = self.base if self.base.endswith("/api/v1") else self.base + "/api/v1"
+                try:
+                    deleted = self.client.request("DELETE", f"{api}/auth/me/delete",
+                        json={"password": "SmokeTest12345!", "confirm": "注销"},
+                        headers={"Authorization": f"Bearer {self.temporary_token}", "Referer": self.base + "/"})
+                    self.check("清理临时账号与测试记录", deleted.status_code == 200)
+                except Exception as exc:
+                    self.check("清理临时账号与测试记录", False, type(exc).__name__)
+            self.client.close()
+        return self.summary()
+
+    def _run_checks(self) -> None:
+        api = self.base if self.base.endswith("/api/v1") else f"{self.base}/api/v1"
 
         health = self.client.get(f"{api}/health")
         self.check("健康检查", health.status_code == 200 and health.json().get("data", {}).get("status") == "ok")
@@ -85,7 +97,7 @@ class Smoke:
 
         token = self.login(api)
         if not token:
-            return self.summary()
+            return
 
         auth = {"Authorization": f"Bearer {token}", "Referer": self.base + "/"}
 
@@ -99,7 +111,7 @@ class Smoke:
             self.check("创建训练会话", created.status_code == 201, f"HTTP {created.status_code}")
 
             if session_id:
-                # 评分要求至少 2 轮，冒烟固定跑两轮
+                # 两轮满足正式成长统计的样本门槛。
                 answers = [
                     "我负责过一个订单系统优化，把接口 P99 从 800ms 降到 200ms。",
                     "排查时先用链路追踪定位慢查询，再加缓存并补了压测回归。",
@@ -126,7 +138,6 @@ class Smoke:
             page = self.client.get("/")
             self.check("前端页面", page.status_code == 200 and 'id="app"' in page.text, f"HTTP {page.status_code}")
 
-        return self.summary()
 
     def summary(self) -> int:
         failed = [item for item in self.results if not item[1]]

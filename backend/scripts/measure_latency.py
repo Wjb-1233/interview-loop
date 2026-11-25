@@ -21,8 +21,11 @@ import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlencode
 
 import httpx
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from scripts.load_test import run_virtual_user, percentile as interpolated_percentile
 
 BASE = "http://127.0.0.1:8081/api/v1"
 SAMPLE_RATE = 16000
@@ -32,9 +35,7 @@ CHUNK = 640  # 20ms @16kHz s16le
 def percentile(values: list[float], pct: float) -> float:
     if not values:
         return 0.0
-    ordered = sorted(values)
-    index = min(len(ordered) - 1, max(0, round(pct / 100 * (len(ordered) - 1))))
-    return ordered[index]
+    return interpolated_percentile(values, pct / 100)
 
 
 def summarize(name: str, values: list[float]) -> dict:
@@ -51,43 +52,31 @@ def summarize(name: str, values: list[float]) -> dict:
 
 
 async def ensure_user(client: httpx.AsyncClient) -> dict[str, str]:
-    email = f"latency-{int(time.time())}@example.com"
+    email = f"latency-{time.time_ns()}@example.com"
     response = await client.post(
         "/auth/register",
-        json={"email": email, "password": "LatencyTest123", "displayName": "延迟实测"},
+        json={"email": email, "password": "LatencyTest123", "displayName": "延迟实测", "consent": True},
     )
+    response.raise_for_status()
     token = response.json()["data"]["accessToken"]
     return {"Authorization": f"Bearer {token}"}
 
 
-async def measure_text(client: httpx.AsyncClient, headers: dict[str, str], rounds: int) -> list[dict]:
+async def measure_text(client: httpx.AsyncClient, headers: dict[str, str], rounds: int) -> tuple[list[dict], None]:
     scenes = (await client.get("/scenes", headers=headers, params={"size": 3})).json()["data"]
-    created = await client.post("/training-sessions", headers=headers, json={"sceneId": scenes[0]["id"]})
-    session_id = created.json()["data"]["id"]
     samples = []
+    start = asyncio.Event()
+    start.set()
     for index in range(rounds):
-        started = time.perf_counter()
-        first_token = None
-        async with client.stream(
-            "POST",
-            f"/training-sessions/{session_id}/messages",
-            headers=headers,
-            json={"content": f"第{index + 1}轮：我负责订单系统优化，把 P99 从 800ms 降到 200ms。"},
-        ) as response:
-            async for line in response.aiter_lines():
-                if line.startswith("event: token") and first_token is None:
-                    first_token = (time.perf_counter() - started) * 1000
-                if line.startswith("event: done"):
-                    break
-        total = (time.perf_counter() - started) * 1000
-        samples.append(
-            {
-                "round": index + 1,
-                "first_token_ms": round(first_token or total, 1),
-                "total_ms": round(total, 1),
-            }
-        )
-    return samples, session_id
+        result = await run_virtual_user(index + 1, start=start, client=client,
+            token=headers['Authorization'].removeprefix('Bearer '), scene_id=scenes[0]['id'],
+            message='我负责课程项目的接口设计，用并发测试验证业务约束，尚未验证生产环境表现。')
+        if not result.cleanup_success:
+            raise RuntimeError('临时训练未清理成功，请检查测试环境')
+        samples.append({'round': index + 1, 'first_token_ms': result.first_token_ms,
+                        'total_ms': result.total_response_ms, 'success': result.success,
+                        'degraded': result.degraded, 'cleanupSuccess': result.cleanup_success})
+    return samples, None
 
 
 async def tts_pcm(text: str) -> bytes:
@@ -95,19 +84,16 @@ async def tts_pcm(text: str) -> bytes:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from app.infrastructure.narration import synthesize_slide
 
-    workdir = Path(tempfile.mkdtemp())
-    audio, _, _ = synthesize_slide(text, workdir, 0, style="tutor")
     import imageio_ffmpeg
+    with tempfile.TemporaryDirectory(prefix='career-coach-latency-') as directory:
+        audio, _, _ = synthesize_slide(text, Path(directory), 0, style="tutor")
+        raw = subprocess.run(
+            [imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-i", str(audio), "-f", "s16le", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", "-"],
+            capture_output=True, check=True)
+        return raw.stdout
 
-    raw = subprocess.run(
-        [imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-i", str(audio), "-f", "s16le", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", "-"],
-        capture_output=True,
-        check=True,
-    )
-    return raw.stdout
 
-
-async def measure_voice(rounds: int, scene_id: str) -> list[dict]:
+async def measure_voice(rounds: int, scene_id: str, client: httpx.AsyncClient, headers: dict) -> list[dict]:
     """先跑一轮预热（Whisper 首次加载），再计时 rounds 轮。"""
     import websockets
 
@@ -116,8 +102,17 @@ async def measure_voice(rounds: int, scene_id: str) -> list[dict]:
         return []
 
     samples = []
-    uri = f"ws://127.0.0.1:8081/api/v1/voice/ws/pipeline?sceneId={scene_id}"
+    response = await client.post('/voice/ws-ticket', headers=headers)
+    response.raise_for_status()
+    ticket = response.json()['data']['ticket']
+    uri = 'ws://127.0.0.1:8081/api/v1/voice/ws/pipeline?' + urlencode({'sceneId': scene_id, 'ticket': ticket})
     async with websockets.connect(uri, max_size=None) as socket:
+        # The opening question is not a response to the benchmark utterance.
+        async with asyncio.timeout(30):
+            while True:
+                opening = await socket.recv()
+                if isinstance(opening, str) and json.loads(opening).get('type') == 'assistant_end':
+                    break
         for index in range(rounds + 1):
             # 发送语音，尽量贴近实时节奏
             for offset in range(0, len(pcm), CHUNK):
@@ -155,7 +150,7 @@ def render_markdown(result: dict) -> str:
     lines = [
         "# 延迟实测（A-03）",
         "",
-        f"> 生成时间：{result['generatedAt']}　样本：{result['rounds']} 轮/链路　环境：本机 CPU，模型与路由见 `docs/技术说明.md`",
+        f"> 生成时间：{result['generatedAt']}　样本：{result['rounds']} 轮/链路　执行标记：{result['executionLabel']}",
         "",
         "## 结果",
         "",
@@ -175,7 +170,7 @@ def render_markdown(result: dict) -> str:
         "",
         "- 文字指标：从提交回答到 SSE 首个 token / 整轮结束，含模型排队与网络往返。",
         "- 语音指标：本地管线（Silero VAD → faster-whisper → DeepSeek → TTS），从最后一个音频包到面试官首个字幕片段。",
-        "- 首轮包含模型预热，已单独标记为 `warmup`，不计入上表。",
+        "- 首轮作为预热，不计入上表；失败、降级和无首 token 见原始样本，不用整轮耗时冒充首 token。",
         "- 这些是**本次实测量**，不是产品承诺；换机器、换网络、换模型都会变。",
         "",
         "## 原始样本",
@@ -188,42 +183,48 @@ def render_markdown(result: dict) -> str:
     return "\n".join(lines)
 
 
+async def collect_measurements(client, headers, args):
+    text_samples, _ = await measure_text(client, headers, args.rounds)
+    samples = {"text": text_samples}
+    valid = [item for item in text_samples[1:] if item['success'] and not item['degraded']]
+    metrics = [
+        summarize('文字 · 首 token', [item['first_token_ms'] for item in valid if item.get('first_token_ms')]),
+        summarize('文字 · 整轮回复', [item['total_ms'] for item in valid if item.get('total_ms')])]
+    if not args.text_only:
+        scenes = (await client.get('/scenes', headers=headers)).json()['data']
+        try:
+            voice_samples = await measure_voice(args.rounds, scenes[0]['id'], client, headers)
+            samples['voice'] = voice_samples
+            metrics.append(summarize('语音 · 说完到首个回应', [item['first_reply_ms'] for item in voice_samples if item.get('first_reply_ms')]))
+        except Exception as exc:
+            samples['voice_error'] = type(exc).__name__
+            metrics.append({'name': '语音 · 说完到首个回应', 'count': 0})
+    return samples, metrics
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rounds", type=int, default=5)
-    parser.add_argument("--text-only", action="store_true")
-    parser.add_argument("--out", default="docs/延迟实测.md")
+    parser.add_argument('--rounds', type=int, default=5)
+    parser.add_argument('--text-only', action='store_true')
+    parser.add_argument('--out', default='docs/延迟实测.md')
+    parser.add_argument('--label', default='UNSPECIFIED')
     args = parser.parse_args()
-
+    if not 2 <= args.rounds <= 10:
+        parser.error('--rounds 必须为 2–10；首轮预热')
     async with httpx.AsyncClient(base_url=BASE, timeout=120, trust_env=False) as client:
         headers = await ensure_user(client)
-        text_samples, session_id = await measure_text(client, headers, args.rounds)
-        samples = {"text": text_samples}
-
-        metrics = [
-            summarize("文字 · 首 token", [item["first_token_ms"] for item in text_samples[1:]]),
-            summarize("文字 · 整轮回复", [item["total_ms"] for item in text_samples[1:]]),
-        ]
-
-        if not args.text_only:
-            scenes = (await client.get("/scenes", headers=headers, params={"size": 1})).json()["data"]
-            try:
-                voice_samples = await measure_voice(args.rounds, scenes[0]["id"])
-                samples["voice"] = voice_samples
-                metrics.append(
-                    summarize(
-                        "语音 · 说完到首个回应",
-                        [item["first_reply_ms"] for item in voice_samples if item.get("first_reply_ms")],
-                    )
-                )
-            except Exception as exc:  # noqa: BLE001
-                samples["voice_error"] = f"{type(exc).__name__}: {exc}"
-                metrics.append({"name": "语音 · 说完到首个回应", "count": 0})
+        try:
+            samples, metrics = await collect_measurements(client, headers, args)
+        finally:
+            deleted = await client.request('DELETE', '/auth/me/delete', headers=headers,
+                                           json={'password': 'LatencyTest123', 'confirm': '注销'})
+            deleted.raise_for_status()
 
     result = {
         "generatedAt": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        'executionLabel': args.label,
         "rounds": args.rounds,
-        "warmupSession": session_id,
+        "temporaryAccountDeleted": True,
         "metrics": metrics,
         "samples": samples,
     }

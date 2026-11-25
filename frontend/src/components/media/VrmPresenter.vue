@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { avatarAssets } from '@/lib/avatarConfig'
 import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
@@ -14,7 +15,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{ ready: [value: boolean]; configured: [value: boolean] }>()
 
 /** 随仓库提供的一次性模型文件，运行时不联网。 */
-const MODEL_URL = '/avatars/vrm/sample.vrm'
+const MODEL_URL = avatarAssets.vrm
 
 /**
  * 取景参数（单位：米 / 度）。相机固定不动，靠头骨实际世界高度换算距离，

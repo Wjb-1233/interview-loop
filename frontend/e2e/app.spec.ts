@@ -19,6 +19,7 @@ test('注册后可以走完场景库、我的场景与个人资料', async ({ pa
   await page.locator('input[name="email"]').fill(email)
   await page.locator('input[name="password"]').fill(password)
   await page.locator('input[name="confirmPassword"]').fill(password)
+  await page.getByRole('checkbox', { name: '我已阅读并同意', exact: true }).check()
   await page.locator('button[type="submit"]').click()
 
   // 登录态：侧边栏出现，看板标题可见

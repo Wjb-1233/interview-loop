@@ -57,4 +57,5 @@ backend/e2e.db
 
 # 本地临时脚本与产物
 _work/
+research/runs/
 backend/.coverage

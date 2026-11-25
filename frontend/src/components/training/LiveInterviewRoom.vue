@@ -202,7 +202,7 @@ function handleEvent(raw: string): void {
     heard.value = String(event.delta ?? '')
     partialAnswer = heard.value
   } else if (type.endsWith('transcription.completed')) {
-    lastAnswer = String(event.transcript ?? heard.value)
+    lastAnswer = String(event.transcript ?? event.text ?? heard.value)
     partialAnswer = ''
     heard.value = lastAnswer
     reply.value = ''

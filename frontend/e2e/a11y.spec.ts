@@ -52,6 +52,7 @@ test('注册后的看板与场景库无障碍', async ({ page }) => {
   await page.locator('input[name="email"]').fill(email)
   await page.locator('input[name="password"]').fill('AxeTest12345!')
   await page.locator('input[name="confirmPassword"]').fill('AxeTest12345!')
+  await page.getByRole('checkbox', { name: '我已阅读并同意', exact: true }).check()
   await page.locator('button[type="submit"]').click()
   await expect(page.getByRole('link', { name: '场景训练' })).toBeVisible()
 

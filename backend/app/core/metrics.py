@@ -50,12 +50,9 @@ def _escape(value: str) -> str:
 def render() -> str:
     from app.core.config import settings
 
-    try:
-        import resource
-
-        rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
-    except Exception:  # noqa: BLE001 - Windows 无 resource
-        rss = 0
+    from app.core.process_stats import current_process_stats
+    process = current_process_stats()
+    rss = process['rssBytes']
 
     lines: list[str] = []
     with _lock:
@@ -75,6 +72,8 @@ def render() -> str:
     lines.append("# HELP process_uptime_seconds 进程已运行秒数")
     lines.append("# TYPE process_uptime_seconds gauge")
     lines.append(f"process_uptime_seconds {time.time() - _started_at:.1f}")
+    lines.append('# TYPE process_cpu_seconds_total counter')
+    lines.append(f"process_cpu_seconds_total {process['cpuSeconds']:.6f}")
 
     if rss:
         lines.append("# HELP process_resident_memory_bytes 常驻内存")

@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
 
-test('报告自评与分享拆分后仍可读取、保存和撤销', async ({ page }) => {
+test('报告自评仍可读取保存，已移除的分享不再显示或请求', async ({ page }) => {
   const errors: string[] = []
   const reviews: unknown[] = []
-  let revoked = false
+  const shareRequests: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   const createdAt = '2026-11-17T01:00:00Z'
   const scores = { logic: 3, relevance: 3, correctness: 3, concision: 3 }
@@ -14,8 +14,7 @@ test('报告自评与分享拆分后仍可读取、保存和撤销', async ({ pa
     else if (path.endsWith('/evaluations/refactor-report')) data = { id: 'eval', sessionId: 'refactor-report', scores, overallScore: 60, summary: '原报告总评', suggestions: [], styleTags: [], evidence: [], degraded: false, createdAt }
     else if (path === '/api/v1/training-sessions/refactor-report') data = { id: 'refactor-report', sceneId: 'scene', sceneTitle: '自评验收', channel: 'VIDEO', status: 'FINISHED', currentRound: 1, startedAt: createdAt, messages: [{ id: 'q', roundNo: 1, speaker: 'AI', content: '介绍你的项目', flags: [] }, { id: 'a', roundNo: 1, speaker: 'USER', content: '我负责接口设计', flags: [] }], delivery: { selfReview: [{ roundNo: 1, camera: true, structure: false, opening: false, note: '原自评' }] } }
     else if (path.endsWith('/self-review')) { reviews.push(route.request().postDataJSON()); data = {} }
-    else if (path.endsWith('/share/training-sessions/refactor-report')) data = { url: '/share/test-token', expiresAt: 9999999999 }
-    else if (path.endsWith('/share/test-token') && route.request().method() === 'DELETE') { revoked = true; data = {} }
+    else if (path.includes('/share/')) shareRequests.push(path)
     await route.fulfill({ json: { data, meta: {} } })
   })
   await page.goto('/report/refactor-report')
@@ -26,11 +25,8 @@ test('报告自评与分享拆分后仍可读取、保存和撤销', async ({ pa
   await review.getByRole('button', { name: '保存自评', exact: true }).click()
   await expect(review.getByRole('button')).toContainText('已保存')
   expect(reviews).toEqual([{ items: [expect.objectContaining({ roundNo: 1, camera: true, note: '修改后的自评' })] }])
-  await page.getByRole('button', { name: '生成教练链接', exact: true }).click()
-  await expect(page.locator('.share-note code')).toContainText('/share/test-token')
-  await page.getByRole('button', { name: '撤销分享链接', exact: true }).click()
-  await expect(page.locator('.share-note')).toContainText('已撤销')
-  expect(revoked).toBe(true)
+  await expect(page.getByRole('button', { name: /生成教练链接|撤销分享链接/ })).toHaveCount(0)
+  expect(shareRequests).toEqual([])
   expect(errors).toEqual([])
 })
 

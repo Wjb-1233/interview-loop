@@ -195,12 +195,13 @@ def _admin_session_rows(client: TestClient, admin_headers: dict[str, str]) -> in
         page += 1
 
 
-def test_sqlite_connections_enforce_foreign_keys() -> None:
+def test_database_connections_enforce_foreign_keys() -> None:
     async def run() -> int:
         from app.db.base import engine
 
         async with engine.connect() as connection:
-            return int((await connection.exec_driver_sql("PRAGMA foreign_keys")).scalar() or 0)
+            statement = "PRAGMA foreign_keys" if engine.dialect.name == "sqlite" else "SELECT @@foreign_key_checks"
+            return int((await connection.exec_driver_sql(statement)).scalar() or 0)
 
     assert asyncio.run(run()) == 1
 

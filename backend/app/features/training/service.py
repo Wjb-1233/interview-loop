@@ -12,6 +12,9 @@ from app.core.errors import AppError, not_found
 from app.features.training.message_order import dialogue_order
 from app.features.training.policy import MIN_REPORT_ROUNDS
 from app.features.training.answer_turns import answer_turns
+from app.features.training.transcript import transcript_delivery
+from app.features.training.conditions import conditions_locked_reason, require_editable_conditions
+from app.features.training.question_coverage import covered_question_indexes, dialogue_questions
 from app.features.training.language import affirmative_occurrences, is_repeat_request, REPEAT_PATTERN
 from app.features.training.schemas import AnswerTurnView
 from app.db.base import session_factory
@@ -58,6 +61,7 @@ async def create_training_session(
     question_plan: list[dict] | None = None,
     job_match: dict | None = None,
     evidence_driven: bool = False,
+    assessment_template: dict | None = None,
 ) -> SessionView:
     if language != "zh":
         raise AppError(422, "LANGUAGE_UNSUPPORTED", "当前仅支持中文面试")
@@ -111,18 +115,19 @@ async def create_training_session(
         task_key=task_key,
         channel=channel,
         jd_text=jd_text,
-        question_plan=question_plan,
+        question_plan=normalize_bank(question_plan if question_plan is not None else scene.question_bank),
         job_match=job_match,
         mode=mode if mode in {"STANDARD", "DRILL"} else "STANDARD",
         depth=depth if depth in {"STANDARD", "THREE_LAYER", "PRESSURE"} else "STANDARD",
         language="zh",
         max_rounds=settings.max_training_rounds,
     )
-    from app.features.training.rubrics import new_context
+    from app.features.training.rubrics import new_context, fresh_context
     training.assessment_context = new_context(scene, normalize_bank(question_plan or scene.question_bank), evidence_driven)
+    if assessment_template is not None:
+        training.assessment_context = fresh_context(assessment_template)
     if plan_id and task.get("actionType") == "RETEST":
-        import copy
-        training.assessment_context = copy.deepcopy(baseline.assessment_context)
+        training.assessment_context = fresh_context(baseline.assessment_context)
     session.add(training)
     await session.flush()
     opening = Message(
@@ -158,8 +163,13 @@ async def get_training_session(
             .order_by(*dialogue_order(training.channel))
         )
     ).all()
+    locked_reason = await conditions_locked_reason(session, training)
+    bank = normalize_bank(training.question_plan if training.question_plan is not None else (scene.question_bank if scene else []))
+    covered = covered_question_indexes(bank, dialogue_questions(messages))
     return SessionView(
         id=training.id,
+        conditions_editable=locked_reason is None,
+        conditions_locked_reason=locked_reason,
         assessment_context=training.assessment_context,
         scene_id=training.scene_id,
         scene_title=scene.title if scene else None,
@@ -174,7 +184,7 @@ async def get_training_session(
         depth=training.depth or "STANDARD",
         language=training.language or "zh",
         duration_seconds=training.duration_seconds,
-        delivery=training.delivery,
+        delivery=transcript_delivery(training.delivery, messages, training.channel),
         recording_url=storage.url_of(training.recording_path),
         started_at=training.started_at,
         finished_at=training.finished_at,
@@ -183,9 +193,10 @@ async def get_training_session(
         resume_opening_degraded=resume.opening_degraded if resume else False,
         jd_text=training.jd_text,
         job_match=training.job_match,
-        question_plan=normalize_bank(training.question_plan or scene.question_bank),
-        question_total=len((training.question_plan or scene.question_bank or [])),
-        question_covered=training.covered_count,
+        question_plan=bank,
+        question_total=len(bank),
+        question_covered=len(covered),
+        covered_question_indexes=covered,
         messages=[MessageView.model_validate(item) for item in messages],
         answer_turns=[AnswerTurnView(round_no=turn.round_no, question_message_id=turn.question.id, answer_message_id=turn.answer.id, question=turn.question.content, answer=turn.answer.content, flags=turn.answer.flags or []) for turn in answer_turns(messages, training.channel)],
     )
@@ -389,19 +400,25 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
                 },
             )
             yield sse("token", {"content": reply})
-            yield sse("done", {"messageId": assistant.id, "finished": False, "degraded": False})
+            view = await get_training_session(db, user_id, session_id)
+            yield sse("done", {"messageId": assistant.id, "finished": False, "degraded": False,
+                               "questionTotal": view.question_total, "questionCovered": view.question_covered,
+                               "coveredQuestionIndexes": view.covered_question_indexes})
             return
         history_rows = (
             await db.scalars(
                 select(Message)
                 .where(Message.session_id == session_id)
-                .order_by(Message.created_at)
+                .order_by(*dialogue_order(training.channel))
             )
         ).all()
-        bank = normalize_bank(training.question_plan) or normalize_bank(scene.question_bank)
+        bank = normalize_bank(training.question_plan if training.question_plan is not None else scene.question_bank)
+        questions = dialogue_questions(history_rows)
+        covered_before = covered_question_indexes(bank, questions)
+        pending = [index for index in range(len(bank)) if index not in covered_before]
         planned_question = ""
-        if training.covered_count < len(bank):
-            item = bank[training.covered_count]
+        if pending:
+            item = bank[pending[0]]
             extra = " · ".join(x for x in [item.get("dimension"), item.get("difficulty")] if x)
             planned_question = f"{item['text']}（考察：{extra}）" if extra else item['text']
         graph_state = await conversation_graph.ainvoke(
@@ -438,8 +455,6 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
             flags=graph_state["flags"],
         )
         updates = {"current_round": graph_state["round_no"], "stage": graph_state["stage"]}
-        if planned_question:
-            updates["covered_count"] = min(training.covered_count + 1, len(bank))
         claimed = await db.execute(update(TrainingSession).where(TrainingSession.id == session_id, TrainingSession.status == "ACTIVE").values(**updates))
         if not claimed.rowcount:
             yield sse("error", {"message": "训练已退出或结束"})
@@ -471,8 +486,14 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
             yield sse("token", {"content": full_text})
         elif (training.assessment_context or {}).get("adaptiveEnabled"):
             from app.features.training.evidence import evidence_reply
-            previous_question = next((row.content for row in reversed(history_rows) if row.speaker == "AI"), "")
-            full_text, degraded = await evidence_reply(training, history_rows, previous_question, user_text, user_message.id)
+            previous_question = questions[-1] if questions else ""
+            # Reserve enough answer slots for required questions. Between two
+            # required questions there can be one evidence-based follow-up.
+            allow_probe = (bool(covered_question_indexes(bank, [previous_question]))
+                           and training.max_rounds - training.current_round > len(pending))
+            next_required = bank[pending[0]]["text"] if pending and not allow_probe else None
+            full_text, degraded = await evidence_reply(training, history_rows, previous_question, user_text, user_message.id,
+                                                       next_required=next_required)
             yield sse("token", {"content": full_text})
         else:
             try:
@@ -508,6 +529,8 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
             content=full_text,
         )
         db.add(assistant)
+        covered = covered_question_indexes(bank, [*questions, full_text])
+        training.covered_count = len(covered)
         if graph_state["should_finish"]:
             from app.db.models import now
 
@@ -520,6 +543,9 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
                 "messageId": assistant.id,
                 "finished": training.status == "FINISHED",
                 "degraded": degraded,
+                "questionTotal": len(bank),
+                "questionCovered": len(covered),
+                "coveredQuestionIndexes": covered,
             },
         )
 
@@ -554,6 +580,9 @@ async def complete_reply(session_id: str, user_id: str, user_text: str, finish_a
         content="".join(chunks),
         finished=done["finished"],
         degraded=done["degraded"],
+        question_total=done.get("questionTotal", 0),
+        question_covered=done.get("questionCovered", 0),
+        covered_question_indexes=done.get("coveredQuestionIndexes", []),
     )
 
 
@@ -691,6 +720,7 @@ async def set_job_description(
     training = await session.get(TrainingSession, session_id)
     if training is None or training.user_id != user_id:
         raise not_found("训练会话")
+    await require_editable_conditions(session, training)
     scene = await session.get(Scene, training.scene_id)
     if scene is None:
         raise not_found("面试场景")
@@ -711,6 +741,14 @@ async def set_job_description(
         logger.warning("training.jd_plan_degraded error_type=%s", type(exc).__name__)
         degraded = True
         plan = fallback_plan_from_scene(scene)
+    # The learner may submit an answer while the model is generating the plan.
+    await session.refresh(training)
+    await require_editable_conditions(session, training)
+    claimed = await session.execute(update(TrainingSession).where(
+        TrainingSession.id == training.id, TrainingSession.status == "ACTIVE", TrainingSession.current_round == 0
+    ).values(current_round=0))
+    if not claimed.rowcount:
+        raise AppError(409, "TRAINING_CONDITIONS_LOCKED", "已开始作答，不能更换本场岗位和题目")
     training.jd_text = jd_text
     training.question_plan = plan
     training.job_match = build_match(
@@ -729,6 +767,12 @@ async def clear_job_description(session: AsyncSession, user_id: str, session_id:
     training = await session.get(TrainingSession, session_id)
     if training is None or training.user_id != user_id:
         raise not_found("训练会话")
+    await require_editable_conditions(session, training)
+    claimed = await session.execute(update(TrainingSession).where(
+        TrainingSession.id == training.id, TrainingSession.status == "ACTIVE", TrainingSession.current_round == 0
+    ).values(current_round=0))
+    if not claimed.rowcount:
+        raise AppError(409, "TRAINING_CONDITIONS_LOCKED", "已开始作答，不能更换本场岗位和题目")
     training.jd_text = None
     training.question_plan = None
     training.job_match = None

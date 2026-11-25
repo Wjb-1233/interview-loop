@@ -71,6 +71,9 @@ export interface TrainingSession {
   questionPlan: Array<{ text: string; dimension: string | null; difficulty: string | null }>
   questionTotal: number
   questionCovered: number
+  coveredQuestionIndexes?: number[]
+  conditionsEditable?: boolean
+  conditionsLockedReason?: string | null
   jdText: string | null
   jobMatch?: {
     score: number

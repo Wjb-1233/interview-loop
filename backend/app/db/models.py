@@ -6,7 +6,12 @@ from uuid import uuid4
 from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, false
 from sqlalchemy.orm import Mapped, mapped_column
 
+from sqlalchemy.dialects.mysql import DATETIME as MySQLDateTime
+
 from app.db.base import Base
+
+# Preserve event order when a learner completes several actions in one second.
+UTC_DATETIME = DateTime(timezone=True).with_variant(MySQLDateTime(fsp=6), "mysql")
 
 
 def uid() -> str:
@@ -18,8 +23,8 @@ def now() -> datetime:
 
 
 class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, onupdate=now, nullable=False)
 
 
 class User(TimestampMixin, Base):
@@ -41,9 +46,9 @@ class RefreshToken(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(UTC_DATETIME)
     revoked: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now)
 
 
 class Scene(TimestampMixin, Base):
@@ -77,7 +82,7 @@ class Favorite(Base):
     __tablename__ = "favorites"
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     scene_id: Mapped[str] = mapped_column(ForeignKey("scenes.id", ondelete="CASCADE"), primary_key=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now)
 
 
 class Script(Base):
@@ -93,7 +98,7 @@ class Script(Base):
     content: Mapped[str] = mapped_column(Text)
     highlights: Mapped[list[str]] = mapped_column(JSON, default=list)
     favorite: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, index=True)
 
 
 class PasswordResetRequest(TimestampMixin, Base):
@@ -101,7 +106,7 @@ class PasswordResetRequest(TimestampMixin, Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
-    handled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    handled_at: Mapped[datetime | None] = mapped_column(UTC_DATETIME, nullable=True)
 
 
 
@@ -126,7 +131,7 @@ class MistakeState(TimestampMixin, Base):
     dimension: Mapped[str] = mapped_column(String(20))
     status: Mapped[str] = mapped_column(String(20), default="PENDING")
     streak: Mapped[int] = mapped_column(Integer, default=0)
-    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    due_at: Mapped[datetime | None] = mapped_column(UTC_DATETIME, nullable=True, index=True)
     __table_args__ = (
         UniqueConstraint("user_id", "session_id", "round_no", "dimension"),
     )
@@ -156,9 +161,9 @@ class TrainingSession(Base):
     stage: Mapped[str] = mapped_column(String(20), default="OPENING")
     current_round: Mapped[int] = mapped_column(Integer, default=0)
     max_rounds: Mapped[int] = mapped_column(Integer, default=12)
-    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
-    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    started_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, index=True)
+    finished_at: Mapped[datetime | None] = mapped_column(UTC_DATETIME, nullable=True)
+    archived_at: Mapped[datetime | None] = mapped_column(UTC_DATETIME, nullable=True, index=True)
     covered_count: Mapped[int] = mapped_column(Integer, default=0)
     channel: Mapped[str] = mapped_column(String(10), default="TEXT", index=True)
     mode: Mapped[str] = mapped_column(String(12), default="STANDARD")
@@ -186,7 +191,7 @@ class ResumeContext(Base):
     filename: Mapped[str] = mapped_column(String(180), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     opening_degraded: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, nullable=False)
 
 
 class Message(Base):
@@ -199,7 +204,7 @@ class Message(Base):
     kind: Mapped[str] = mapped_column(String(12), default="DIALOGUE", server_default="DIALOGUE", nullable=False)
     flagged: Mapped[bool] = mapped_column(Boolean, default=False)
     flags: Mapped[list[str]] = mapped_column(JSON, default=list)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now)
     __table_args__ = (Index("idx_messages_session_round", "session_id", "round_no", "created_at"),)
 
 
@@ -227,7 +232,7 @@ class Evaluation(Base):
     risk_flags: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     degraded: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, index=True)
 
 
 class EvaluationEvidence(Base):
@@ -257,7 +262,7 @@ class AbilityAttempt(Base):
     strength: Mapped[str] = mapped_column(Text, nullable=False)
     gap: Mapped[str] = mapped_column(Text, nullable=False)
     next_action: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, index=True)
 
 
 class Course(Base):
@@ -269,7 +274,7 @@ class Course(Base):
     description: Mapped[str] = mapped_column(Text)
     content: Mapped[str] = mapped_column(Text)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now)
 
 
 class CourseProgress(Base):
@@ -278,7 +283,7 @@ class CourseProgress(Base):
     course_id: Mapped[str] = mapped_column(ForeignKey("courses.id", ondelete="CASCADE"), primary_key=True)
     progress: Mapped[int] = mapped_column(Integer, default=0)
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    updated_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, onupdate=now)
 
 
 class TrainingPlan(Base):
@@ -292,7 +297,7 @@ class TrainingPlan(Base):
     status: Mapped[str] = mapped_column(String(20), default="ACTIVE")
     # 每位学员的计划序号（#1、#2…），未完成的计划会累积保留
     sequence: Mapped[int] = mapped_column(Integer, default=1, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now)
 
 
 class LessonVideoJob(Base):
@@ -311,7 +316,7 @@ class LessonVideoJob(Base):
     video_key: Mapped[str | None] = mapped_column(String(80), nullable=True)
     chapters: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, onupdate=now, nullable=False)
     __table_args__ = (Index("idx_lesson_video_jobs_plan_task", "plan_id", "task_key"),)
 
 
@@ -329,7 +334,7 @@ class AuditLog(Base):
     target_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
     request_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, index=True)
 
 
 class ModelUsageDaily(Base):
@@ -342,7 +347,7 @@ class ModelUsageDaily(Base):
     )
     day: Mapped[str] = mapped_column(String(10), primary_key=True)
     calls: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    updated_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now, onupdate=now)
 
 
 class PasswordResetToken(Base):
@@ -353,6 +358,6 @@ class PasswordResetToken(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    expires_at: Mapped[datetime] = mapped_column(UTC_DATETIME, nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(UTC_DATETIME, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTC_DATETIME, default=now)

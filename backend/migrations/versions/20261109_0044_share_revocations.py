@@ -25,5 +25,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_share_revocations_session_id", table_name="share_revocations")
     op.drop_table("share_revocations")

@@ -42,6 +42,7 @@ test('报告页与计划页无障碍', async ({ page, request }) => {
   await page.locator('input[name="email"]').fill(email)
   await page.locator('input[name="password"]').fill(password)
   await page.locator('input[name="confirmPassword"]').fill(password)
+  await page.getByRole('checkbox', { name: '我已阅读并同意', exact: true }).check()
   await page.locator('button[type="submit"]').click()
   await expect(page.getByRole('link', { name: '场景训练' })).toBeVisible()
 

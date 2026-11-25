@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { avatarAssets } from '@/lib/avatarConfig'
 import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
 
 const props = withDefaults(defineProps<{
@@ -11,7 +12,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{ 'photo-state': [value: 'loading' | 'ready' | 'error'] }>()
 
 const DIR = '/avatars/presenter/'
-const BASE = `${DIR}teacher.png`
+const BASE = avatarAssets.photo
 const SPEAKING = `${DIR}teacher-speaking.png`
 const EYES = `${DIR}teacher-eyes-closed.png`
 
@@ -76,7 +77,7 @@ const lidCrease = useTemplateRef<HTMLSpanElement>('lidCrease')
 const sheen = useTemplateRef<HTMLSpanElement>('sheen')
 
 const state = shallowRef<'loading' | 'ready' | 'error'>('loading')
-const sources = shallowRef({ base: BASE, speaking: SPEAKING, eyes: EYES })
+const sources = shallowRef<{ base: string; speaking: string; eyes: string }>({ base: BASE, speaking: SPEAKING, eyes: EYES })
 const frames = shallowRef({ speaking: false, eyes: false })
 
 let disposed = false

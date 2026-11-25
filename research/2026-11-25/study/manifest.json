@@ -1,0 +1,20 @@
+{
+  "status": "AWAITING_PARTICIPANTS",
+  "plannedSlots": 12,
+  "participantsCollected": 0,
+  "standardHash": "26c905b4c25cce6ca8ea0a274e625598f20a7a080ab418a824804367e411fd32",
+  "design": "SINGLE_ARM_COUNTERBALANCED_AB_BA",
+  "trainingTargetMinutes": 15,
+  "recommendedConditions": {
+    "channel": "TEXT",
+    "difficulty": "中级",
+    "depth": "STANDARD"
+  },
+  "primaryOutcome": "每位参与者后测四维均分减前测四维均分；两位独立评审均值；1–5 分",
+  "secondaryOutcome": "独立迁移测均分及其相对前测的差值",
+  "analysisUnit": "participant",
+  "causalClaimAllowed": false,
+  "source": "EMPTY_PLANNED_SLOTS",
+  "equivalenceValidated": false,
+  "formsHash": "2e1e6a90b39699b3538a704343945347acc46a27f5f4dcc28351b01bee3df6d9"
+}

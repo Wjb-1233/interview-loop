@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2026-11-25 15:14",
+  "executionLabel": "CONTROLLED_STUB",
+  "rounds": 3,
+  "temporaryAccountDeleted": true,
+  "metrics": [
+    {
+      "name": "文字 · 首 token",
+      "count": 2,
+      "p50": 508.3,
+      "p95": 525.49,
+      "mean": 508.3,
+      "max": 527.4
+    },
+    {
+      "name": "文字 · 整轮回复",
+      "count": 2,
+      "p50": 630.31,
+      "p95": 648.96,
+      "mean": 630.31,
+      "max": 651.03
+    }
+  ],
+  "samples": {
+    "text": [
+      {
+        "round": 1,
+        "first_token_ms": 430.99,
+        "total_ms": 555.17,
+        "success": true,
+        "degraded": false,
+        "cleanupSuccess": true
+      },
+      {
+        "round": 2,
+        "first_token_ms": 489.21,
+        "total_ms": 609.59,
+        "success": true,
+        "degraded": false,
+        "cleanupSuccess": true
+      },
+      {
+        "round": 3,
+        "first_token_ms": 527.4,
+        "total_ms": 651.03,
+        "success": true,
+        "degraded": false,
+        "cleanupSuccess": true
+      }
+    ]
+  }
+}

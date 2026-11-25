@@ -286,6 +286,13 @@ async def finish(
 @router.post("/{session_id}/restart", status_code=201)
 async def restart(session_id: str, user: CurrentUser, session: DbSession) -> dict:
     old = await get_training_session(session, user.id, session_id)
+    if (old.assessment_context or {}).get("purpose") == "TRANSFER":
+        from app.features.plans.transfer import start_transfer
+        if not old.plan_id:
+            raise AppError(409, "TRANSFER_SOURCE_UNAVAILABLE", "原计划不可用，无法开始新题迁移")
+        transfer_id = await start_transfer(session, user.id, old.plan_id)
+        result = await get_training_session(session, user.id, transfer_id)
+        return ok(result.model_dump(by_alias=True))
     resume = await session.get(ResumeContext, session_id)
     if resume:
         await limit_model_user(user.id)
@@ -295,6 +302,7 @@ async def restart(session_id: str, user: CurrentUser, session: DbSession) -> dic
         resume.content if resume else None,
         mode=old.mode, depth=old.depth, channel=old.channel,
         jd_text=old.jd_text, question_plan=old.question_plan, job_match=old.job_match,
+        assessment_template=old.assessment_context or {},
     )
     return ok(result.model_dump(by_alias=True))
 
@@ -367,8 +375,15 @@ async def edit_transcript(
         raise not_found("训练会话")
     if training.status != "FINISHED":
         raise AppError(422, "TRANSCRIPT_NOT_READY", "训练结束后才能修正转写")
+    if not body.text.strip():
+        raise AppError(422, "TRANSCRIPT_EMPTY", "修正后的转写不能为空")
 
-    delivery = dict(training.delivery or {})
+    from app.features.training.message_order import dialogue_order
+    from app.features.training.transcript import transcript_delivery
+
+    messages = (await session.scalars(select(Message).where(Message.session_id == session_id)
+                                     .order_by(*dialogue_order(training.channel)))).all()
+    delivery = dict(transcript_delivery(training.delivery, messages, training.channel) or {})
     transcript = [dict(item) for item in (delivery.get("transcript") or [])]
     target = next((item for item in transcript if item.get("roundNo") == round_no), None)
     if target is None:
@@ -389,13 +404,7 @@ async def edit_transcript(
     training.delivery = delivery
     flag_modified(training, "delivery")
 
-    message = await session.scalar(
-        select(Message).where(
-            Message.session_id == session_id,
-            Message.speaker == "USER",
-            Message.round_no == round_no,
-        )
-    )
+    message = next((item for item in messages if item.id == target.get("answerMessageId")), None)
     if message is not None:
         message.content = target["text"]
 

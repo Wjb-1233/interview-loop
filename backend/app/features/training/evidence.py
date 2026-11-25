@@ -3,7 +3,7 @@ import copy
 import json
 import re
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from app.features.training.language import constructive_uncertainty
 from app.infrastructure.llm import llm_gateway
 
@@ -25,8 +25,22 @@ class TurnObservation(BaseModel):
     observations: list[Observation] = Field(default_factory=list, max_length=8)
     clarification: dict | None = None
 
+    @field_validator("observations", mode="before")
+    @classmethod
+    def usable_observations(cls, value):
+        if not isinstance(value, list):
+            raise ValueError("Observations must be a list")
+        valid = []
+        for item in value[:8]:
+            try:
+                valid.append(Observation.model_validate(item))
+            except ValidationError:
+                # An empty/unusable quote must not discard other real evidence.
+                continue
+        return valid
 
-async def evidence_reply(training, history, question, answer, answer_id: str) -> tuple[str, bool]:
+
+async def evidence_reply(training, history, question, answer, answer_id: str, next_required: str | None = None) -> tuple[str, bool]:
     context = copy.deepcopy(training.assessment_context or {})
     criteria = context.get("criteria", [])
     if not criteria:
@@ -86,10 +100,17 @@ async def evidence_reply(training, history, question, answer, answer_id: str) ->
             next_question = "回看刚才的方案，你最需要补做哪项验证，为什么？"
             reason = "各考察点已触达，收束到尚需验证的边界。"
     context.setdefault("activeCriterionId", active["id"])
+    if next_required:
+        next_question = next_required
+        reason = "先覆盖本场尚未问到的必问题，再按回答证据安排追问。"
+        following = next((item for item in reversed(criteria) if re.search(item.get("match", "^$"), next_question)), None)
+        context.pop("activeCriterionId", None)
+        if following:
+            context["activeCriterionId"] = following["id"]
     context["evidenceTrace"] = [*prior_traces, {"roundNo": training.current_round,
         "criterionId": active["id"], "competency": active["name"], "question": question,
         "answerMessageId": answer_id, "observations": accepted, "missingPoints": missing,
         "nextQuestion": next_question, "decisionReason": reason, "degraded": degraded,
         "clarification": {"previousQuote": old, "currentQuote": new} if valid_clarification else None}][-12:]
     training.assessment_context = context
-    return next_question[:120], degraded
+    return next_question if next_required else next_question[:120], degraded

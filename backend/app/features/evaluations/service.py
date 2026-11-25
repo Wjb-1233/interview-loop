@@ -14,7 +14,7 @@ from app.features.training.policy import MIN_REPORT_ROUNDS
 from app.features.training.answer_turns import answer_turns
 from app.features.evaluations.consistency import validated_technical_checks, score_conflicts
 from app.features.evaluations.competencies import assessment_snapshot
-from app.features.evaluations.quality import DIMENSIONS, verified_rows
+from app.features.evaluations.quality import DIMENSIONS, verified_rows, quality
 from app.db.models import (
     Evaluation,
     EvaluationEvidence,
@@ -29,6 +29,7 @@ from app.features.evaluations import objectives
 from app.features.evaluations.schemas import DimensionScores, EvaluationPayload, EvaluationView
 from app.infrastructure.llm import llm_gateway
 from app.infrastructure.rate_limit import limit_model_user
+from app.features.evaluations.standards import scoring_prompt
 
 # Stable imports for existing endpoints and tests; implementations have one owner.
 from app.features.evaluations.scoring import SYSTEM_PROMPT, FILLER_WORDS, _median_payload, _blend_with_objectives, speech_statistics, validated_evidence, fallback_evaluation, fallback_upgrades, squash_text, validated_risk
@@ -104,13 +105,16 @@ async def evaluate_session(
 
     started_at = time.monotonic()
     samples = max(1, min(3, settings.evaluation_samples))
+    system_prompt = scoring_prompt(training.assessment_context)
     payloads: list[EvaluationPayload] = []
     failures = 0
     for _ in range(samples):
         try:
             # 评分是唯一走模型的写接口：读缓存报告不计数，真正调用模型前才过限流与每日额度
             await limit_model_user(user_id)
-            raw = await llm_gateway.complete_json(SYSTEM_PROMPT, user_prompt, temperature=0.1)
+            # Four evidence dimensions plus the professional matrix can exceed
+            # the small JSON budget used for hints and script variants.
+            raw = await llm_gateway.complete_json(system_prompt, user_prompt, temperature=0.1, max_tokens=5000)
             payloads.append(EvaluationPayload.model_validate(raw))
         except Exception as exc:
             failures += 1
@@ -146,8 +150,8 @@ async def evaluate_session(
     if conflicts and not degraded:
         try:
             reviewed = EvaluationPayload.model_validate(await llm_gateway.complete_json(
-                SYSTEM_PROMPT, user_prompt + "\n质量复核：上一份结果同时标记明确专业错误和内容逻辑最高档。请核对错误的重要性、是否已被纠正，并返回自洽的完整评分。不得为消除冲突而删除真实问题。",
-                temperature=0.1))
+                system_prompt, user_prompt + "\n质量复核：上一份结果同时标记明确专业错误和内容逻辑最高档。请核对错误的重要性、是否已被纠正，并返回自洽的完整评分。不得为消除冲突而删除真实问题。",
+                temperature=0.1, max_tokens=5000))
             reviewed_checks = validated_technical_checks(reviewed.technical_checks, turns)
             # A review must explicitly revisit the disputed original quote.
             discussed = {item["quote"] for item in reviewed_checks}
@@ -202,7 +206,9 @@ async def evaluate_session(
         session.add(item)
     from app.features.plans.personalization import update_skills
 
-    if not degraded and not conflicts and (training.assessment_context or {}).get("purpose") != "TRANSFER" and {item.dimension for item in verified_rows(evidence, messages, training)} == set(DIMENSIONS) and not existing:
+    # Pending corrected transcripts qualify only after this successful regrade.
+    # Regrades never count as another practice attempt.
+    if not existing and quality(evaluation, training, verified_rows(evidence, messages, training))["eligible_for_growth"]:
         await update_skills(session, user_id, scene, {key: getattr(evaluation, f"{key}_score") for key in ("logic", "relevance", "correctness", "concision")})
 
     if (training.delivery or {}).get("rescoreRequired"):

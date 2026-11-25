@@ -1,0 +1,12 @@
+{
+  "status": "AWAITING_HUMAN_LABELS",
+  "split": "development",
+  "answerCases": 24,
+  "questionFamilies": 4,
+  "expectedRatingsPerRater": 96,
+  "raterACompleted": 0,
+  "raterBCompleted": 0,
+  "perDimension": {},
+  "modelComparison": null,
+  "note": "编写样本不等同真人样本；同题多种回答、同回答四维均不当作独立受试者。"
+}

@@ -150,7 +150,7 @@ SCENES = [
     {
         "id": "scene-interview-11",
         "category": "技术一面",
-        "title": "前端页面性能优化答辩",
+        "title": "前端页面性能优化面试",
         "industry": "互联网与软件",
         "position": "前端开发",
         "role_name": "前端技术面试官",

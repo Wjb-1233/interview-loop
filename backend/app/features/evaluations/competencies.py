@@ -4,6 +4,7 @@ import re
 
 
 def assessment_snapshot(payload, training, turns, conflicts, model: str) -> dict:
+    from app.features.evaluations.standards import standard_metadata
     context = training.assessment_context or {}
     trace = context.get("evidenceTrace", [])
     by_round = {turn.round_no: turn for turn in turns}
@@ -46,6 +47,7 @@ def assessment_snapshot(payload, training, turns, conflicts, model: str) -> dict
         transfer["answeredRounds"] = len(turns)
         transfer["note"] = "仅针对本次新题与参考要点的模型判断，不与原题分数直接连线。"
     return {"version": context.get("version", "interview-2026-11-v1"), "model": model,
+            "scoringStandard": standard_metadata(context),
             "rubricVersion": context.get("rubricVersion", "legacy"), "purpose": context.get("purpose", "PRACTICE"),
             "hintUses": int(context.get("hintUses", 0)), "professionalMatrix": matrix,
             "evidenceTrace": copy.deepcopy(trace), "consistencyConflicts": conflicts,

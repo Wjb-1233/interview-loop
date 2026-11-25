@@ -1,6 +1,6 @@
-# 面试情景模拟训练与话术优化系统
+# 言阶 · 面试沟通训练平台
 
-本科毕业设计项目。系统通过大模型、LangGraph 状态机和四维评分，完成以下训练闭环：
+言阶提供文字、语音和视频模拟面试。AI 面试官根据岗位和回答进行多轮追问，训练结束后提供带原话证据的四维评分和提升计划。
 
 **想按步骤启动？双击打开 [`docs/启动指南.md`](docs/启动指南.md)。** 指南优先介绍在 PyCharm 和 Docker Desktop 中的操作；仅在功能不可用时才用备用命令。
 
@@ -16,7 +16,7 @@
 
 界面采用桌面布局，页面最低宽度 1200px，建议使用 Chrome 或 Edge，并保持浏览器窗口宽度在 1280px 以上。
 
-项目保留 SQLite、内存限流和本地教练模板作为测试或离线兜底，正式演示建议使用 MySQL、Redis 和真实大模型 Key。文字页面使用完整回复接口，SSE 端点供流式客户端与压测使用；实时语音与视频使用 WebSocket。
+要体验完整的训练流程，请配置 MySQL、Redis 和可用的大模型 API Key。项目保留 SQLite、内存限流和本地教练模板用于测试或离线运行。文字页面使用完整回复接口，SSE 端点供流式客户端与压测使用；实时语音与视频使用 WebSocket。
 
 新工程师接手请先阅读 [开发接手指南](docs/开发接手指南.md)，其中包含核心链路、业务术语和测试入口。
 
@@ -31,8 +31,8 @@
 复制环境变量模板：
 
 ```powershell
-Set-Location D:\graduation_design
-Copy-Item .env.example .env
+# 在项目根目录执行
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
 打开 `.env`，把下面一项替换为自己的大模型 Key：
@@ -68,7 +68,8 @@ docker compose --project-name career-coach ps
 首次安装依赖：
 
 ```powershell
-Set-Location D:\graduation_design\backend
+# 从项目根目录进入后端目录
+Set-Location .\backend
 py -3.11 -m venv .venv
 .venv\Scripts\python.exe -m pip install --constraint constraints.txt --requirement requirements-dev.txt
 .venv\Scripts\python.exe -m alembic upgrade head
@@ -86,15 +87,16 @@ py -3.11 -m venv .venv
 
 - Module name：`uvicorn`
 - Parameters：`app.main:app --host 127.0.0.1 --port 8081 --reload`
-- Working directory：`D:\graduation_design\backend`
-- Python interpreter：`D:\graduation_design\backend\.venv\Scripts\python.exe`
+- Working directory：仓库下的 `backend/`
+- Python interpreter：仓库下的 `backend/.venv/Scripts/python.exe`
 
 ## 四、启动前端
 
 另开一个终端：
 
 ```powershell
-Set-Location D:\graduation_design\frontend
+# 从项目根目录进入前端目录
+Set-Location .\frontend
 npm install
 npm run dev
 ```
@@ -113,20 +115,20 @@ npm run dev
 
 登录页也可以直接注册新学员。
 
-## 五、答辩演示流程
+## 五、体验一次完整训练
 
 1. 登录学员账号。
 2. 先选行业、岗位，再从适用的 HR 初面、技术一面、技术二面 / 复面、交叉面 / 总监面、HRBP/HR 终面、高管终面中选阶段和难度。不同岗位显示的阶段不一定相同。
 3. 进入场景选择文字、语音或视频对练；可选上传 `.docx` 简历体验针对性技术追问。点击“结束面试”按已经提交的回答生成总结；直接退出不保留本场记录。少量回答的总结仅作本次参考，计划任务另有达标轮次要求。
-4. 展示内容与逻辑、贴合问题、信息完整、表达干净四维评分及原句证据。
+4. 查看内容与逻辑、贴合问题、信息完整、表达干净四维评分及原句证据。
 5. 进入“能力提升”按上一场面试类型查看复盘：文字面试是逐轮批注 + 微课；语音面试加对话与表达节奏；视频面试再加镜头表现，然后按计划的场景复练。
 6. 打开计划页：先读逐轮复盘批注，再按任务卡完成场景再练、视频面试与个性化微课（可看视频版）。
 7. 回到原场景再练一轮，在计划页与报告页对比四维前后分数、提升判定及下一步建议；成长看板和训练记录保留历史。
 8. 进入独立“话术优化”页（新用户也可使用），粘贴自己的原话，生成正式、亲和、简洁三种版本并对比收藏。
 
-评分或话术生成遇到模型不可用时会明确显示降级状态；演示大模型能力前请确认 Key 和模型服务可用。
+评分或话术生成遇到模型不可用时会明确显示降级状态；需要正式评分时，请确认 Key 和模型服务可用。
 
-更简短的现场步骤见 [`docs/毕设演示运行说明.md`](docs/毕设演示运行说明.md)。
+命令行启动步骤、功能验收流程和常见问题见 [本地运行与功能验收](docs/本地运行与功能验收.md)。
 
 ## 六、大模型切换
 
@@ -152,21 +154,23 @@ LLM_MODEL=qwen-plus
 ```
 
 修改 `.env` 后需要重启后端。没有 Key 或模型接口临时失败时，系统会自动使用本地教练模板，
-不会影响基本演示。
+仍可体验基础对练。
 
 ## 七、验证项目
 
 后端测试：
 
 ```powershell
-Set-Location D:\graduation_design\backend
+# 从项目根目录进入后端目录
+Set-Location .\backend
 .venv\Scripts\python.exe -m pytest -q
 ```
 
 前端构建：
 
 ```powershell
-Set-Location D:\graduation_design\frontend
+# 从项目根目录进入前端目录
+Set-Location .\frontend
 npm run build
 ```
 
@@ -206,8 +210,7 @@ python3 scripts/smoke_test.py --base https://your-domain.com
 - `backend/Dockerfile`、`frontend/Dockerfile`、`frontend/nginx.conf`：生产镜像与反向代理
 - `scripts/smoke_test.py`、`scripts/backup.sh`：上线冒烟与备份
 - `docs/architecture.md`：系统架构说明
-- [`docs/技术说明.md`](docs/技术说明.md)：用了哪些模型、分数怎么算、语音与视频怎么接（答辩用）
-- `资料_Python版/`：已转换为 Python 技术栈的开题和任务资料
+- [`docs/技术说明.md`](docs/技术说明.md) 介绍模型接入、评分规则及音视频实现
 
 ## 本轮升级
 

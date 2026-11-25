@@ -1,0 +1,488 @@
+{
+  "version": "python-backend-2026-11-25-v1",
+  "reviewStatus": "AUTHOR_DRAFT",
+  "questions": [
+    {
+      "id": "project-role",
+      "competencyId": "project",
+      "split": "development",
+      "type": "EXPERIENCE",
+      "question": "介绍一个你参与的后端项目，区分你的个人职责与团队成果，并说明如何核对贡献。",
+      "requiredPoints": [
+        "项目背景",
+        "本人职责",
+        "团队边界",
+        "核对依据"
+      ],
+      "references": []
+    },
+    {
+      "id": "project-choice",
+      "competencyId": "project",
+      "split": "holdout",
+      "type": "SOLUTION",
+      "question": "项目需要异步通知，但你没有大规模生产经验。你会如何比较方案、说明取舍和未验证部分？",
+      "requiredPoints": [
+        "需求约束",
+        "方案对比",
+        "选择依据",
+        "验证与未知"
+      ],
+      "references": []
+    },
+    {
+      "id": "transaction-atomicity",
+      "competencyId": "transaction",
+      "split": "development",
+      "type": "KNOWLEDGE",
+      "question": "事务的原子性是什么？结合转账说明提交、回滚和它不能独自解决的问题。",
+      "requiredPoints": [
+        "原子性定义",
+        "提交与回滚",
+        "业务例子",
+        "隔离性边界"
+      ],
+      "references": [
+        "https://dev.mysql.com/doc/refman/8.4/en/commit.html"
+      ]
+    },
+    {
+      "id": "transaction-inventory",
+      "competencyId": "transaction",
+      "split": "holdout",
+      "type": "SOLUTION",
+      "question": "库存只剩一件，两个下单请求同时到达，而且可能重复提交，你如何处理并验证？",
+      "requiredPoints": [
+        "库存约束",
+        "原子并发控制",
+        "幂等机制",
+        "并发与回滚验证"
+      ],
+      "references": [
+        "https://dev.mysql.com/doc/refman/8.4/en/commit.html"
+      ]
+    },
+    {
+      "id": "cache-consistency",
+      "competencyId": "cache",
+      "split": "development",
+      "type": "SOLUTION",
+      "question": "订单状态有查询缓存，数据库更新后如何处理缓存变化、失效失败和一致性要求？",
+      "requiredPoints": [
+        "一致性要求",
+        "更新失效顺序",
+        "失败并发窗口",
+        "监控与验证"
+      ],
+      "references": [
+        "https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside"
+      ]
+    },
+    {
+      "id": "cache-hotkey",
+      "competencyId": "cache",
+      "split": "holdout",
+      "type": "SOLUTION",
+      "question": "一个热点缓存失效后大量请求同时回源，你如何保护数据库，并说明互斥方案的边界？",
+      "requiredPoints": [
+        "识别回源压力",
+        "回源控制",
+        "超时失败边界",
+        "压测验证"
+      ],
+      "references": [
+        "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/"
+      ]
+    },
+    {
+      "id": "diagnosis-scope",
+      "competencyId": "diagnosis",
+      "split": "development",
+      "type": "SOLUTION",
+      "question": "上线后部分订单接口变慢，你如何定位范围、收集证据并决定是否先止损？",
+      "requiredPoints": [
+        "影响范围",
+        "定位证据",
+        "止损依据",
+        "假设验证"
+      ],
+      "references": []
+    },
+    {
+      "id": "diagnosis-validation",
+      "competencyId": "diagnosis",
+      "split": "holdout",
+      "type": "SOLUTION",
+      "question": "修复后接口看起来变快了，你如何证明改动有效并检查副作用？",
+      "requiredPoints": [
+        "可比基线",
+        "性能与正确性指标",
+        "副作用",
+        "回滚阈值"
+      ],
+      "references": []
+    }
+  ],
+  "transferQuestions": [
+    {
+      "id": "project-入门-1",
+      "text": "先说明一个基本可行流程：团队优化了一个导出任务，你只负责异常处理，如何准确说明贡献并提供核对依据？",
+      "difficulty": "入门",
+      "competencyId": "project",
+      "baseText": "团队优化了一个导出任务，你只负责异常处理，如何准确说明贡献并提供核对依据？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "project-入门-2",
+      "text": "先说明一个基本可行流程：一个功能需要异步处理，你如何比较简单任务与持久化队列，说明选择依据和验证方法？",
+      "difficulty": "入门",
+      "competencyId": "project",
+      "baseText": "一个功能需要异步处理，你如何比较简单任务与持久化队列，说明选择依据和验证方法？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "project-入门-3",
+      "text": "先说明一个基本可行流程：你没有线上经验，如何说明课程项目中的技术取舍与尚未验证的风险？",
+      "difficulty": "入门",
+      "competencyId": "project",
+      "baseText": "你没有线上经验，如何说明课程项目中的技术取舍与尚未验证的风险？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "project-中级-1",
+      "text": "请比较至少两种做法并说明本人职责：团队优化了一个导出任务，你只负责异常处理，如何准确说明贡献并提供核对依据？",
+      "difficulty": "中级",
+      "competencyId": "project",
+      "baseText": "团队优化了一个导出任务，你只负责异常处理，如何准确说明贡献并提供核对依据？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "project-中级-2",
+      "text": "请比较至少两种做法并说明本人职责：一个功能需要异步处理，你如何比较简单任务与持久化队列，说明选择依据和验证方法？",
+      "difficulty": "中级",
+      "competencyId": "project",
+      "baseText": "一个功能需要异步处理，你如何比较简单任务与持久化队列，说明选择依据和验证方法？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "project-中级-3",
+      "text": "请比较至少两种做法并说明本人职责：你没有线上经验，如何说明课程项目中的技术取舍与尚未验证的风险？",
+      "difficulty": "中级",
+      "competencyId": "project",
+      "baseText": "你没有线上经验，如何说明课程项目中的技术取舍与尚未验证的风险？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "project-进阶-1",
+      "text": "团队优化了一个导出任务，你只负责异常处理，如何准确说明贡献并提供核对依据？",
+      "difficulty": "进阶",
+      "competencyId": "project",
+      "baseText": "团队优化了一个导出任务，你只负责异常处理，如何准确说明贡献并提供核对依据？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "project-进阶-2",
+      "text": "一个功能需要异步处理，你如何比较简单任务与持久化队列，说明选择依据和验证方法？",
+      "difficulty": "进阶",
+      "competencyId": "project",
+      "baseText": "一个功能需要异步处理，你如何比较简单任务与持久化队列，说明选择依据和验证方法？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "project-进阶-3",
+      "text": "你没有线上经验，如何说明课程项目中的技术取舍与尚未验证的风险？",
+      "difficulty": "进阶",
+      "competencyId": "project",
+      "baseText": "你没有线上经验，如何说明课程项目中的技术取舍与尚未验证的风险？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-入门-1",
+      "text": "先说明一个基本可行流程：优惠券只能核销一次。两个终端同时核销同一张券时，如何约束数据、处理重试并验证结果？",
+      "difficulty": "入门",
+      "competencyId": "transaction",
+      "baseText": "优惠券只能核销一次。两个终端同时核销同一张券时，如何约束数据、处理重试并验证结果？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-入门-2",
+      "text": "先说明一个基本可行流程：预约系统只剩一个名额，同一用户还可能重复提交。请说明并发处理、幂等边界和验证方法。",
+      "difficulty": "入门",
+      "competencyId": "transaction",
+      "baseText": "预约系统只剩一个名额，同一用户还可能重复提交。请说明并发处理、幂等边界和验证方法。",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-入门-3",
+      "text": "先说明一个基本可行流程：账户余额同时发生两笔扣款，业务要求余额不得为负。你如何实现并验证失败重试后的结果？",
+      "difficulty": "入门",
+      "competencyId": "transaction",
+      "baseText": "账户余额同时发生两笔扣款，业务要求余额不得为负。你如何实现并验证失败重试后的结果？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-中级-1",
+      "text": "请同时考虑并发提交和一次失败重试：优惠券只能核销一次。两个终端同时核销同一张券时，如何约束数据、处理重试并验证结果？",
+      "difficulty": "中级",
+      "competencyId": "transaction",
+      "baseText": "优惠券只能核销一次。两个终端同时核销同一张券时，如何约束数据、处理重试并验证结果？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-中级-2",
+      "text": "请同时考虑并发提交和一次失败重试：预约系统只剩一个名额，同一用户还可能重复提交。请说明并发处理、幂等边界和验证方法。",
+      "difficulty": "中级",
+      "competencyId": "transaction",
+      "baseText": "预约系统只剩一个名额，同一用户还可能重复提交。请说明并发处理、幂等边界和验证方法。",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-中级-3",
+      "text": "请同时考虑并发提交和一次失败重试：账户余额同时发生两笔扣款，业务要求余额不得为负。你如何实现并验证失败重试后的结果？",
+      "difficulty": "中级",
+      "competencyId": "transaction",
+      "baseText": "账户余额同时发生两笔扣款，业务要求余额不得为负。你如何实现并验证失败重试后的结果？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-进阶-1",
+      "text": "优惠券只能核销一次。两个终端同时核销同一张券时，如何约束数据、处理重试并验证结果？",
+      "difficulty": "进阶",
+      "competencyId": "transaction",
+      "baseText": "优惠券只能核销一次。两个终端同时核销同一张券时，如何约束数据、处理重试并验证结果？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-进阶-2",
+      "text": "预约系统只剩一个名额，同一用户还可能重复提交。请说明并发处理、幂等边界和验证方法。",
+      "difficulty": "进阶",
+      "competencyId": "transaction",
+      "baseText": "预约系统只剩一个名额，同一用户还可能重复提交。请说明并发处理、幂等边界和验证方法。",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "transaction-进阶-3",
+      "text": "账户余额同时发生两笔扣款，业务要求余额不得为负。你如何实现并验证失败重试后的结果？",
+      "difficulty": "进阶",
+      "competencyId": "transaction",
+      "baseText": "账户余额同时发生两笔扣款，业务要求余额不得为负。你如何实现并验证失败重试后的结果？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-入门-1",
+      "text": "先说明一个基本可行流程：商品价格允许短暂延迟，但结算必须使用正确价格。你会如何设计缓存读取、更新与失败处理，并验证边界？",
+      "difficulty": "入门",
+      "competencyId": "cache",
+      "baseText": "商品价格允许短暂延迟，但结算必须使用正确价格。你会如何设计缓存读取、更新与失败处理，并验证边界？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-入门-2",
+      "text": "先说明一个基本可行流程：活动信息有缓存，后台可能同时修改和下架活动。你如何明确一致性要求，并验证失效失败时的处理？",
+      "difficulty": "入门",
+      "competencyId": "cache",
+      "baseText": "活动信息有缓存，后台可能同时修改和下架活动。你如何明确一致性要求，并验证失效失败时的处理？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-入门-3",
+      "text": "先说明一个基本可行流程：用户权限发生变更后缓存仍未过期。如何根据风险选择一致性方案，并验证失效与并发边界？",
+      "difficulty": "入门",
+      "competencyId": "cache",
+      "baseText": "用户权限发生变更后缓存仍未过期。如何根据风险选择一致性方案，并验证失效与并发边界？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-中级-1",
+      "text": "请同时考虑更新失败与并发读取：商品价格允许短暂延迟，但结算必须使用正确价格。你会如何设计缓存读取、更新与失败处理，并验证边界？",
+      "difficulty": "中级",
+      "competencyId": "cache",
+      "baseText": "商品价格允许短暂延迟，但结算必须使用正确价格。你会如何设计缓存读取、更新与失败处理，并验证边界？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-中级-2",
+      "text": "请同时考虑更新失败与并发读取：活动信息有缓存，后台可能同时修改和下架活动。你如何明确一致性要求，并验证失效失败时的处理？",
+      "difficulty": "中级",
+      "competencyId": "cache",
+      "baseText": "活动信息有缓存，后台可能同时修改和下架活动。你如何明确一致性要求，并验证失效失败时的处理？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-中级-3",
+      "text": "请同时考虑更新失败与并发读取：用户权限发生变更后缓存仍未过期。如何根据风险选择一致性方案，并验证失效与并发边界？",
+      "difficulty": "中级",
+      "competencyId": "cache",
+      "baseText": "用户权限发生变更后缓存仍未过期。如何根据风险选择一致性方案，并验证失效与并发边界？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-进阶-1",
+      "text": "商品价格允许短暂延迟，但结算必须使用正确价格。你会如何设计缓存读取、更新与失败处理，并验证边界？",
+      "difficulty": "进阶",
+      "competencyId": "cache",
+      "baseText": "商品价格允许短暂延迟，但结算必须使用正确价格。你会如何设计缓存读取、更新与失败处理，并验证边界？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-进阶-2",
+      "text": "活动信息有缓存，后台可能同时修改和下架活动。你如何明确一致性要求，并验证失效失败时的处理？",
+      "difficulty": "进阶",
+      "competencyId": "cache",
+      "baseText": "活动信息有缓存，后台可能同时修改和下架活动。你如何明确一致性要求，并验证失效失败时的处理？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "cache-进阶-3",
+      "text": "用户权限发生变更后缓存仍未过期。如何根据风险选择一致性方案，并验证失效与并发边界？",
+      "difficulty": "进阶",
+      "competencyId": "cache",
+      "baseText": "用户权限发生变更后缓存仍未过期。如何根据风险选择一致性方案，并验证失效与并发边界？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-入门-1",
+      "text": "先说明一个基本可行流程：文件上传接口的 P95 延迟突然升高，但错误率未变。你会先核实什么，再如何定位、止损和验证？",
+      "difficulty": "入门",
+      "competencyId": "diagnosis",
+      "baseText": "文件上传接口的 P95 延迟突然升高，但错误率未变。你会先核实什么，再如何定位、止损和验证？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-入门-2",
+      "text": "先说明一个基本可行流程：只有一个地区的查询变慢，数据库总体监控正常。你如何定位影响范围、收集证据并验证修复？",
+      "difficulty": "入门",
+      "competencyId": "diagnosis",
+      "baseText": "只有一个地区的查询变慢，数据库总体监控正常。你如何定位影响范围、收集证据并验证修复？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-入门-3",
+      "text": "先说明一个基本可行流程：发布后请求量没有明显变化，但超时增加。请说明排查证据、止损决策及修复验证步骤。",
+      "difficulty": "入门",
+      "competencyId": "diagnosis",
+      "baseText": "发布后请求量没有明显变化，但超时增加。请说明排查证据、止损决策及修复验证步骤。",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-中级-1",
+      "text": "请区分两个可能原因并说明验证方法：文件上传接口的 P95 延迟突然升高，但错误率未变。你会先核实什么，再如何定位、止损和验证？",
+      "difficulty": "中级",
+      "competencyId": "diagnosis",
+      "baseText": "文件上传接口的 P95 延迟突然升高，但错误率未变。你会先核实什么，再如何定位、止损和验证？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-中级-2",
+      "text": "请区分两个可能原因并说明验证方法：只有一个地区的查询变慢，数据库总体监控正常。你如何定位影响范围、收集证据并验证修复？",
+      "difficulty": "中级",
+      "competencyId": "diagnosis",
+      "baseText": "只有一个地区的查询变慢，数据库总体监控正常。你如何定位影响范围、收集证据并验证修复？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-中级-3",
+      "text": "请区分两个可能原因并说明验证方法：发布后请求量没有明显变化，但超时增加。请说明排查证据、止损决策及修复验证步骤。",
+      "difficulty": "中级",
+      "competencyId": "diagnosis",
+      "baseText": "发布后请求量没有明显变化，但超时增加。请说明排查证据、止损决策及修复验证步骤。",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-进阶-1",
+      "text": "文件上传接口的 P95 延迟突然升高，但错误率未变。你会先核实什么，再如何定位、止损和验证？",
+      "difficulty": "进阶",
+      "competencyId": "diagnosis",
+      "baseText": "文件上传接口的 P95 延迟突然升高，但错误率未变。你会先核实什么，再如何定位、止损和验证？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-进阶-2",
+      "text": "只有一个地区的查询变慢，数据库总体监控正常。你如何定位影响范围、收集证据并验证修复？",
+      "difficulty": "进阶",
+      "competencyId": "diagnosis",
+      "baseText": "只有一个地区的查询变慢，数据库总体监控正常。你如何定位影响范围、收集证据并验证修复？",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    },
+    {
+      "id": "diagnosis-进阶-3",
+      "text": "发布后请求量没有明显变化，但超时增加。请说明排查证据、止损决策及修复验证步骤。",
+      "difficulty": "进阶",
+      "competencyId": "diagnosis",
+      "baseText": "发布后请求量没有明显变化，但超时增加。请说明排查证据、止损决策及修复验证步骤。",
+      "catalogVersion": "python-backend-2026-11-25-v1",
+      "reviewStatus": "AUTHOR_DRAFT",
+      "equivalenceValidated": false
+    }
+  ]
+}

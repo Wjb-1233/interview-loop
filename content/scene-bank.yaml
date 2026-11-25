@@ -441,7 +441,7 @@ scenes:
     difficulty: null
 - id: scene-interview-11
   category: 技术一面
-  title: 前端页面性能优化答辩
+  title: 前端页面性能优化面试
   difficulty: 中级
   roleName: 前端技术面试官
   background: 面试官要求候选人解释一个页面加载缓慢的问题，并区分真实测量结果与推测。

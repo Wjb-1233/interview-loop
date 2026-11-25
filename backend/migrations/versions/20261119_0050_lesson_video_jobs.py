@@ -26,5 +26,6 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_index("idx_lesson_video_jobs_plan_task", table_name="lesson_video_jobs")
+    # MySQL uses this index for plan_id's FK. Dropping the table removes its
+    # constraints/indexes together; dropping the supporting index first fails.
     op.drop_table("lesson_video_jobs")

@@ -1,0 +1,143 @@
+{
+  "executionMode": "CONTROLLED_STUB",
+  "results": [
+    {
+      "users": 1,
+      "exitCode": 0,
+      "virtualUsers": 1,
+      "successes": 1,
+      "failures": 0,
+      "degradedResponses": 0,
+      "successRate": 1.0,
+      "wallSeconds": 0.418,
+      "throughputResponsesPerSecond": 2.391,
+      "latencyMs": {
+        "createSession": {
+          "p50": 14.08,
+          "p95": 14.08,
+          "max": 14.08
+        },
+        "responseHeaders": {
+          "p50": 10.82,
+          "p95": 10.82,
+          "max": 10.82
+        },
+        "firstEvent": {
+          "p50": 22.32,
+          "p95": 22.32,
+          "max": 22.32
+        },
+        "firstToken": {
+          "p50": 273.76,
+          "p95": 273.76,
+          "max": 273.76
+        },
+        "totalResponse": {
+          "p50": 389.27,
+          "p95": 389.27,
+          "max": 389.27
+        }
+      },
+      "releaseGates": {
+        "noRequestFailures": true,
+        "noUnexpectedDegradation": true,
+        "firstTokenP95WithinTarget": true,
+        "temporarySessionsRemoved": true
+      },
+      "passed": true
+    },
+    {
+      "users": 2,
+      "exitCode": 0,
+      "virtualUsers": 2,
+      "successes": 2,
+      "failures": 0,
+      "degradedResponses": 0,
+      "successRate": 1.0,
+      "wallSeconds": 0.6,
+      "throughputResponsesPerSecond": 3.335,
+      "latencyMs": {
+        "createSession": {
+          "p50": 19.5,
+          "p95": 24.21,
+          "max": 24.73
+        },
+        "responseHeaders": {
+          "p50": 110.92,
+          "p95": 186.56,
+          "max": 194.96
+        },
+        "firstEvent": {
+          "p50": 123.83,
+          "p95": 199.52,
+          "max": 207.93
+        },
+        "firstToken": {
+          "p50": 396.2,
+          "p95": 448.97,
+          "max": 454.83
+        },
+        "totalResponse": {
+          "p50": 488.41,
+          "p95": 561.84,
+          "max": 570.0
+        }
+      },
+      "releaseGates": {
+        "noRequestFailures": true,
+        "noUnexpectedDegradation": true,
+        "firstTokenP95WithinTarget": true,
+        "temporarySessionsRemoved": true
+      },
+      "passed": true
+    },
+    {
+      "users": 5,
+      "exitCode": 0,
+      "virtualUsers": 5,
+      "successes": 5,
+      "failures": 0,
+      "degradedResponses": 0,
+      "successRate": 1.0,
+      "wallSeconds": 1.234,
+      "throughputResponsesPerSecond": 4.051,
+      "latencyMs": {
+        "createSession": {
+          "p50": 38.5,
+          "p95": 66.01,
+          "max": 69.56
+        },
+        "responseHeaders": {
+          "p50": 94.19,
+          "p95": 120.36,
+          "max": 123.19
+        },
+        "firstEvent": {
+          "p50": 454.62,
+          "p95": 700.91,
+          "max": 721.96
+        },
+        "firstToken": {
+          "p50": 763.05,
+          "p95": 1016.11,
+          "max": 1030.83
+        },
+        "totalResponse": {
+          "p50": 1012.65,
+          "p95": 1128.1,
+          "max": 1146.78
+        }
+      },
+      "releaseGates": {
+        "noRequestFailures": true,
+        "noUnexpectedDegradation": true,
+        "firstTokenP95WithinTarget": true,
+        "temporarySessionsRemoved": true
+      },
+      "passed": true
+    }
+  ],
+  "accountsCreatedAndDeleted": 5,
+  "trainingHistoryAfterRuns": 0,
+  "realModelPerformanceVerified": false
+}

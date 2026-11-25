@@ -13,6 +13,7 @@ import getpass
 import json
 import math
 import os
+import re
 import sys
 import time
 from dataclasses import asdict, dataclass
@@ -40,6 +41,8 @@ class AttemptResult:
     total_response_ms: float | None = None
     degraded: bool = False
     error: str | None = None
+    cleanup_attempted: bool = False
+    cleanup_success: bool | None = None
 
 
 def percentile(values: list[float], quantile: float) -> float | None:
@@ -82,6 +85,7 @@ def build_summary(
         "firstTokenP95WithinTarget": (
             first_token["p95"] is not None and first_token["p95"] <= target_first_token_ms
         ),
+        "temporarySessionsRemoved": all(item.cleanup_success is True for item in results if item.cleanup_attempted),
     }
     return {
         "virtualUsers": len(results),
@@ -123,10 +127,11 @@ async def run_virtual_user(
     message: str,
 ) -> AttemptResult:
     result = AttemptResult(virtual_user=index)
+    session_id = None
+    headers = {"Authorization": f"Bearer {token}"}
     await start.wait()
     attempt_started = time.perf_counter()
     try:
-        headers = {"Authorization": f"Bearer {token}"}
         create_started = time.perf_counter()
         created = await client.post(
             "/training-sessions",
@@ -177,7 +182,40 @@ async def run_virtual_user(
         result.error = f"{type(exc).__name__}: {exc}"
         if result.total_response_ms is None:
             result.total_response_ms = round((time.perf_counter() - attempt_started) * 1000, 2)
+    finally:
+        if session_id:
+            result.cleanup_attempted = True
+            try:
+                discarded = await client.post(f'/training-sessions/{session_id}/discard', headers=headers)
+                result.cleanup_success = discarded.status_code in {204, 404}
+            except httpx.HTTPError:
+                result.cleanup_success = False
     return result
+
+
+def parse_metrics(body: str) -> dict[str, float]:
+    allowed = ('process_resident_memory_bytes', 'process_cpu_seconds_total', 'app_events_total{event="llm_')
+    values = {}
+    for line in body.splitlines():
+        if not line.startswith(allowed):
+            continue
+        match = re.fullmatch(r'(.+) ([0-9.eE+\-]+)', line)
+        if match:
+            values[match[1]] = float(match[2])
+    return values
+
+
+def resource_summary(samples: list[dict], wall_seconds: float) -> dict:
+    if not samples:
+        return {'status': 'NOT_COLLECTED', 'cost': None}
+    first, last = samples[0], samples[-1]
+    memory = [item['process_resident_memory_bytes'] for item in samples if 'process_resident_memory_bytes' in item]
+    delta = {key: value - first.get(key, 0) for key, value in last.items() if key.startswith('app_events_total')}
+    cpu = last.get('process_cpu_seconds_total', 0) - first.get('process_cpu_seconds_total', 0)
+    return {'status': 'SAMPLED', 'samples': len(samples), 'sampledRssPeakBytes': max(memory) if memory else None,
+            'apiCpuSeconds': round(cpu, 3), 'oneCoreCpuPercent': round(100 * cpu / wall_seconds, 2) if wall_seconds else None,
+            'modelCountersDelta': delta, 'cost': None,
+            'note': '仅单个 API worker 的采样峰值，不含浏览器、ASR 子进程、数据库；需单进程隔离环境。未上报 token 不按零费用计算；模型计数不含健康探测。'}
 
 
 async def resolve_tokens(client: httpx.AsyncClient, args: argparse.Namespace) -> list[str]:
@@ -189,7 +227,7 @@ async def resolve_tokens(client: httpx.AsyncClient, args: argparse.Namespace) ->
         ]
         if not tokens:
             raise RuntimeError("令牌文件为空")
-        return tokens
+        return list(dict.fromkeys(tokens))
 
     env_token = os.getenv("LOAD_TEST_TOKEN", "").strip()
     if env_token:
@@ -253,6 +291,19 @@ async def benchmark(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             raise RuntimeError("没有可用于压测的场景")
         scene_id = args.scene_id or available_scenes[0]["id"]
 
+        samples = []
+        origin = urlparse(args.base_url)
+        metrics_url = f'{origin.scheme}://{origin.netloc}/metrics'
+        async def sample_metrics():
+            response = await client.get(metrics_url)
+            response.raise_for_status()
+            sample = parse_metrics(response.text)
+            if not sample:
+                raise RuntimeError('指标端点未返回受支持的资源/模型指标')
+            samples.append(sample)
+        if args.collect_metrics:
+            await sample_metrics()
+
         start = asyncio.Event()
         tasks = [
             asyncio.create_task(
@@ -270,7 +321,16 @@ async def benchmark(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         await asyncio.sleep(0)
         wall_started = time.perf_counter()
         start.set()
-        results = await asyncio.gather(*tasks)
+        joined = asyncio.gather(*tasks)
+        sampling_errors = 0
+        while not joined.done():
+            await asyncio.wait([joined], timeout=0.5)
+            if args.collect_metrics:
+                try:
+                    await sample_metrics()
+                except (httpx.HTTPError, RuntimeError):
+                    sampling_errors += 1
+        results = await joined
         wall_seconds = time.perf_counter() - wall_started
 
     summary = build_summary(
@@ -281,13 +341,14 @@ async def benchmark(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
     )
     report = {
         "schemaVersion": 1,
+        'executionLabel': args.label,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "target": {
             "baseUrl": args.base_url,
             "sceneId": scene_id,
             "virtualUsers": args.users,
-            "identityCount": len(tokens),
-            "identityMode": "distinct_tokens" if len(tokens) > 1 else "shared_token",
+            "identityCount": min(args.users, len(set(tokens))),
+            "identityMode": "distinct_tokens" if len(set(tokens)) >= args.users else "shared_token",
             "firstTokenTargetMs": args.target_first_token_ms,
             "allowDegraded": args.allow_degraded,
             "tlsVerification": not args.insecure_tls,
@@ -295,14 +356,17 @@ async def benchmark(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         "readiness": ready.json().get("data", {}),
         "summary": summary,
         "attempts": [asdict(item) for item in results],
+        'resources': {**resource_summary(samples, wall_seconds), 'samplingErrors': sampling_errors},
     }
     return report, 0 if summary["passed"] else 2
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="面试沟通训练接口并发与首 token 性能验收")
-    parser.add_argument("--base-url", default="http://127.0.0.1:8080/api/v1")
-    parser.add_argument("--users", type=int, default=20, help="并发虚拟用户数，默认 20")
+    parser.add_argument("--base-url", default="http://127.0.0.1:8081/api/v1")
+    parser.add_argument("--users", type=int, default=5, help="并发虚拟用户数，建议依次 1、2、5")
+    parser.add_argument('--collect-metrics', action='store_true', help='采样目标 /metrics；仅在单 worker 隔离环境使用')
+    parser.add_argument('--label', default='UNSPECIFIED', help='记录 REAL_MODEL / CONTROLLED_STUB 等执行环境，不能据测试桩推断真实容量')
     parser.add_argument("--email", help="登录邮箱；密码从 LOAD_TEST_PASSWORD 读取或安全提示输入")
     parser.add_argument("--tokens-file", help="每行一个短期 access token，可用于真实多身份压测")
     parser.add_argument("--scene-id", help="指定场景 ID；默认使用第一个场景")

@@ -8,6 +8,21 @@ from typing import Any
 import httpx
 
 from app.core.config import Settings, settings
+from app.core.metrics import incr_event
+
+
+def record_usage(usage) -> None:
+    """Only provider-reported tokens; unavailable usage is not zero cost."""
+    if not isinstance(usage, dict):
+        incr_event('llm_usage', 'unreported')
+        return
+    reported = False
+    for field, label in [('prompt_tokens', 'input'), ('completion_tokens', 'output')]:
+        value = usage.get(field)
+        if type(value) is int and value >= 0:
+            incr_event('llm_tokens', label, value)
+            reported = True
+    incr_event('llm_usage', 'reported' if reported else 'unreported')
 
 
 async def _with_retry(call, *, attempts: int = 3, base_delay: float = 0.6):
@@ -123,6 +138,7 @@ class LlmGateway:
         if self.config.llm_json_mode:
             payload["response_format"] = {"type": "json_object"}
         async def request() -> httpx.Response:
+            incr_event('llm_attempts', 'json')
             async with httpx.AsyncClient(
                 base_url=self.config.llm_base_url.rstrip("/"),
                 headers={"Authorization": f"Bearer {self.config.llm_api_key}"},
@@ -135,7 +151,9 @@ class LlmGateway:
                 return response
 
         response = await _with_retry(request)
-        content = response.json()["choices"][0]["message"]["content"]
+        body = response.json()
+        record_usage(body.get('usage'))
+        content = body["choices"][0]["message"]["content"]
         return self._parse_json(content)
 
     async def stream_text(
@@ -166,6 +184,8 @@ class LlmGateway:
             transport=self._transport,
             trust_env=False,
         ) as client:
+            incr_event('llm_attempts', 'stream')
+            usage = None
             async with client.stream("POST", "/chat/completions", json=payload) as response:
                 response.raise_for_status()
                 async for line in response.aiter_lines():
@@ -175,15 +195,24 @@ class LlmGateway:
                     if not raw or raw == "[DONE]":
                         continue
                     event = json.loads(raw)
+                    if isinstance(event.get('usage'), dict):
+                        usage = event['usage']
                     choices = event.get("choices") or []
                     if choices:
                         text = (choices[0].get("delta") or {}).get("content")
                         if text:
                             yield text
+            record_usage(usage)
 
     @staticmethod
     def _parse_json(content: str) -> dict[str, Any]:
         cleaned = content.strip()
+        # Some compatible providers encode the JSON object as a JSON string.
+        # Decode that envelope before looking for prose/Markdown wrappers.
+        if cleaned.startswith('"'):
+            envelope = json.loads(cleaned)
+            if isinstance(envelope, str):
+                cleaned = envelope.strip()
         fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", cleaned, re.S)
         if fenced:
             cleaned = fenced.group(1)
@@ -191,7 +220,18 @@ class LlmGateway:
             match = re.search(r"\{.*\}", cleaned, re.S)
             if match:
                 cleaned = match.group(0)
-        return json.loads(cleaned)
+        try:
+            parsed = json.loads(cleaned)
+        except json.JSONDecodeError:
+            if not re.match(r'^\{(?:\s|\\[nrt])*\\"', cleaned):
+                raise
+            # Decode exactly one extra escaping layer, preserving quoted words
+            # and backslashes inside values. Never repair truncated JSON.
+            envelope = '"' + cleaned.replace('\r', '\\r').replace('\n', '\\n').replace('\t', '\\t') + '"'
+            parsed = json.loads(json.loads(envelope))
+        if not isinstance(parsed, dict):
+            raise ValueError("Expected a JSON object from the model")
+        return parsed
 
 
 llm_gateway = LlmGateway()

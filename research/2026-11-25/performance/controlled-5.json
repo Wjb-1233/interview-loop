@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "executionLabel": "CONTROLLED_STUB",
+  "generatedAt": "2026-11-25T07:14:15.503804+00:00",
+  "target": {
+    "baseUrl": "http://127.0.0.1:8081/api/v1",
+    "sceneId": "scene-interview-03",
+    "virtualUsers": 5,
+    "identityCount": 5,
+    "identityMode": "distinct_tokens",
+    "firstTokenTargetMs": 3000.0,
+    "allowDegraded": false,
+    "tlsVerification": true
+  },
+  "readiness": {
+    "status": "ok",
+    "checks": {
+      "database": "ok",
+      "rateLimit": "disabled",
+      "llm": "ok"
+    }
+  },
+  "summary": {
+    "virtualUsers": 5,
+    "successes": 5,
+    "failures": 0,
+    "degradedResponses": 0,
+    "successRate": 1.0,
+    "wallSeconds": 1.234,
+    "throughputResponsesPerSecond": 4.051,
+    "latencyMs": {
+      "createSession": {
+        "p50": 38.5,
+        "p95": 66.01,
+        "max": 69.56
+      },
+      "responseHeaders": {
+        "p50": 94.19,
+        "p95": 120.36,
+        "max": 123.19
+      },
+      "firstEvent": {
+        "p50": 454.62,
+        "p95": 700.91,
+        "max": 721.96
+      },
+      "firstToken": {
+        "p50": 763.05,
+        "p95": 1016.11,
+        "max": 1030.83
+      },
+      "totalResponse": {
+        "p50": 1012.65,
+        "p95": 1128.1,
+        "max": 1146.78
+      }
+    },
+    "releaseGates": {
+      "noRequestFailures": true,
+      "noUnexpectedDegradation": true,
+      "firstTokenP95WithinTarget": true,
+      "temporarySessionsRemoved": true
+    },
+    "passed": true
+  },
+  "attempts": [
+    {
+      "virtual_user": 1,
+      "success": true,
+      "status_code": 200,
+      "http_version": "HTTP/1.1",
+      "create_session_ms": 30.96,
+      "response_headers_ms": 109.03,
+      "first_event_ms": 616.7,
+      "first_token_ms": 957.24,
+      "total_response_ms": 1012.65,
+      "degraded": false,
+      "error": null,
+      "cleanup_attempted": true,
+      "cleanup_success": true
+    },
+    {
+      "virtual_user": 2,
+      "success": true,
+      "status_code": 200,
+      "http_version": "HTTP/1.1",
+      "create_session_ms": 51.83,
+      "response_headers_ms": 123.19,
+      "first_event_ms": 146.25,
+      "first_token_ms": 440.65,
+      "total_response_ms": 938.1,
+      "degraded": false,
+      "error": null,
+      "cleanup_attempted": true,
+      "cleanup_success": true
+    },
+    {
+      "virtual_user": 3,
+      "success": true,
+      "status_code": 200,
+      "http_version": "HTTP/1.1",
+      "create_session_ms": 27.05,
+      "response_headers_ms": 94.19,
+      "first_event_ms": 320.4,
+      "first_token_ms": 763.05,
+      "total_response_ms": 975.05,
+      "degraded": false,
+      "error": null,
+      "cleanup_attempted": true,
+      "cleanup_success": true
+    },
+    {
+      "virtual_user": 4,
+      "success": true,
+      "status_code": 200,
+      "http_version": "HTTP/1.1",
+      "create_session_ms": 69.56,
+      "response_headers_ms": 74.07,
+      "first_event_ms": 721.96,
+      "first_token_ms": 1030.83,
+      "total_response_ms": 1146.78,
+      "degraded": false,
+      "error": null,
+      "cleanup_attempted": true,
+      "cleanup_success": true
+    },
+    {
+      "virtual_user": 5,
+      "success": true,
+      "status_code": 200,
+      "http_version": "HTTP/1.1",
+      "create_session_ms": 38.5,
+      "response_headers_ms": 55.11,
+      "first_event_ms": 454.62,
+      "first_token_ms": 751.46,
+      "total_response_ms": 1053.38,
+      "degraded": false,
+      "error": null,
+      "cleanup_attempted": true,
+      "cleanup_success": true
+    }
+  ],
+  "resources": {
+    "status": "SAMPLED",
+    "samples": 4,
+    "sampledRssPeakBytes": 657186816.0,
+    "apiCpuSeconds": 1.016,
+    "oneCoreCpuPercent": 82.28,
+    "modelCountersDelta": {
+      "app_events_total{event=\"llm_attempts\",outcome=\"json\"}": 0.0,
+      "app_events_total{event=\"llm_attempts\",outcome=\"stream\"}": 5.0,
+      "app_events_total{event=\"llm_usage\",outcome=\"unreported\"}": 5.0
+    },
+    "cost": null,
+    "note": "仅单个 API worker 的采样峰值，不含浏览器、ASR 子进程、数据库；需单进程隔离环境。未上报 token 不按零费用计算；模型计数不含健康探测。",
+    "samplingErrors": 0
+  },
+  "limitations": "受控本地 HTTP 模型测试桩；样本少，仅检查负载工具/SSE/清理，不代表真实模型性能。"
+}

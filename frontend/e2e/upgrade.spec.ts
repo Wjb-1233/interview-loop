@@ -98,7 +98,7 @@ test('同场景重新开始会加载新会话而且回答写入新会话', async
   expect((await sent).status()).toBe(200)
 })
 
-test('已登录时可以打开验证和教练分享链接', async ({ page }) => {
+test('已登录时可以打开邮箱验证，旧教练分享接口已移除', async ({ page }) => {
   const headers = await register(page)
   await page.goto('/verify-email?token=invalid-test-token')
   await expect(page).toHaveURL(/\/verify-email\?token=/)
@@ -106,18 +106,16 @@ test('已登录时可以打开验证和教练分享链接', async ({ page }) => 
   const created = await page.request.post('/api/v1/training-sessions', { headers, data: { sceneId: 'scene-interview-03' } })
   const current = (await created.json()).data
   const share = await page.request.post(`/api/v1/share/training-sessions/${current.id}`, { headers })
-  expect(share.status()).toBe(200)
-  await page.goto((await share.json()).data.url)
-  await expect(page).toHaveURL(/\/share\//)
-  await expect(page.getByText('教练查看 · 只读', { exact: true })).toBeVisible()
+  expect(share.status()).toBe(404)
 })
 
-test('训练记录中的语音准备会话恢复到语音页', async ({ page }) => {
+test('未开始的语音准备会话不进入训练记录，可从准备结果进入语音页', async ({ page }) => {
   const headers = await register(page)
   const created = await page.request.post('/api/v1/training-sessions/prepare', { headers, multipart: { sceneId: 'scene-interview-03', channel: 'VOICE', depth: 'THREE_LAYER' } })
   const current = (await created.json()).data
   await page.goto('/history')
-  await page.getByRole('button', { name: '继续训练 →', exact: true }).click()
+  await expect(page.getByRole('button', { name: '继续训练 →', exact: true })).toHaveCount(0)
+  await page.goto(`/voice?sceneId=scene-interview-03&sessionId=${current.id}`)
   await expect(page).toHaveURL(new RegExp(`/voice\\?.*sessionId=${current.id}`))
   await expect(page.getByRole('button', { name: '三层深挖', exact: true })).toBeDisabled()
 })

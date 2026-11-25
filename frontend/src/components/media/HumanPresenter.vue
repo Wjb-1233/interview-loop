@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { avatarAssets } from '@/lib/avatarConfig'
 import { onBeforeUnmount, shallowRef, useTemplateRef } from 'vue'
 import * as THREE from 'three'
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js'
@@ -18,8 +19,8 @@ const emit = defineEmits<{ ready: [value: boolean]; configured: [value: boolean]
  */
 const MODEL = {
   DIR: '/avatars/human/',
-  BODY: '/avatars/human/Business_Male_01.fbx',
-  FACE: '/avatars/human/Business_Male_01_facial.fbx',
+  BODY: avatarAssets.human,
+  FACE: avatarAssets.humanFace,
 }
 
 /** FBX 内部引用的是 3ds Max 的绝对 .tga 路径，这里按文件名改到随仓库的 webp 上，避免 404 与 12MB TGA。 */

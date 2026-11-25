@@ -2,7 +2,6 @@ import csv
 from datetime import datetime, timedelta, timezone
 from io import StringIO
 from typing import Annotated
-from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
@@ -188,7 +187,7 @@ async def scenes(_: AdminUser, session: DbSession) -> dict:
 async def create_scene(body: SceneAdminInput, _: AdminUser, session: DbSession) -> dict:
     payload = body.model_dump()
     payload["question_bank"] = [item.model_dump(by_alias=True, exclude_none=True) for item in body.question_bank]
-    scene = Scene(id=f"scene-{uuid4().hex}", **payload)
+    scene = Scene(**payload)
     session.add(scene)
     await session.commit()
     return ok({"id": scene.id})
@@ -229,7 +228,7 @@ async def courses(_: AdminUser, session: DbSession) -> dict:
 
 @router.post("/courses", status_code=201)
 async def create_course(body: CourseAdminInput, _: AdminUser, session: DbSession) -> dict:
-    course = Course(id=f"course-{uuid4().hex}", **body.model_dump())
+    course = Course(**body.model_dump())
     session.add(course)
     await session.commit()
     return ok({"id": course.id})

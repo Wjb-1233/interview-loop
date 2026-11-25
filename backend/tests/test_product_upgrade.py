@@ -30,7 +30,7 @@ def test_new_user_can_rewrite_without_scene(client):
 @pytest.mark.parametrize("channel", ["TEXT", "VOICE", "VIDEO"])
 def test_preparation_shares_resume_jd_and_protects_ownership(client, channel):
     headers = register(client)
-    text = "我负责毕业设计中的 Python 后端接口，使用 Redis 缓存热点订单，使用 MySQL 存储业务数据，并通过监控验证性能。"
+    text = "我负责项目中的 Python 后端接口，使用 Redis 缓存热点订单，使用 MySQL 存储业务数据，并通过监控验证性能。"
     response = client.post("/api/v1/training-sessions/prepare", headers=headers, data={"sceneId": "scene-interview-03", "channel": channel, "depth": "THREE_LAYER", "duration": 5, "jd": "岗位要求熟悉 Python 后端开发、数据库设计与 Redis 缓存，能够分析性能问题。"}, files={"file": ("resume.docx", make_docx(text))})
     assert response.status_code == 201, response.text
     prepared = response.json()["data"]

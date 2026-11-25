@@ -40,15 +40,23 @@ async def source_context(db, user_id, tasks):
     return baseline, scene, context
 
 
-def candidate_questions(context):
-    return [(criterion, question) for criterion in context.get("criteria", [])
-            for question in criterion.get("transferQuestions", QUESTIONS.get(criterion["id"], []))]
+def candidate_questions(context, difficulty=None):
+    candidates = []
+    for criterion in context.get('criteria', []):
+        if 'transferQuestionSpecs' in criterion:
+            questions = [item['text'] for item in criterion['transferQuestionSpecs']
+                         if difficulty is None or item['difficulty'] == difficulty]
+        else:
+            # Old snapshots and administrator-authored banks keep their original questions.
+            questions = criterion.get('transferQuestions', QUESTIONS.get(criterion['id'], []))
+        candidates.extend((criterion, question) for question in questions)
+    return candidates
 
 
 async def transfer_overview(db, plan, tasks) -> dict:
     finished = plan.status == "COMPLETED" and bool(tasks) and all(item["completed"] for item in tasks)
     baseline, scene, context = await source_context(db, plan.user_id, tasks) if finished else (None, None, None)
-    available = bool(baseline and scene.active and len(candidate_questions(context)) >= 2)
+    available = bool(baseline and scene.active and len(candidate_questions(context, scene.difficulty)) >= 2)
     rows = (await db.execute(select(TrainingSession, Evaluation).outerjoin(Evaluation, Evaluation.session_id == TrainingSession.id)
         .where(TrainingSession.user_id == plan.user_id, TrainingSession.plan_id == plan.id,
                TrainingSession.task_key == "transfer").order_by(TrainingSession.started_at.desc()).limit(10))).all()
@@ -74,15 +82,19 @@ async def start_transfer(db, user_id: str, plan_id: str) -> str:
     baseline, scene, context = await source_context(db, user_id, tasks)
     if not baseline or not scene.active:
         raise AppError(409, "TRANSFER_SOURCE_UNAVAILABLE", "原训练或场景不可用，无法开始迁移")
-    candidates = candidate_questions(context)
+    candidates = candidate_questions(context, scene.difficulty)
     history = (await db.scalars(select(Message.content).join(TrainingSession, TrainingSession.id == Message.session_id)
         .where(TrainingSession.user_id == user_id, Message.speaker == "AI"))).all()
     normalize = lambda text: re.sub(r"[\s，。！？、,.!?]", "", text)
     seen = [normalize(question) for question in history]
+    def was_seen(criterion, question):
+        base = next((item.get('baseText', question) for item in criterion.get('transferQuestionSpecs', [])
+                     if item['text'] == question), question)
+        return any(normalize(base) in old for old in seen)
     selected = []
     chosen_criteria = set()
     for criterion, question in candidates:
-        if any(normalize(question) in old for old in seen):
+        if was_seen(criterion, question):
             continue
         if criterion["id"] in chosen_criteria:
             continue
@@ -92,7 +104,7 @@ async def start_transfer(db, user_id: str, plan_id: str) -> str:
             break
     if len(selected) < 2:
         for criterion, question in candidates:
-            if any(question == value for _, value in selected) or any(normalize(question) in old for old in seen):
+            if any(question == value for _, value in selected) or was_seen(criterion, question):
                 continue
             selected.append((criterion, question))
             if len(selected) == 2:
@@ -105,6 +117,10 @@ async def start_transfer(db, user_id: str, plan_id: str) -> str:
         "competencies": [criterion["id"] for criterion, _ in selected], "difficulty": scene.difficulty,
         "questionSetId": hashlib.sha256(str(questions).encode()).hexdigest()[:16],
         "notice": "按平台已有作答记录筛选的新题面；与原题分开查看，不推断招聘通过率。"}
+    context['transfer']['questionSpecs'] = [copy.deepcopy(spec) for criterion, question in selected
+        for spec in criterion.get('transferQuestionSpecs', []) if spec['text'] == question]
+    context['transfer']['equivalenceValidated'] = False
+    context['transfer']['difficultyBasis'] = 'AUTHOR_TAGGED_NOT_EMPIRICALLY_EQUATED'
     training = TrainingSession(user_id=user_id, scene_id=scene.id, channel="TEXT", status="ACTIVE",
         max_rounds=2, covered_count=1, question_plan=questions, jd_text=baseline.jd_text,
         depth="STANDARD", mode="STANDARD", plan_id=plan.id, task_key="transfer", assessment_context=context)

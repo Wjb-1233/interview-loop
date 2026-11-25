@@ -6,6 +6,7 @@ import pytest
 from app.db.base import session_factory
 from app.db.models import TrainingPlan, TrainingSession, User
 from app.features.training.evidence import OBSERVATION_PROMPT
+from app.features.training.evidence import TurnObservation
 from app.features.evaluations.scoring import SYSTEM_PROMPT
 from app.infrastructure.llm import llm_gateway
 from tests.support.factories import client, register, model_response
@@ -13,6 +14,14 @@ from tests.support.growth import seed
 
 
 ANSWER = '我负责接口设计，因为需要控制一致性风险，我使用并发测试对照验证了结果，并说明尚未覆盖的边界。'
+
+
+def test_blank_model_observation_does_not_discard_valid_quotes():
+    parsed = TurnObservation.model_validate({'observations': [
+        {'point': '本人职责', 'quote': '我负责接口设计', 'level': 'EXPLAINED'},
+        {'point': '风险边界', 'quote': '', 'level': 'MENTIONED'},
+    ], 'clarification': None})
+    assert len(parsed.observations) == 1 and parsed.observations[0].quote == '我负责接口设计'
 
 
 def new_interview(client, headers):
@@ -49,6 +58,14 @@ def completed_plan(client, headers, completed=True):
 def test_adaptive_turn_records_only_real_quotes_and_has_bounded_fallback(client, monkeypatch, evidence_kind):
     headers = register(client)
     created = new_interview(client, headers)
+    # This test exercises unrestricted evidence probing; required-question
+    # scheduling has its own regression coverage.
+    async def without_required_questions():
+        async with session_factory() as db:
+            training = await db.get(TrainingSession, created['id'])
+            training.question_plan = []
+            await db.commit()
+    asyncio.run(without_required_questions())
     assert created['assessmentContext']['adaptiveEnabled']
     points = created['assessmentContext']['criteria'][0]['points']
 
@@ -138,6 +155,11 @@ def test_transfer_is_independent_and_never_enters_original_trend(client, monkeyp
     second_id = client.post(f'/api/v1/training-plans/{plan_id}/transfer', headers=headers).json()['data']['id']
     second = client.get(f'/api/v1/training-sessions/{second_id}', headers=headers).json()['data']
     assert second['messages'][0]['content'] != detail['messages'][0]['content']
+    restarted = client.post(f'/api/v1/training-sessions/{session_id}/restart', headers=headers)
+    assert restarted.status_code == 201, restarted.text
+    assert restarted.json()['data']['id'] == second_id
+    assert restarted.json()['data']['assessmentContext']['purpose'] == 'TRANSFER'
+    assert not restarted.json()['data']['conditionsEditable']
 
 
 def test_admin_rubric_roundtrip_and_attempt_snapshot_survive_later_edits(client):

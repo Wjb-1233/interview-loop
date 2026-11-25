@@ -52,15 +52,13 @@ test('语音入口可切换追问强度并记住选择', async ({ page, request 
   await expect(page.getByRole('button', { name: '压力面' })).toHaveClass(/active/)
 })
 
-test('场景页可切换面试语言并记住', async ({ page, request }) => {
+test('旧英文偏好不会恢复已移除的英文面试入口', async ({ page, request }) => {
   const sceneId = await login(page, request)
+  await page.evaluate(() => localStorage.setItem('yanjie-interview-language', 'en'))
   await page.goto(`/scenes?focus=${sceneId}`)
-  await page.getByRole('button', { name: '更多设置' }).click()
-  const english = page.getByRole('button', { name: 'English' })
-  await expect(english).toBeVisible()
-  await english.click()
-  await expect(page.evaluate(() => localStorage.getItem('yanjie-interview-language'))).resolves.toBe('en')
+  await expect(page.locator('.scene-card').first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'English', exact: true })).toHaveCount(0)
   await page.reload()
-  await page.getByRole('button', { name: '更多设置' }).click()
-  await expect(page.getByRole('button', { name: 'English' })).toHaveClass(/active/)
+  await expect(page.locator('.scene-card').first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'English', exact: true })).toHaveCount(0)
 })

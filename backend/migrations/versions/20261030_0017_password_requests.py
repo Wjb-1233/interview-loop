@@ -36,6 +36,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_password_reset_requests_status", table_name="password_reset_requests")
-    op.drop_index("ix_password_reset_requests_user_id", table_name="password_reset_requests")
     op.drop_table("password_reset_requests")

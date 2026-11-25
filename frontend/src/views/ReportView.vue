@@ -495,9 +495,9 @@ onMounted(async () => {
             </div>
             <p class="tr-q">{{ item.question }}</p>
             <template v-if="editingRound === item.roundNo">
-              <textarea v-model="editingText" class="field" rows="3" maxlength="2000" />
+              <textarea v-model="editingText" class="field" rows="3" maxlength="2000" :aria-label="`第 ${item.roundNo} 轮转写修正`" />
               <div class="tr-actions">
-                <button class="button" type="button" :disabled="transcriptSaving" @click="saveTranscript(item.roundNo)">{{ transcriptSaving ? '保存中…' : '保存修正' }}</button>
+                <button class="button" type="button" :disabled="transcriptSaving || !editingText.trim()" @click="saveTranscript(item.roundNo)">{{ transcriptSaving ? '保存中…' : '保存修正' }}</button>
                 <button class="button secondary" type="button" @click="editingRound = null">取消</button>
               </div>
             </template>
@@ -658,7 +658,7 @@ onMounted(async () => {
 .risk-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
 .risk-list li { display: inline-flex; width: fit-content; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-2); font-size: 12px; }
 .risk-note { margin: 12px 0 0; color: var(--text-3); font-size: 11.5px; line-height: 1.75; }
-.degraded { margin: 12px 0 0; color: var(--warning); font-size: 11px; line-height: 1.7; }
+.degraded { margin: 12px 0 0; color: var(--text-2); font-size: 11px; line-height: 1.7; }
 .rescore { margin-left: 8px; padding: 2px 10px; border: 1px solid var(--border-bright); border-radius: 999px; background: transparent; color: var(--text-2); font-size: 11px; cursor: pointer; }
 .rescore:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-strong); }
 

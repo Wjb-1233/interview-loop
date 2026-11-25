@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "standardId": "expression-2026-11-25-v1",
+  "standardHash": "26c905b4c25cce6ca8ea0a274e625598f20a7a080ab418a824804367e411fd32",
+  "sampleCount": 48,
+  "questionFamilies": 8,
+  "developmentCases": 24,
+  "holdoutCases": 24,
+  "source": "AUTHORED_SYNTHETIC",
+  "humanLabelsCollected": 0,
+  "status": "AWAITING_HUMAN_LABELS",
+  "reviewStatus": "AUTHOR_DRAFT",
+  "holdoutPolicy": "按题目整组划分；调参期间只使用 development。case_type 是编写意图，不是专家金标准。"
+}

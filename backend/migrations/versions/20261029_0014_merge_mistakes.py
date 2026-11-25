@@ -38,8 +38,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_mistake_states_session_id", table_name="mistake_states")
-    op.drop_index("ix_mistake_states_user_id", table_name="mistake_states")
     op.drop_table("mistake_states")
     op.drop_index("ix_scripts_source_session_id", table_name="scripts")
     op.drop_column("scripts", "source_round")

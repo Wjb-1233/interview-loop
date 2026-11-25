@@ -1,0 +1,19 @@
+{
+  "status": "INCOMPLETE_MODEL_RESULTS",
+  "model": "deepseek-chat",
+  "standardHash": "26c905b4c25cce6ca8ea0a274e625598f20a7a080ab418a824804367e411fd32",
+  "split": "development",
+  "requestedCases": 1,
+  "successfulCases": 0,
+  "attempts": [
+    {
+      "caseId": "project-role-strong",
+      "status": "FAILED",
+      "errorType": "HTTPStatusError",
+      "httpStatus": 402,
+      "seconds": 0.756
+    }
+  ],
+  "usage": "See provider billing; this tool does not estimate unreported tokens or cost.",
+  "note": "单题原始模型输出，不等同完整会话正式报告或真人一致性结果。"
+}

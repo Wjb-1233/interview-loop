@@ -53,14 +53,33 @@ def profile_for(scene, bank: list[dict]) -> list[dict]:
         return custom
     if scene.category not in {"技术一面", "技术二面 / 复面", "交叉面 / 总监面"} or not re.search(r"后端|Backend|backend", scene.position):
         return []
-    return copy.deepcopy(BACKEND_CRITERIA)
+    from app.features.training.question_catalog import transfer_specs, CATALOG_VERSION
+    criteria = copy.deepcopy(BACKEND_CRITERIA)
+    for criterion in criteria:
+        criterion.update(transferQuestionSpecs=transfer_specs(criterion['id']),
+                         catalogVersion=CATALOG_VERSION, reviewed=False)
+    return criteria
 
 
 def new_context(scene, bank: list[dict], enabled: bool = False) -> dict:
+    from app.features.evaluations.standards import current_standard
+    standard = current_standard()
     criteria = profile_for(scene, bank)
-    rubric_version = hashlib.sha256(json.dumps(criteria, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16] if criteria else "legacy"
+    rubric_version = hashlib.sha256(json.dumps({"criteria": criteria, "scoringStandard": standard["hash"]}, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
     return {"version": VERSION, "rubricVersion": rubric_version, "purpose": "PRACTICE", "adaptiveEnabled": bool(enabled and criteria),
-            "criteria": criteria, "evidenceTrace": [], "coverage": {}, "hintUses": 0}
+            "criteria": criteria, "scoringStandard": standard, "evidenceTrace": [], "coverage": {}, "hintUses": 0}
+
+
+def fresh_context(template: dict | None) -> dict:
+    """Keep the frozen rubric, never copy evidence or assistance from another attempt."""
+    source = template or {}
+    result = {"version": source.get("version", VERSION), "rubricVersion": source.get("rubricVersion", "legacy"),
+            "purpose": "PRACTICE", "adaptiveEnabled": bool(source.get("adaptiveEnabled")),
+            "criteria": copy.deepcopy(source.get("criteria", [])),
+            "evidenceTrace": [], "coverage": {}, "hintUses": 0}
+    if "scoringStandard" in source:
+        result["scoringStandard"] = copy.deepcopy(source["scoringStandard"])
+    return result
 
 
 def criteria_instructions(context: dict | None) -> str:

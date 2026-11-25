@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-25",
+  "tests": {
+    "sqlite": {
+      "passed": 396,
+      "failed": 0
+    },
+    "mysql": {
+      "passed": 396,
+      "failed": 0
+    },
+    "browser": {
+      "passed": 74,
+      "failed": 0
+    }
+  },
+  "frontendBuild": "PASSED",
+  "browserModelMode": "CONTROLLED_STUB",
+  "calibrationHumanScoresCollected": 0,
+  "studyParticipantsCollected": 0,
+  "realModelCheckHttpStatus": 402,
+  "realModelPerformanceVerified": false,
+  "physicalDeviceTests": "NOT_RUN",
+  "temporaryServicesStopped": true,
+  "disposableMySqlSchemaAndUserRemoved": true
+}

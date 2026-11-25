@@ -84,7 +84,9 @@ def _fake_llm(monkeypatch):
                 "summary": "ok", "suggestions": [], "styleTags": [], "evidence": []}
 
     async def fake_stream(_system_prompt, _messages):
-        yield "我理解了，请继续说明你的依据。"
+        import re
+        planned = re.search(r'<planned>(.*?)</planned>', _system_prompt, re.S)
+        yield planned[1] if planned and planned[1] else "我理解了，请继续说明你的依据。"
 
     async def no_limit(_user_id):
         return None
@@ -130,6 +132,13 @@ def test_job_description_builds_question_plan(monkeypatch) -> None:
         assert match["degraded"] is False
         assert data["questionCovered"] == 0
 
+        # Before answering, JD removal and recreation are still available.
+        cleared = client.delete(f"/api/v1/training-sessions/{session_id}/jd", headers=headers)
+        assert cleared.status_code == 200
+        assert cleared.json()["data"]["jdText"] is None
+        assert client.post(f"/api/v1/training-sessions/{session_id}/jd", headers=headers,
+                           json={"jd_text": data["jdText"]}).status_code == 200
+
         client.post(
             f"/api/v1/training-sessions/{session_id}/messages/complete",
             headers=headers,
@@ -139,8 +148,8 @@ def test_job_description_builds_question_plan(monkeypatch) -> None:
         assert after["questionCovered"] == 1
 
         cleared = client.delete(f"/api/v1/training-sessions/{session_id}/jd", headers=headers)
-        assert cleared.status_code == 200
-        assert cleared.json()["data"]["jdText"] is None
+        assert cleared.status_code == 409
+        assert client.get(f"/api/v1/training-sessions/{session_id}", headers=headers).json()["data"]["jdText"] == data["jdText"]
 
 
 def test_report_exposes_speech_stats_and_mistakes(monkeypatch) -> None:

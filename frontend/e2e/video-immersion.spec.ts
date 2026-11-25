@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 type Engine = 'pipeline' | 'doubao'
 
-async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera = false, mode: 'voice' | 'video' = 'video') {
+async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera = false, mode: 'voice' | 'video' = 'video', avatar?: string) {
   const errors: string[] = []
   const saved: string[] = []
   const discarded: string[] = []
@@ -85,7 +85,7 @@ async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera 
     } else { await route.fulfill({ status: 404, json: { detail: '此测试未提供该接口' } }); return }
     await route.fulfill({ json: { data, meta: {} } })
   })
-  await page.goto(`/${mode}?sceneId=video-scene&sessionId=video-session`)
+  await page.goto(`/${mode}?sceneId=video-scene&sessionId=video-session${avatar ? `&avatar=${avatar}` : ''}`)
   if (mode === 'video') await page.getByRole('button', { name: '开启摄像头和麦克风', exact: true }).click()
   await expect(page.getByRole('button', { name: '开始面试', exact: true })).toBeEnabled()
   await page.getByRole('button', { name: '开始面试', exact: true }).click()
@@ -262,6 +262,22 @@ test('沉浸模式中设备异常仍能显示恢复入口', async ({ page }) => 
   expect(state.errors).toEqual([])
 })
 
+test('豆包真实协议的 text 完成事件无需 delta 也能保存回答', async ({ page }) => {
+  const state = await openRoom(page, 'doubao')
+  await page.evaluate(() => {
+    const socket = (window as any).__videoSocket
+    socket.onmessage({ data: JSON.stringify({
+      type: 'conversation.item.input_audio_transcription.completed',
+      text: '我负责接口设计，并通过并发测试验证业务约束。',
+    }) })
+  })
+  await page.locator('.room-controls .end').click()
+  await expect(page.getByRole('button', { name: '重试生成报告', exact: true })).toBeVisible()
+  expect(state.saved).toHaveLength(1)
+  expect(state.saved[0]).toContain('我负责接口设计，并通过并发测试验证业务约束。')
+  expect(state.errors).toEqual([])
+})
+
 test('本地 Live2D 读取实际播放音轨，重听打断保留声音与评分且不调用云端数字人', async ({ page }) => {
   let cloudRequests = 0
   page.on('request', (request) => { if (request.url().includes('/api/v1/avatars/')) cloudRequests++ })
@@ -272,7 +288,7 @@ test('本地 Live2D 读取实际播放音轨，重听打断保留声音与评分
       if (Array.from(array).some((value) => Math.abs(value) > .01)) (window as any).__avatarAudioObserved = true
     }
   })
-  const state = await openRoom(page)
+  const state = await openRoom(page, 'pipeline', false, 'video', 'live2d')
   await expect(page.locator('.avatar-presenter')).toHaveClass(/connected/)
   await sendAudio(page, 'pipeline', 4)
   await expect(page.locator('.avatar-presenter')).toHaveClass(/speaking/)
@@ -293,5 +309,17 @@ test('本地 Live2D 读取实际播放音轨，重听打断保留声音与评分
   expect(state.saved[0]).toContain('请介绍你的项目职责。')
   expect(state.saved).toHaveLength(1)
   expect(cloudRequests).toBe(0)
+  expect(state.errors).toEqual([])
+})
+
+test('3D 动态模块加载失败会回退照片，结束和评分入口仍可使用', async ({ page }) => {
+  await page.route('**/avatars/human/**', route => route.fulfill({ status: 404 }))
+  await page.route('**/src/components/media/VrmPresenter.vue*', route => route.abort('failed'))
+  const state = await openRoom(page, 'pipeline', false, 'video', 'vrm')
+  await expect(page.locator('.photo-stage')).toBeVisible()
+  await sendConversation(page, 'pipeline')
+  await page.locator('.room-controls .end').click()
+  await expect(page.getByRole('button', { name: '重试生成报告', exact: true })).toBeVisible()
+  expect(state.saved).toHaveLength(1)
   expect(state.errors).toEqual([])
 })

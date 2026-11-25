@@ -29,6 +29,7 @@ def test_admin_can_manage_catalog_users_and_export_reports() -> None:
         scene = client.post("/api/v1/admin/scenes", headers=admin_headers, json=scene_payload)
         assert scene.status_code == 201
         scene_id = scene.json()["data"]["id"]
+        assert len(scene_id) <= 36
         assert any(item["id"] == scene_id for item in client.get("/api/v1/admin/scenes", headers=admin_headers).json()["data"])
         assert client.delete(f"/api/v1/admin/scenes/{scene_id}", headers=admin_headers).json()["data"]["active"] is False
         assert all(item["id"] != scene_id for item in client.get("/api/v1/scenes", headers=student_headers).json()["data"])
@@ -40,6 +41,7 @@ def test_admin_can_manage_catalog_users_and_export_reports() -> None:
         course = client.post("/api/v1/admin/courses", headers=admin_headers, json=course_payload)
         assert course.status_code == 201
         course_id = course.json()["data"]["id"]
+        assert len(course_id) <= 36
         assert client.patch(f"/api/v1/admin/courses/{course_id}", headers=admin_headers, json={**course_payload, "title": "已更新的微课"}).status_code == 200
 
         updated = client.patch(f"/api/v1/admin/users/{student_data['user']['id']}", headers=admin_headers, json={"active": False})
