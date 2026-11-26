@@ -210,7 +210,6 @@ python3 scripts/smoke_test.py --base https://your-domain.com
 - `backend/Dockerfile`、`frontend/Dockerfile`、`frontend/nginx.conf`：生产镜像与反向代理
 - `scripts/smoke_test.py`、`scripts/backup.sh`：上线冒烟与备份
 - `docs/architecture.md`：系统架构说明
-- [`docs/项目全景导览.md`](docs/项目全景导览.md)：逐目录/文件说明 + 界面块 → 前后端代码 → 数据表的映射（新人第一份通读材料）
 - [`docs/技术说明.md`](docs/技术说明.md) 介绍模型接入、评分规则及音视频实现
 
 ## 本轮升级

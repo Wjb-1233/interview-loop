@@ -7,8 +7,9 @@ defineProps<{ data: DashboardData }>()
 <template>
   <section class="trend panel" aria-labelledby="growth-trend-title">
     <header><h3 id="growth-trend-title">同条件成绩趋势</h3><span>共 {{ data.formalEvaluationCount }} 次正式评分 · 展示最近 {{ data.sampleCount }} 次</span></header>
-    <ScoreTrend v-if="data.trendReady" compact label="同条件正式评分趋势" :points="data.trends" />
-    <p v-else class="insufficient" role="status">已有 {{ data.sampleCount }} 次同条件正式评分，至少 {{ data.minimumTrendSamples }} 次再展示趋势。记录不足，暂不判断成长。</p>
+    <ScoreTrend v-if="data.trends.length >= 2" compact label="同条件正式评分趋势" :points="data.trends" />
+    <p v-else class="insufficient" role="status">已有 {{ data.sampleCount }} 次同条件正式评分，至少 2 次才展示趋势。记录不足，暂不判断成长。</p>
+    <p v-if="data.trends.length >= 2 && !data.trendReady" class="insufficient" role="status">图上只有 {{ data.sampleCount }} 次正式评分，样本不足 {{ data.minimumTrendSamples }} 次，仅展示走势，暂不判断成长。</p>
     <details v-if="data.trends.length"><summary>查看这组训练记录</summary><ul><li v-for="point in [...data.trends].reverse()" :key="point.sessionId"><RouterLink :to="`/report/${point.sessionId}`">{{ trainingDate(point.date) }}<strong>{{ point.score }} 分</strong><span>查看报告 →</span></RouterLink></li></ul></details>
   </section>
 </template>

@@ -59,7 +59,7 @@ const dateLabels = computed(() => {
     .map((point, index) => ({ point, index }))
     .filter((item) => item.index % stride === 0 || item.index === list.length - 1)
     .map((item) => ({
-      x: Math.min(width.value - PAD_RIGHT, Math.max(PAD_LEFT, item.point.x)),
+      x: Math.min(width.value - PAD_RIGHT - 12, Math.max(PAD_LEFT + 4, item.point.x)),
       y: height.value - 9,
       text: new Date(item.point.date).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }),
     }))
