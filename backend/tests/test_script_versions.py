@@ -11,7 +11,7 @@ def test_script_versions_preserve_highlights_favorites_and_ownership() -> None:
         for suffix in ("owner", "stranger"):
             result = client.post("/api/v1/auth/register", json={
                 "email": f"script-{suffix}-{uuid4().hex[:8]}@example.com",
-                "password": "GraduateDesign123!", "displayName": suffix,
+                "password": "InterviewLoop123!", "displayName": suffix,
                 "consent": True,
             })
             tokens.append(result.json()["data"]["accessToken"])

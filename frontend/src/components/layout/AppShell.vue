@@ -70,7 +70,7 @@ async function signOut() {
         </button>
         <RouterLink class="topbar-brand" :to="home">
           <strong>言阶</strong>
-          <span>面试沟通训练</span>
+          <span>InterviewLoop</span>
         </RouterLink>
       </div>
       <div class="topbar-account">

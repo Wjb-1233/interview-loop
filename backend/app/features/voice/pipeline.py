@@ -15,19 +15,10 @@ from pathlib import Path
 from fastapi import WebSocket
 
 from app.core.config import settings
+from app.infrastructure.ffmpeg import ffmpeg_binary
 
 SAMPLE_RATE_IN = 16000
 SAMPLE_RATE_OUT = 24000
-FFMPEG = Path("D:/graduation_design/tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe")
-
-
-def ffmpeg_binary() -> str:
-    if FFMPEG.exists():
-        return str(FFMPEG)
-    found = shutil.which("ffmpeg")
-    if not found:
-        raise RuntimeError("找不到 ffmpeg")
-    return found
 
 
 def _synth_wav(text: str, out_wav: Path, voice: str = "Microsoft Huihui Desktop") -> None:

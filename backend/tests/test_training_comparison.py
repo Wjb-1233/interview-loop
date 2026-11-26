@@ -57,7 +57,7 @@ def test_comparison_scopes(monkeypatch) -> None:
     with TestClient(app, client=(f"cmp-{uuid4().hex}", 50000)) as client:
         registered = client.post("/api/v1/auth/register", json={
             "email": f"cmp-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "对比测试",
             "consent": True,
         })
@@ -98,7 +98,7 @@ def test_comparison_rejects_other_users(monkeypatch) -> None:
     with TestClient(app, client=(f"cmp-{uuid4().hex}", 50000)) as client:
         first = client.post("/api/v1/auth/register", json={
             "email": f"cmp-a-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "甲",
             "consent": True,
         })
@@ -108,7 +108,7 @@ def test_comparison_rejects_other_users(monkeypatch) -> None:
 
         second = client.post("/api/v1/auth/register", json={
             "email": f"cmp-b-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "乙",
             "consent": True,
         })

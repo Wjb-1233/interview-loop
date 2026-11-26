@@ -102,7 +102,7 @@ def _login(client: TestClient) -> dict[str, str]:
         "/api/v1/auth/register",
         json={
             "email": f"br-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "借鉴测试",
             "consent": True,
         },

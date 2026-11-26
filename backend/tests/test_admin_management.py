@@ -13,7 +13,7 @@ def test_admin_can_manage_catalog_users_and_export_reports() -> None:
 
         student = client.post("/api/v1/auth/register", json={
             "email": f"admin-test-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!", "displayName": "管理测试学员",
+            "password": "InterviewLoop123!", "displayName": "管理测试学员",
             "consent": True,
         })
         student_data = student.json()["data"]
@@ -47,7 +47,7 @@ def test_admin_can_manage_catalog_users_and_export_reports() -> None:
         updated = client.patch(f"/api/v1/admin/users/{student_data['user']['id']}", headers=admin_headers, json={"active": False})
         assert updated.status_code == 200
         assert client.get("/api/v1/auth/me", headers=student_headers).status_code == 401
-        assert client.post("/api/v1/auth/login", json={"email": student_data["user"]["email"], "password": "GraduateDesign123!"}).status_code == 401
+        assert client.post("/api/v1/auth/login", json={"email": student_data["user"]["email"], "password": "InterviewLoop123!"}).status_code == 401
 
         sessions = client.get("/api/v1/admin/sessions", headers=admin_headers)
         assert sessions.status_code == 200

@@ -15,7 +15,7 @@ def _auth(client: TestClient) -> dict[str, str]:
         "/api/v1/auth/register",
         json={
             "email": f"simli-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "数字人",
             "consent": True,
         },

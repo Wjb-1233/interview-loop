@@ -1,5 +1,5 @@
 [Unit]
-Description=Yanjie daily backup (MySQL + media)
+Description=InterviewLoop daily backup (MySQL + media)
 After=docker.service
 Requires=docker.service
 

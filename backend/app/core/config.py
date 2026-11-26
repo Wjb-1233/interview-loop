@@ -13,7 +13,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = "面试情景模拟训练与话术优化系统"
+    app_name: str = "InterviewLoop · 言阶"
     environment: Literal["development", "test", "staging", "production"] = "development"
     api_prefix: str = "/api/v1"
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173"]

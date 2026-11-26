@@ -27,7 +27,7 @@ def test_every_category_has_a_startable_scene() -> None:
     with TestClient(app, client=(f"catalog-{uuid4().hex}", 50000)) as client:
         registered = client.post("/api/v1/auth/register", json={
             "email": f"catalog-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "场景覆盖测试",
             "consent": True,
         })
@@ -49,7 +49,7 @@ def test_scene_favorites_are_private_and_listed_separately() -> None:
         for _ in range(2):
             registered = client.post("/api/v1/auth/register", json={
                 "email": f"favorite-{uuid4().hex[:8]}@example.com",
-                "password": "GraduateDesign123!", "displayName": "收藏测试",
+                "password": "InterviewLoop123!", "displayName": "收藏测试",
                 "consent": True,
             })
             users.append({"Authorization": f"Bearer {registered.json()['data']['accessToken']}"})

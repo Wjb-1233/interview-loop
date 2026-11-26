@@ -76,7 +76,7 @@ async function submitPasswordRequest() {
     <section class="login-card">
       <header class="brand">
         <strong>言阶</strong>
-        <span>面试沟通训练</span>
+        <span>InterviewLoop</span>
       </header>
 
       <h1>面试，是练出来的。</h1>

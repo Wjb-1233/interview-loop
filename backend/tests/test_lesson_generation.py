@@ -87,7 +87,7 @@ def test_lesson_generated_on_demand(monkeypatch) -> None:
             "/api/v1/auth/register",
             json={
                 "email": f"ls-{uuid4().hex[:8]}@example.com",
-                "password": "GraduateDesign123!",
+                "password": "InterviewLoop123!",
                 "displayName": "微课测试",
                 "consent": True,
             },

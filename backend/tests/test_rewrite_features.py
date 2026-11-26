@@ -12,7 +12,7 @@ def _register(client: TestClient) -> dict[str, str]:
         "/api/v1/auth/register",
         json={
             "email": f"rw-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "改写测试",
             "consent": True,
         },

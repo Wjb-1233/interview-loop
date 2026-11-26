@@ -1,7 +1,7 @@
 """把一门微课渲染成带中文配音的 mp4（幻灯片 + TTS + ffmpeg 合成）。
 
 用法：
-    PYTHONPATH=. .venv/Scripts/python.exe -m app.features.lessons.video --lesson <lesson_key>
+    python -m app.features.lessons.video <lesson.json>
 """
 
 from __future__ import annotations
@@ -17,6 +17,8 @@ import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+from app.infrastructure.ffmpeg import ffmpeg_binary as _ffmpeg
 
 logger = logging.getLogger(__name__)
 
@@ -145,16 +147,6 @@ def _speak(text: str, out_wav: Path) -> None:
     )
 
 
-def _ffmpeg() -> str:
-    candidate = Path("D:/graduation_design/tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe")
-    if candidate.exists():
-        return str(candidate)
-    found = shutil.which("ffmpeg")
-    if found:
-        return found
-    raise RuntimeError("找不到 ffmpeg")
-
-
 def _media_duration(path: Path) -> float:
     """读取媒体时长（秒）：优先 ffprobe，没有就用 ffmpeg -i 解析，失败返回 0。"""
     import re
@@ -261,8 +253,10 @@ def lesson_key(lesson: dict) -> str:
 if __name__ == "__main__":
     import sys
 
+    from app.core.config import settings
+
     payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-    target = Path("D:/graduation_design/backend/static/lessons") / f"{lesson_key(payload)}.mp4"
+    target = settings.lesson_video_dir_path / f"{lesson_key(payload)}.mp4"
     build_video(payload, target)
     print(target)
 

@@ -37,7 +37,7 @@ def test_resume_interview_upload_question_followup_and_clear(monkeypatch) -> Non
         def register(name: str) -> dict[str, str]:
             response = client.post("/api/v1/auth/register", json={
                 "email": f"resume-{uuid4().hex[:8]}@example.com",
-                "password": "GraduateDesign123!", "displayName": name,
+                "password": "InterviewLoop123!", "displayName": name,
                 "consent": True,
             })
             assert response.status_code == 201

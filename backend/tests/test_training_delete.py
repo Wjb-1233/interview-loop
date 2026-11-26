@@ -57,7 +57,7 @@ def test_delete_training_session_removes_related_data_and_protects_other_users()
         def register(label: str) -> tuple[str, dict[str, str]]:
             response = client.post("/api/v1/auth/register", json={
                 "email": f"delete-{label}-{uuid4().hex[:8]}@example.com",
-                "password": "GraduateDesign123!", "displayName": label,
+                "password": "InterviewLoop123!", "displayName": label,
                 "consent": True,
             })
             assert response.status_code == 201

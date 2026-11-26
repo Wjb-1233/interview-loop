@@ -1,2 +1,2 @@
-file 'D:/graduation_design/backend/static/tts/doubao-probe-part0.wav'
-file 'D:/graduation_design/backend/static/tts/doubao-probe-part1.wav'
+file 'doubao-probe-part0.wav'
+file 'doubao-probe-part1.wav'

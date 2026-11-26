@@ -33,7 +33,7 @@ def test_report_keeps_only_verifiable_score_evidence(monkeypatch) -> None:
     with TestClient(app, client=(f"evidence-{uuid4().hex}", 50000)) as client:
         registered = client.post("/api/v1/auth/register", json={
             "email": f"evidence-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "证据测试",
             "consent": True,
         })

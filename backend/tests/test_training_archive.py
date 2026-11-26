@@ -9,7 +9,7 @@ def test_finished_session_archive_restore_and_replay() -> None:
     with TestClient(app, client=("198.51.100.78", 50124)) as client:
         registered = client.post("/api/v1/auth/register", json={
             "email": f"archive-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!", "displayName": "归档测试",
+            "password": "InterviewLoop123!", "displayName": "归档测试",
             "consent": True,
         })
         headers = {"Authorization": f"Bearer {registered.json()['data']['accessToken']}"}

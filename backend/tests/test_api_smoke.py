@@ -21,7 +21,7 @@ def test_complete_turn_endpoint_supports_phone_flow() -> None:
     with TestClient(app) as client:
         registered = client.post(
             "/api/v1/auth/register",
-            json={"email": f"phone-{uuid4().hex[:8]}@example.com", "password": "GraduateDesign123!", "displayName": "手机测试学员", "consent": True},
+            json={"email": f"phone-{uuid4().hex[:8]}@example.com", "password": "InterviewLoop123!", "displayName": "手机测试学员", "consent": True},
         )
         headers = {"Authorization": f"Bearer {registered.json()['data']['accessToken']}"}
         scene_id = client.get("/api/v1/scenes", headers=headers).json()["data"][0]["id"]
@@ -63,7 +63,7 @@ def test_health_auth_and_scene_flow() -> None:
             "/api/v1/auth/register",
             json={
                 "email": email,
-                "password": "GraduateDesign123!",
+                "password": "InterviewLoop123!",
                 "displayName": "测试学员",
                 "consent": True,
             },
@@ -106,7 +106,7 @@ def test_training_plan_can_be_opened_and_checked_in() -> None:
             "/api/v1/auth/register",
             json={
                 "email": email,
-                "password": "GraduateDesign123!",
+                "password": "InterviewLoop123!",
                 "displayName": "计划测试学员",
                 "consent": True,
             },
@@ -171,7 +171,7 @@ def test_evaluation_degraded_status_survives_reload(monkeypatch) -> None:
             "/api/v1/auth/register",
             json={
                 "email": f"degraded-{uuid4().hex[:8]}@example.com",
-                "password": "GraduateDesign123!",
+                "password": "InterviewLoop123!",
                 "displayName": "降级报告测试",
                 "consent": True,
             },

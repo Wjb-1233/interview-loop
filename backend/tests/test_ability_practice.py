@@ -42,7 +42,7 @@ def test_weakest_dimension_practice_uses_real_answer_and_persists_feedback(monke
     with TestClient(app, client=(f"ability-{uuid4().hex}", 50000)) as client:
         registered = client.post("/api/v1/auth/register", json={
             "email": f"ability-{uuid4().hex[:8]}@example.com",
-            "password": "GraduateDesign123!",
+            "password": "InterviewLoop123!",
             "displayName": "能力练习测试",
             "consent": True,
         })
