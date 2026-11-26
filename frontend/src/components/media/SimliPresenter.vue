@@ -288,10 +288,28 @@ defineExpose({
 </template>
 
 <style scoped>
-.simli-presenter { position: relative; width: 100%; height: 100%; overflow: hidden; background: radial-gradient(ellipse at 50% 26%, #2b333b 0, #1d242a 48%, #10151a 100%); }
-/* 视频自带像素，用 cover 填满画框；低码率时也不做额外锐化，避免压缩噪点被放大 */
-/* 出画时 200ms 淡入：底色一直是同一块深色渐变，不出现白闪 */
-.simli-video { display: block; width: 100%; height: 100%; object-fit: cover; background: transparent; opacity: 0; transition: opacity 200ms ease-out; }
+.simli-presenter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #2a3742 0, #17212b 62%, #111a22 100%);
+}
+.simli-video {
+  display: block;
+  flex: none;
+  width: auto;
+  height: min(84%, 660px);
+  max-width: calc(100% - 48px);
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px #0006;
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
 .connected .simli-video { opacity: 1; }
 .simli-audio { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .simli-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; text-align: center; }

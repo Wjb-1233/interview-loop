@@ -13,7 +13,7 @@ const focus = computed(() => props.data.weaknesses[0]?.dimension ?? (props.data.
 </script>
 <template>
   <section class="growth" aria-labelledby="growth-title" :aria-busy="loading">
-    <header><h2 id="growth-title">同条件成长分析</h2><p>按相同场景、训练方式、追问强度、模式、简历内容和岗位 JD 匹配。</p></header>
+    <header><h2 id="growth-title">同条件成长分析</h2></header>
     <DashboardFilters :filters="filters" :options="data.filterOptions" :loading="loading" @update="$emit('update', $event)" @reset="$emit('reset')" />
     <div v-if="error" class="error-banner" role="alert">{{ error }} <button type="button" class="button secondary" @click="$emit('retry')">重新加载</button></div>
     <p v-else-if="loading" class="scope panel" role="status">正在匹配可比较的训练记录…</p>
@@ -28,5 +28,5 @@ const focus = computed(() => props.data.weaknesses[0]?.dimension ?? (props.data.
   </section>
 </template>
 <style scoped>
-.growth { margin-top:34px; }header h2 { margin:0;font-size:18px;font-weight:600; }header p { color:var(--text-3);font-size:12px;line-height:1.8;margin:7px 0; }.scope { padding:18px 22px;margin-bottom:18px; }.scope strong { font-size:14px;font-weight:600; }.scope p { font-size:12px;line-height:1.8;margin:8px 0;color:var(--text-2); }.scope small { color:var(--text-3);font-size:11px; }.growth :deep(.ability) { margin-top:24px; }
+.growth { margin-top:34px; }header h2 { margin:0;font-size:18px;font-weight:600; }.scope { padding:18px 22px;margin-bottom:18px; }.scope strong { font-size:14px;font-weight:600; }.scope p { font-size:12px;line-height:1.8;margin:8px 0;color:var(--text-2); }.scope small { color:var(--text-3);font-size:11px; }.growth :deep(.ability) { margin-top:24px; }
 </style>

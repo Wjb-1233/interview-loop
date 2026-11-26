@@ -76,6 +76,7 @@ async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera 
     else if (path.endsWith('/voice/status')) data = { enabled: true, engine, voice: 'test-voice' }
     else if (path.endsWith('/interview-context')) data = { instructions: '中文面试', openingLine: '请介绍你的项目职责。', minimumRounds: 2 }
     else if (path.endsWith('/voice/ws-ticket')) data = { ticket: 'test-ticket', expiresIn: 60 }
+    else if (avatar === 'simli' && path.endsWith('/avatar/simli-session')) data = { sessionToken: 'avatar-test-token' }
     else if (path.endsWith('/discard')) { discarded.push(path); await route.fulfill({ status: 204 }); return }
     else if (path.endsWith('/voice/sessions')) { saved.push(route.request().postDataBuffer()!.toString('utf8')); data = { id: 'video-session' } }
     else if (path.endsWith('/finish')) {
@@ -205,6 +206,54 @@ test('减少动画设置和沉浸模式键盘操作有效', async ({ page }) => 
   await expect(page.getByRole('button', { name: '退出沉浸', exact: true })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: '沉浸模式', exact: true })).toBeVisible()
+  expect(state.errors).toEqual([])
+})
+
+test('在线面试官保留方形视频的完整画面，普通和沉浸模式均居中显示', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 900 })
+  await page.route('**/node_modules/.vite/deps/simli-client.js*', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: `
+      export const LogLevel = { ERROR: 0 }
+      export class SimliClient {
+        constructor(_token, video) { this.video = video }
+        on() {}
+        async start() {
+          const frame = document.createElement('canvas')
+          frame.width = frame.height = 768
+          const context = frame.getContext('2d')
+          context.fillRect(0, 0, 768, 768)
+          this.stream = frame.captureStream()
+          this.video.srcObject = this.stream
+        }
+        async stop() { this.stream.getTracks().forEach(track => track.stop()) }
+        ClearBuffer() {}
+        listenToMediastreamTrack() {}
+      }
+      export default { SimliClient, LogLevel }
+    `,
+  }))
+  const state = await openRoom(page, 'pipeline', false, 'video', 'simli')
+  const video = page.locator('.simli-video')
+  const expectUncroppedFrame = async () => {
+    await expect(video).toHaveCSS('object-fit', 'contain')
+    await expect.poll(() => video.evaluate(el => (el as HTMLVideoElement).videoWidth)).toBe(768)
+    const stage = (await page.locator('.room-stage').boundingBox())!
+    const frame = (await video.boundingBox())!
+    expect(Math.abs(frame.width - frame.height)).toBeLessThan(1)
+    expect(frame.height).toBeLessThan(stage.height)
+    expect(Math.abs(frame.x + frame.width / 2 - stage.x - stage.width / 2)).toBeLessThan(1)
+    expect(Math.abs(frame.y + frame.height / 2 - stage.y - stage.height / 2)).toBeLessThan(1)
+    await expect(page.locator('.room-self')).toBeVisible()
+  }
+  await expectUncroppedFrame()
+  await page.getByRole('button', { name: '退出沉浸', exact: true }).click()
+  await expectUncroppedFrame()
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.getByRole('button', { name: '沉浸模式', exact: true }).click()
+  await expectUncroppedFrame()
+  await page.getByRole('link', { name: '直接退出', exact: true }).click()
+  await expect(page).toHaveURL(/\/scenes$/)
   expect(state.errors).toEqual([])
 })
 

@@ -17,7 +17,6 @@ const metrics = computed(() => {
 <template>
   <section class="delivery panel" aria-labelledby="delivery-title">
     <h3 id="delivery-title">最近一次的语音与镜头表现</h3>
-    <p>以下为表达过程的观测指标，单独查看，不折算进四维内容总分。</p>
     <dl v-if="metrics.length"><div v-for="item in metrics" :key="item.label"><dt>{{ item.label }}</dt><dd>{{ item.value }}</dd></div></dl>
     <p v-else>这次训练没有可用的语音或镜头观测数据。</p>
     <RouterLink :to="`/report/${delivery.sessionId}`">查看本次报告与录制 →</RouterLink>
