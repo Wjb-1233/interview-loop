@@ -367,21 +367,24 @@ async function changePassword() {
 .hero-top { position: relative; display: flex; align-items: center; gap: 20px; }
 .hero-card:only-child, .hero-card { padding-bottom: 28px; }
 
-.avatar-block { display: grid; justify-items: center; gap: 8px; }
+.avatar-block { display: grid; flex: none; justify-items: center; gap: 12px; }
 .avatar-ring {
   display: grid;
   place-items: center;
-  width: 76px;
-  height: 76px;
+  box-sizing: border-box;
+  flex: none;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  padding: 2px;
-  background: linear-gradient(150deg, rgba(190, 160, 255, .7), rgba(255, 255, 255, .08));
+  padding: 3px;
+  background: var(--grad-brand);
 }
 .avatar-img, .avatar-fallback {
-  width: 72px;
-  height: 72px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  border: 1px solid rgba(10, 8, 18, .9);
+  border: 2px solid var(--card);
   object-fit: cover;
 }
 .avatar-fallback {
@@ -394,14 +397,15 @@ async function changePassword() {
 }
 .avatar-actions { display: flex; align-items: center; gap: 8px; }
 .avatar-upload, .avatar-remove {
-  border: 0;
-  padding: 0;
-  background: none;
-  color: var(--text-3);
-  font-size: 11.5px;
+  border: 1px solid var(--border-bright);
+  border-radius: 999px;
+  padding: 3px 14px;
+  background: var(--card);
+  color: var(--text-2);
+  font-size: 12px;
   cursor: pointer;
 }
-.avatar-upload:hover, .avatar-remove:hover { color: var(--text-2); }
+.avatar-upload:hover, .avatar-remove:hover { color: var(--accent-strong); border-color: var(--accent); }
 
 .hero-identity { display: grid; gap: 6px; }
 .hero-identity h2 { margin: 0; color: var(--text); font-size: 24px; font-weight: 500; letter-spacing: -.01em; }

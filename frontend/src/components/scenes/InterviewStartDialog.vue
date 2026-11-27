@@ -83,7 +83,7 @@ function cancel(event?: Event): void {
 </template>
 
 <style scoped>
-.interview-dialog { width: min(540px, calc(100vw - 28px)); max-height: calc(100vh - 28px); padding: 0; border: 1px solid var(--line); border-radius:var(--radius); color: var(--ink); background:var(--card); box-shadow: 0 24px 80px rgba(16,37,43,.2); }
+.interview-dialog { width: min(540px, calc(100vw - 28px)); max-height: calc(100vh - 28px); padding: 0; border: 1px solid var(--line); border-radius:var(--radius-md); color: var(--ink); background:var(--card); box-shadow: 0 24px 80px rgba(16,37,43,.2); }
 .interview-dialog::backdrop { background: rgba(8, 29, 34, .58); }
 .dialog-body { padding: 28px; }
 .dialog-body h2 { margin: 5px 0 8px; font: 700 29px/1.2 var(--font-ui); }
@@ -93,9 +93,9 @@ function cancel(event?: Event): void {
 .file-input { display: block; width: 100%; padding: 13px; border: 1px dashed var(--border-bright); border-radius:var(--radius); background: var(--bg-2); color: var(--ink); }
 .file-summary { margin-top: 10px; display: flex; justify-content: space-between; gap: 12px; color: var(--ink); font-size: 13px; overflow-wrap: anywhere; }
 .file-summary button { flex: none; border: 0; background: transparent; color: #9c3f33; cursor: pointer; }
-.file-hint { margin: 12px 0 0; color: var(--ink-soft); font-size: 12px; line-height: 1.6; }
+.file-hint { margin: 12px 0 18px; color: var(--ink-soft); font-size: 12px; line-height: 1.6; }
 .dialog-actions { margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px; }
-.interview-dialog { border-color:var(--border);background:var(--card);color:var(--text);box-shadow:var(--shadow);backdrop-filter:none;animation:dialog-in .2s ease both; }
+.interview-dialog { border-color:var(--border);background:var(--card);color:var(--text);box-shadow:0 30px 80px -20px rgba(15,23,42,.45);backdrop-filter:none;animation:dialog-in .2s ease both; }
 .interview-dialog::backdrop { background:rgba(3,7,18,.76);backdrop-filter:none; }
 .scene-name { color:var(--text-2); }
 .file-input { border-color:var(--border);background:var(--bg-2);color:var(--text); }

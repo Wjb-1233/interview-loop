@@ -436,7 +436,7 @@ void errorMessage
 .preview { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 .preview-empty { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 10px; padding: 20px; color: rgba(255, 255, 255, .78); font-size: 13px; text-align: center; }
 .perm-status { margin: -6px 0 0; color: var(--text-3); font-size: 12px; line-height: 1.6; }
-.perm-tip { max-width: 320px; color: rgba(255, 255, 255, .45); font-size: 11.5px; line-height: 1.7; }
+.perm-tip { max-width: 320px; color: rgba(255, 255, 255, .72); font-size: 12px; line-height: 1.7; }
 .checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .check { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; }
 .check-icon { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--overlay-2); color: var(--text-2); font-size: 11px; }

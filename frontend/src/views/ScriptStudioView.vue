@@ -196,8 +196,11 @@ async function favorite(version: ScriptVersion): Promise<void> {
           <textarea v-model="freeOriginal" class="field" rows="3" maxlength="2000" placeholder="例如：这个项目我负责后端，做了很多优化。" />
         </label>
         <label class="deep-field">
+          <span>面试背景</span>
+          <textarea v-model="freeBackground" class="field" rows="2" maxlength="1000" placeholder="目标岗位、面试问题或背景（可选）" />
+        </label>
+        <label class="deep-field">
           <span>想达到的效果</span>
-          <textarea v-model="freeBackground" class="field" rows="2" maxlength="1000" placeholder="目标岗位、面试问题或背景（可选）" aria-label="面试背景" />
           <input v-model="freeObjective" class="field" maxlength="500" placeholder="例如：说清楚我具体做了什么、结果怎么样" />
         </label>
         <div class="deep-actions">
@@ -378,7 +381,7 @@ async function favorite(version: ScriptVersion): Promise<void> {
 .block { margin-top: 36px; }
 .block-head h2 { font-size: 18px; }
 .block-head span { font-size: 12.5px; color: var(--text-3); }
-.deep-form { border: 0; padding: 0; background: transparent; }
+.deep-form { padding: 20px; display: grid; gap: 14px; }
 .deep-field span { font-size: 12.5px; color: var(--text-3); }
 .mistake { border: 0; border-bottom: 1px solid var(--divider); border-radius: 0; padding: 20px 0; background: transparent; }
 .mistake:first-of-type { border-top: 1px solid var(--divider); }

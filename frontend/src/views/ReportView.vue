@@ -315,7 +315,7 @@ onMounted(async () => {
     <header class="report-head">
       <div class="head-copy">
         <p class="eyebrow">训练报告{{ session ? ' · ' + session.sceneTitle : '' }}</p>
-        <h1>这一场，<br />哪里已经做对了？</h1>
+        <h1>这一场，哪里已经做对了？</h1>
         <p class="lead">评分是起点，不是结论。</p>
       </div>
       <div class="report-actions">

@@ -1,0 +1,231 @@
+/* ============================================================
+   视觉统一层（载入于 main.css 之后）
+   - 冷中性底 + 靛紫主色；标题实心无衬线；正文 14px
+   - 统一页面宽度、卡片、按钮、表单、标签的节奏
+   ============================================================ */
+
+:root,
+:root[data-theme='light'] {
+  --bg: #f4f5fa;
+  --bg-2: #f9fafd;
+  --card: #ffffff;
+  --card-2: #f3f4fa;
+  --raised: #e8eaf4;
+  --border: rgba(15, 23, 42, .09);
+  --border-bright: rgba(15, 23, 42, .18);
+  --divider: rgba(15, 23, 42, .06);
+  --text: #0f172a;
+  --text-2: #475569;
+  --text-3: #5d6a7e;
+  --accent: #5b3df5;
+  --accent-strong: #4a2ed8;
+  --accent-soft: rgba(91, 61, 245, .09);
+  --accent-2: #a23cf0;
+  --grad-brand: linear-gradient(135deg, #5b3df5 0%, #9a4df0 100%);
+  --grad-brand-hover: linear-gradient(135deg, #4a2ed8 0%, #8638de 100%);
+  --grad-soft: linear-gradient(135deg, rgba(91, 61, 245, .12), rgba(154, 77, 240, .08));
+  --grad-sheen: none;
+  --grad-text: linear-gradient(120deg, #5b3df5 0%, #a23cf0 100%);
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #c42b2b;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 10px 28px -16px rgba(15, 23, 42, .16);
+  --shadow-hover: 0 2px 4px rgba(15, 23, 42, .05), 0 18px 36px -16px rgba(91, 61, 245, .28);
+  --font-display: var(--font-ui);
+  --panel-bg: var(--card);
+  --panel-line: var(--border);
+  --chart-stroke: var(--accent);
+  --chart-fill: var(--accent-soft);
+  --radar-fill: rgba(91, 61, 245, .10);
+}
+:root[data-theme='dark'] {
+  --bg: #0d0e15;
+  --bg-2: #12131c;
+  --card: #161824;
+  --card-2: #1d1f2e;
+  --raised: #272a3b;
+  --border: rgba(255, 255, 255, .08);
+  --border-bright: rgba(255, 255, 255, .17);
+  --text: #eef0f7;
+  --text-2: #aab0c3;
+  --text-3: #8b92a8;
+  --accent: #9b86ff;
+  --accent-strong: #bcaeff;
+  --accent-soft: rgba(155, 134, 255, .15);
+  --grad-brand: linear-gradient(135deg, #7357ff 0%, #b05cf2 100%);
+  --grad-brand-hover: linear-gradient(135deg, #8368ff 0%, #bd72f5 100%);
+  --grad-soft: linear-gradient(135deg, rgba(115, 87, 255, .2), rgba(176, 92, 242, .12));
+  --shadow: 0 1px 0 rgba(255, 255, 255, .03) inset, 0 12px 30px -18px rgba(0, 0, 0, .7);
+  --shadow-hover: 0 18px 38px -16px rgba(0, 0, 0, .8), 0 0 0 1px rgba(155, 134, 255, .35);
+  --radar-fill: rgba(155, 134, 255, .16);
+  --font-display: var(--font-ui);
+  --grad-text: linear-gradient(120deg, #b6a6ff 0%, #e08cf7 100%);
+}
+
+html, body { background: var(--bg); }
+body { font-size: 14px; line-height: 1.6; color: var(--text); }
+:root:not([data-theme='dark']) body {
+  background:
+    radial-gradient(900px 420px at 85% -80px, rgba(122, 90, 255, .10), transparent 70%),
+    radial-gradient(700px 360px at 0% 0%, rgba(236, 100, 200, .06), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* ---------- 页面骨架：统一宽度，页间切换不再跳动 ---------- */
+#app .page:not(.video-page):not(.voice-page) { max-width: 1120px; padding: 36px 44px 96px; }
+.page-heading { margin-bottom: 30px; }
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+}
+.eyebrow::before { content: ''; width: 18px; height: 3px; border-radius: 3px; background: var(--grad-brand); }
+:root .page-title,
+:root:not([data-theme='dark']) .page-title,
+:root:not([data-theme='dark']) #app header h1 {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: clamp(28px, 2.8vw, 34px);
+  font-weight: 750;
+  letter-spacing: -.025em;
+  line-height: 1.25;
+}
+.page-lead { max-width: 680px; margin-top: 12px; color: var(--text-2); font-size: 14.5px; line-height: 1.75; }
+.label { letter-spacing: .08em; font-size: 12px; }
+
+/* ---------- 表面 ---------- */
+:root[data-theme] .panel,
+:root[data-theme] .scene-card,
+:root[data-theme] .filters,
+:root[data-theme] .history-item,
+:root[data-theme] .foundation-card,
+:root[data-theme] .step,
+:root[data-theme] .card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+:root[data-theme] .scene-card,
+:root[data-theme] .history-item,
+:root[data-theme] .foundation-card {
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
+}
+:root[data-theme] .scene-card:hover,
+:root[data-theme] .history-item:hover,
+:root[data-theme] .foundation-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: var(--shadow-hover);
+}
+:root[data-theme] .panel:hover { border-color: var(--border-bright); box-shadow: var(--shadow); }
+
+/* ---------- 按钮 ---------- */
+:root[data-theme] .button {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--grad-brand);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 18px -10px var(--accent), inset 0 1px 0 rgba(255, 255, 255, .22);
+  transition: transform .16s var(--ease), box-shadow .16s var(--ease), background .16s var(--ease), opacity .16s var(--ease);
+}
+:root[data-theme] .button:hover {
+  background: var(--grad-brand-hover);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px -10px var(--accent), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+:root[data-theme] .button:active { transform: translateY(0); }
+:root[data-theme] .button:disabled { opacity: .45; box-shadow: none; transform: none; }
+:root[data-theme] .button.secondary {
+  border: 1px solid var(--border-bright);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: none;
+}
+:root[data-theme] .button.secondary:hover { background: var(--card-2); border-color: var(--accent); color: var(--accent-strong); box-shadow: none; }
+:root[data-theme] .button.ghost,
+:root[data-theme] .button.link { border: 0; background: transparent; color: var(--text-2); box-shadow: none; }
+
+/* ---------- 表单 ---------- */
+:root[data-theme] .field,
+:root[data-theme] input:not([type='checkbox']):not([type='radio']),
+:root[data-theme] textarea,
+:root[data-theme] select,
+:root[data-theme] .select-trigger {
+  min-height: 42px;
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  transition: border-color .16s var(--ease), box-shadow .16s var(--ease);
+}
+:root[data-theme] .field:hover,
+:root[data-theme] textarea:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border-bright)); }
+:root[data-theme] .field:focus,
+:root[data-theme] input:not([type='checkbox']):not([type='radio']):focus,
+:root[data-theme] textarea:focus,
+:root[data-theme] select:focus {
+  border-color: var(--accent);
+  background: var(--card);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+textarea.field, textarea { line-height: 1.7; }
+.field-label { font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--text-2); }
+input[type='checkbox'] { accent-color: var(--accent); }
+
+/* ---------- 标签 / 提示 ---------- */
+:root[data-theme] .tag {
+  min-height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--overlay-2);
+  color: var(--text-2);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.error-banner { border-radius: var(--radius-sm); font-size: 13.5px; }
+.empty { font-size: 14px; }
+th { font-size: 12px; font-weight: 600; letter-spacing: .04em; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+::selection { background: var(--accent-soft); }
+
+/* ---------- 小节标题与卡片文字 ---------- */
+:root[data-theme] .block-head h2,
+:root[data-theme] .catalog-heading h2 { font-size: 19px; font-weight: 700; letter-spacing: -.01em; color: var(--text); }
+:root[data-theme] .block-head span,
+:root[data-theme] .catalog-heading span { font-size: 13px; letter-spacing: 0; }
+
+/* ---------- 文件选择框 ---------- */
+input[type='file'] { padding: 6px; color: var(--text-2); font-size: 13px; }
+input[type='file']::file-selector-button {
+  margin-right: 12px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  background: var(--card-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .16s var(--ease), border-color .16s var(--ease);
+}
+input[type='file']::file-selector-button:hover { background: var(--accent-soft); border-color: var(--accent); }

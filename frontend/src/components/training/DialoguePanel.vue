@@ -320,7 +320,7 @@ function submit() {
 .message.user::after { content:'我';left:auto;right:3px; }
 .speaker { color:var(--text-3); }
 .message-bubble { border:1px solid var(--border);border-radius:var(--radius);background:var(--card);box-shadow:none;color:var(--text); }
-.message.user .message-bubble { border-color:var(--border-bright);background:var(--card-2);color:var(--text); }
+.message.user .message-bubble { border-color:transparent;background:var(--grad-brand);color:#fff; }
 .message.user.flagged .message-bubble { border-color:rgba(248,113,113,.65); }
 .typing-cursor { background:var(--accent);box-shadow:none; }
 .composer { border-color:var(--divider);background:var(--card);backdrop-filter:none; }
