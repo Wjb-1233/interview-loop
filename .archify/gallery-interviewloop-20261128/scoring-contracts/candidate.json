@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "diagram_type": "class",
+  "meta": {
+    "title": "评分模块的数据契约",
+    "subtitle": "模型输入输出与报告接口的关键类型",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/scoring-contracts/scoring-contracts.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    }
+  },
+  "layout": {
+    "mode": "grid",
+    "gapX": 76,
+    "gapY": 54
+  },
+  "types": [
+    {
+      "id": "scores",
+      "label": "DimensionScores",
+      "kind": "class",
+      "sublabel": "四维 1–5 分",
+      "row": 0,
+      "col": 1,
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/schemas.py",
+          "line": 9,
+          "end_line": 19,
+          "label": "四维评分与旧字段兼容"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "logic",
+          "type": "int",
+          "visibility": "public"
+        },
+        {
+          "name": "relevance",
+          "type": "int",
+          "visibility": "public"
+        },
+        {
+          "name": "correctness",
+          "type": "int",
+          "visibility": "public"
+        },
+        {
+          "name": "concision",
+          "type": "int",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "payload",
+      "label": "EvaluationPayload",
+      "kind": "class",
+      "sublabel": "模型结果",
+      "row": 1,
+      "col": 0,
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/schemas.py",
+          "line": 22,
+          "end_line": 32,
+          "label": "模型评分数据"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "scores",
+          "type": "DimensionScores",
+          "visibility": "public"
+        },
+        {
+          "name": "summary",
+          "type": "str",
+          "visibility": "public"
+        },
+        {
+          "name": "evidence",
+          "type": "list[dict]",
+          "visibility": "public"
+        },
+        {
+          "name": "technical_checks",
+          "type": "list[dict]",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "view",
+      "label": "EvaluationView",
+      "kind": "class",
+      "sublabel": "报告 API",
+      "row": 1,
+      "col": 1,
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/schemas.py",
+          "line": 57,
+          "end_line": 84,
+          "label": "报告读取对象"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "scores",
+          "type": "DimensionScores",
+          "visibility": "public"
+        },
+        {
+          "name": "overall_score",
+          "type": "float | None",
+          "visibility": "public"
+        },
+        {
+          "name": "quality_status",
+          "type": "ReportQualityStatus",
+          "visibility": "public"
+        },
+        {
+          "name": "evidence",
+          "type": "list[EvidenceView]",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "evidence-view",
+      "label": "EvidenceView",
+      "kind": "class",
+      "sublabel": "问题 · 回答 · 引文",
+      "row": 1,
+      "col": 2,
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/schemas.py",
+          "line": 44,
+          "end_line": 54,
+          "label": "报告中的原话证据对象"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "round_no",
+          "type": "int",
+          "visibility": "public"
+        },
+        {
+          "name": "question",
+          "type": "str",
+          "visibility": "public"
+        },
+        {
+          "name": "answer",
+          "type": "str",
+          "visibility": "public"
+        },
+        {
+          "name": "quote",
+          "type": "str",
+          "visibility": "public"
+        },
+        {
+          "name": "next_action",
+          "type": "str",
+          "visibility": "public"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "payload-scores",
+      "from": "payload",
+      "to": "scores",
+      "kind": "association",
+      "label": "scores"
+    },
+    {
+      "id": "view-scores",
+      "from": "view",
+      "to": "scores",
+      "kind": "association",
+      "label": "scores"
+    },
+    {
+      "id": "view-evidence",
+      "from": "view",
+      "to": "evidence-view",
+      "kind": "association",
+      "label": "evidence"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "分数与报告质量",
+      "items": [
+        "模型结果经证据校验后写入报告。报告接口提供质量状态、可计入成长标志以及证据列表。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "字段说明",
+      "items": [
+        "图中选择关键成员。内容与逻辑、贴合问题、信息完整、表达干净沿用稳定的 API 字段。"
+      ]
+    }
+  ]
+}

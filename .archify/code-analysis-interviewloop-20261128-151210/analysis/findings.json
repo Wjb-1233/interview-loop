@@ -1,0 +1,2856 @@
+{
+  "schema_version": 1,
+  "repository": {
+    "revision": null,
+    "baseRevision": "4d57772d62b295b88103904dbf81f3380314630d",
+    "sourceKind": "working-tree",
+    "root": ".",
+    "url": "git@github.com:Wjb-1233/interview-loop.git",
+    "language": "py",
+    "adapter": "pyright-parser@1.1.414/python-3.14",
+    "adapterRevision": 17,
+    "snapshotId": "a24f35750ede7077fb6d14d5037de22e45c77e70de128286b6c29f632b4d9b92"
+  },
+  "rules": [
+    "coupling/import-cycle",
+    "coupling/cycle",
+    "coupling/hub",
+    "coupling/concentration",
+    "coupling/internal-leak",
+    "complexity/function"
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 17,
+    "info": 39,
+    "suppressed": 0
+  },
+  "analysis": {
+    "analyzer": {
+      "name": "@archify/code-analysis",
+      "version": "0.1.0-dev.1"
+    },
+    "language": "py",
+    "adapter": "pyright-parser@1.1.414/python-3.14",
+    "adapterRevision": 17,
+    "configDigest": "6352ac7c60ad60d648d6bc7c05bf1960a6db7ad20370d972b422f9e8c9d446a2",
+    "ruleVersions": {
+      "complexity/function": 1,
+      "coupling/concentration": 1,
+      "coupling/cycle": 2,
+      "coupling/hub": 1,
+      "coupling/import-cycle": 3,
+      "coupling/internal-leak": 1
+    },
+    "coverage": {
+      "files": 206,
+      "excludedRoles": [
+        "generated",
+        "test"
+      ],
+      "parseErrors": []
+    }
+  },
+  "diagnostics": [
+    {
+      "id": "COMP-ef16bbf48416",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "Settings.validate_production_settings in backend/app/core/config.py has cyclomatic complexity 16 (25 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/core/config.py",
+        "function": "Settings.validate_production_settings",
+        "line": 112,
+        "endLine": 136
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 1,
+        "deepestLine": 113,
+        "length": 25
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/core/config.py"
+        ],
+        "lines": [
+          112,
+          136
+        ],
+        "sha256": "b3b6e491d8294f00bf889f115eab495e2aa344d132e55857278b84019c0d6666"
+      }
+    },
+    {
+      "id": "COMP-f82179aa7c6a",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "seed_database in backend/app/db/seed.py has cyclomatic complexity 17 (50 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/db/seed.py",
+        "function": "seed_database",
+        "line": 487,
+        "endLine": 536
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 17,
+        "nesting": 3,
+        "deepestLine": 520,
+        "length": 50
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/db/seed.py"
+        ],
+        "lines": [
+          487,
+          536
+        ],
+        "sha256": "21178411cccd3132cbe0c3dc00e9ffff24a3296bd94c34bfdfe98da37386e4b3"
+      }
+    },
+    {
+      "id": "COMP-b77e0b5e9adb",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "current_practice in backend/app/features/ability/service.py has cyclomatic complexity 32 (90 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/ability/service.py",
+        "function": "current_practice",
+        "line": 32,
+        "endLine": 121
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 32,
+        "nesting": 3,
+        "deepestLine": 85,
+        "length": 90
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/ability/service.py"
+        ],
+        "lines": [
+          32,
+          121
+        ],
+        "sha256": "44e5419feb510bbecd1652b1b6fded77068cea37de492be718e81a04788b379a"
+      }
+    },
+    {
+      "id": "COMP-8d5572af0121",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "export_user_data in backend/app/features/account/export.py has cyclomatic complexity 19 (134 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/account/export.py",
+        "function": "export_user_data",
+        "line": 32,
+        "endLine": 165
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 19,
+        "nesting": 1,
+        "deepestLine": 42,
+        "length": 134
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/account/export.py"
+        ],
+        "lines": [
+          32,
+          165
+        ],
+        "sha256": "069aa151072fbb8b67a797fe333839c7b94c19506222176748ec107e20a24d81"
+      }
+    },
+    {
+      "id": "COMP-b5194b7ea684",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "learner_report in backend/app/features/admin/router.py has cyclomatic complexity 16 (28 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/admin/router.py",
+        "function": "learner_report",
+        "line": 295,
+        "endLine": 322
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 1,
+        "deepestLine": 297,
+        "length": 28
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/admin/router.py"
+        ],
+        "lines": [
+          295,
+          322
+        ],
+        "sha256": "74e19f650ee523fdff95982935a26b10f3138b81f209ae4fd1f088b6b562db57"
+      }
+    },
+    {
+      "id": "COMP-f9eb79e4fcbe",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "learners in backend/app/features/admin/router.py has cyclomatic complexity 18 (61 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/admin/router.py",
+        "function": "learners",
+        "line": 427,
+        "endLine": 487
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 18,
+        "nesting": 2,
+        "deepestLine": 448,
+        "length": 61
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/admin/router.py"
+        ],
+        "lines": [
+          427,
+          487
+        ],
+        "sha256": "4f2778c4bccb09e4cf9e371d598bb4ac5450905c439b341ad88e4213c68704a8"
+      }
+    },
+    {
+      "id": "COMP-e7f71e49b466",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "dashboard_data in backend/app/features/dashboard/service.py has cyclomatic complexity 35 (40 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/dashboard/service.py",
+        "function": "dashboard_data",
+        "line": 55,
+        "endLine": 94
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 35,
+        "nesting": 2,
+        "deepestLine": 79,
+        "length": 40
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/dashboard/service.py"
+        ],
+        "lines": [
+          55,
+          94
+        ],
+        "sha256": "bb289bb2c29d78967084fafe0a39fdcb99e0ad4c1a7d50c01ba00844e50a8952"
+      }
+    },
+    {
+      "id": "COMP-015661c940e0",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "_highlights in backend/app/features/evaluations/comparison_view.py has cyclomatic complexity 17 (32 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/comparison_view.py",
+        "function": "_highlights",
+        "line": 139,
+        "endLine": 170
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 17,
+        "nesting": 3,
+        "deepestLine": 145,
+        "length": 32
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/comparison_view.py"
+        ],
+        "lines": [
+          139,
+          170
+        ],
+        "sha256": "f004be6a86485cf2d375c8284e3bfd7bcda016c4863b0634ad12a2d82e539db2"
+      }
+    },
+    {
+      "id": "COMP-a65a5adc060b",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "assessment_snapshot in backend/app/features/evaluations/competencies.py has cyclomatic complexity 47 (49 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/competencies.py",
+        "function": "assessment_snapshot",
+        "line": 6,
+        "endLine": 54
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 47,
+        "nesting": 3,
+        "deepestLine": 19,
+        "length": 49
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/competencies.py"
+        ],
+        "lines": [
+          6,
+          54
+        ],
+        "sha256": "c793cd317f4288709405abf0243844dac5ca8b22c9669285291dcbfeb01fdc22"
+      }
+    },
+    {
+      "id": "COMP-9fbd6b389c73",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "analyze in backend/app/features/evaluations/delivery.py has cyclomatic complexity 16 (60 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/delivery.py",
+        "function": "analyze",
+        "line": 48,
+        "endLine": 107
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 4,
+        "deepestLine": 62,
+        "length": 60
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/delivery.py"
+        ],
+        "lines": [
+          48,
+          107
+        ],
+        "sha256": "241a0886a7b95ec458ae244c56607fa5cae94bafb0d3b1783cd2340fbe3affd9"
+      }
+    },
+    {
+      "id": "COMP-c4467d402f5e",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "create_training_plan in backend/app/features/evaluations/plan_builder.py has cyclomatic complexity 16 (104 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/plan_builder.py",
+        "function": "create_training_plan",
+        "line": 9,
+        "endLine": 112
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 2,
+        "deepestLine": 36,
+        "length": 104
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/plan_builder.py"
+        ],
+        "lines": [
+          9,
+          112
+        ],
+        "sha256": "487d61ee7b92670380cd035a0533a1864faf6a119e0cfdd0ff3df8702e2f47fd"
+      }
+    },
+    {
+      "id": "COMP-b30ee0924d8e",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "verified_rows in backend/app/features/evaluations/quality.py has cyclomatic complexity 18 (14 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/quality.py",
+        "function": "verified_rows",
+        "line": 13,
+        "endLine": 26
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 18,
+        "nesting": 0,
+        "deepestLine": 13,
+        "length": 14
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/quality.py"
+        ],
+        "lines": [
+          13,
+          26
+        ],
+        "sha256": "480bbc193976772da84b4663e294ae998ecbb5c6a3bfedd65a2271bf5ebfde40"
+      }
+    },
+    {
+      "id": "COMP-ca3a9a5fa268",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "to_view in backend/app/features/evaluations/report_queries.py has cyclomatic complexity 22 (90 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/report_queries.py",
+        "function": "to_view",
+        "line": 22,
+        "endLine": 111
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 22,
+        "nesting": 0,
+        "deepestLine": 22,
+        "length": 90
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/report_queries.py"
+        ],
+        "lines": [
+          22,
+          111
+        ],
+        "sha256": "4d0246b0f049e9fb993111cb5b38f6514ae91d9a7b56cefddd6532d3e5dc0584"
+      }
+    },
+    {
+      "id": "COMP-982f1604b9c7",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "analyze_calibration in backend/app/features/evaluations/research.py has cyclomatic complexity 33 (49 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/research.py",
+        "function": "analyze_calibration",
+        "line": 125,
+        "endLine": 173
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 33,
+        "nesting": 3,
+        "deepestLine": 163,
+        "length": 49
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/research.py"
+        ],
+        "lines": [
+          125,
+          173
+        ],
+        "sha256": "a414e602fcd2861733bd35c40ecaccba617daf280ce5b075636d5ef3aa83f984"
+      }
+    },
+    {
+      "id": "COMP-84ebe991b7b0",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "evaluate_session in backend/app/features/evaluations/service.py has cyclomatic complexity 62 (192 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/service.py",
+        "function": "evaluate_session",
+        "line": 42,
+        "endLine": 233
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 62,
+        "nesting": 3,
+        "deepestLine": 158,
+        "length": 192
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/service.py"
+        ],
+        "lines": [
+          42,
+          233
+        ],
+        "sha256": "0446c83c6fc671c4c1c314df23fc87b658ee939d1d2805509a3a463616b35ea7"
+      }
+    },
+    {
+      "id": "COMP-42375cf15c43",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "list_mistakes in backend/app/features/evaluations/service.py has cyclomatic complexity 35 (143 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/service.py",
+        "function": "list_mistakes",
+        "line": 259,
+        "endLine": 401
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 35,
+        "nesting": 3,
+        "deepestLine": 352,
+        "length": 143
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/service.py"
+        ],
+        "lines": [
+          259,
+          401
+        ],
+        "sha256": "928c93c967f272732c5f0d8c46f23d36e36d361c35ef29bfe18c68438be4b4d2"
+      }
+    },
+    {
+      "id": "COMP-49c02e97e3e3",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "analyze_study in backend/app/features/evaluations/study.py has cyclomatic complexity 16 (31 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/study.py",
+        "function": "analyze_study",
+        "line": 178,
+        "endLine": 208
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 1,
+        "deepestLine": 186,
+        "length": 31
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/study.py"
+        ],
+        "lines": [
+          178,
+          208
+        ],
+        "sha256": "dac32348a35c82936002251c94bcfd1254508cb3e2283cad3e3560213ec7a5d5"
+      }
+    },
+    {
+      "id": "COMP-1e5c4f061224",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "study_inputs in backend/app/features/evaluations/study.py has cyclomatic complexity 42 (68 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/evaluations/study.py",
+        "function": "study_inputs",
+        "line": 73,
+        "endLine": 140
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 42,
+        "nesting": 4,
+        "deepestLine": 109,
+        "length": 68
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/evaluations/study.py"
+        ],
+        "lines": [
+          73,
+          140
+        ],
+        "sha256": "4c21816e6aeacc2b705d214c521c09e307c1bb28a32c256b684acb8b1d798ec0"
+      }
+    },
+    {
+      "id": "COMP-eb2a9314c295",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "create_lesson_video in backend/app/features/plans/lesson_videos.py has cyclomatic complexity 16 (60 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/lesson_videos.py",
+        "function": "create_lesson_video",
+        "line": 322,
+        "endLine": 381
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 2,
+        "deepestLine": 345,
+        "length": 60
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/lesson_videos.py"
+        ],
+        "lines": [
+          322,
+          381
+        ],
+        "sha256": "e51105d4a1633e1a7e94978e9970138116dccdf080567bb5589787c7d1a3a9c2"
+      }
+    },
+    {
+      "id": "COMP-492a3a9df1d4",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "recommend_scenes in backend/app/features/plans/personalization.py has cyclomatic complexity 20 (71 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/personalization.py",
+        "function": "recommend_scenes",
+        "line": 128,
+        "endLine": 198
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 20,
+        "nesting": 3,
+        "deepestLine": 191,
+        "length": 71
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/personalization.py"
+        ],
+        "lines": [
+          128,
+          198
+        ],
+        "sha256": "ff31152a2e9b45df5df335ad532fccf94f281a22c816f58c8ed1fe6fb24b11c4"
+      }
+    },
+    {
+      "id": "COMP-683ef9bddaf6",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "build_comparison in backend/app/features/plans/service.py has cyclomatic complexity 18 (39 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/service.py",
+        "function": "build_comparison",
+        "line": 330,
+        "endLine": 368
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 18,
+        "nesting": 1,
+        "deepestLine": 335,
+        "length": 39
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/service.py"
+        ],
+        "lines": [
+          330,
+          368
+        ],
+        "sha256": "7c4a1284f3669a6cf46fa2ddeb36f12bf3eebd4bc422f27e9473f40135acd61e"
+      }
+    },
+    {
+      "id": "COMP-96a436cc08dc",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "complete_course_task in backend/app/features/plans/service.py has cyclomatic complexity 16 (25 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/service.py",
+        "function": "complete_course_task",
+        "line": 505,
+        "endLine": 529
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 1,
+        "deepestLine": 510,
+        "length": 25
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/service.py"
+        ],
+        "lines": [
+          505,
+          529
+        ],
+        "sha256": "aece1503c7da0e808e53744bd1fa6c42f109754a0973f633b9edc6fa70063f58"
+      }
+    },
+    {
+      "id": "COMP-78e77939b31f",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "complete_lesson_step in backend/app/features/plans/service.py has cyclomatic complexity 16 (24 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/service.py",
+        "function": "complete_lesson_step",
+        "line": 198,
+        "endLine": 221
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 2,
+        "deepestLine": 215,
+        "length": 24
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/service.py"
+        ],
+        "lines": [
+          198,
+          221
+        ],
+        "sha256": "c8321bbc9d833ddfd306d390d4acc71adcd700eeda7f66dd07df01bca9ba3b89"
+      }
+    },
+    {
+      "id": "COMP-2336e19111fc",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "complete_training_task in backend/app/features/plans/service.py has cyclomatic complexity 69 (111 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/service.py",
+        "function": "complete_training_task",
+        "line": 85,
+        "endLine": 195
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 69,
+        "nesting": 4,
+        "deepestLine": 145,
+        "length": 111
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/service.py"
+        ],
+        "lines": [
+          85,
+          195
+        ],
+        "sha256": "f32614ba5a3ea35e2f0523ef49b321abc46fa21b62445c7312abcc7f25b90281"
+      }
+    },
+    {
+      "id": "COMP-c7672930a2ed",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "personalized_lesson in backend/app/features/plans/service.py has cyclomatic complexity 44 (124 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/service.py",
+        "function": "personalized_lesson",
+        "line": 379,
+        "endLine": 502
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 44,
+        "nesting": 3,
+        "deepestLine": 486,
+        "length": 124
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/service.py"
+        ],
+        "lines": [
+          379,
+          502
+        ],
+        "sha256": "470c8067e34ceaf69f266182c6eeae2ecf900d7be878d94fb104e0a357b07386"
+      }
+    },
+    {
+      "id": "COMP-29990fc62836",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "submit_lesson_practice in backend/app/features/plans/service.py has cyclomatic complexity 22 (66 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/service.py",
+        "function": "submit_lesson_practice",
+        "line": 224,
+        "endLine": 289
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 22,
+        "nesting": 3,
+        "deepestLine": 281,
+        "length": 66
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/service.py"
+        ],
+        "lines": [
+          224,
+          289
+        ],
+        "sha256": "4bf4e234804645f6a3efa75151ecf05850c83df113119e49caa143338621c7c3"
+      }
+    },
+    {
+      "id": "COMP-38569ce140c1",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "start_transfer in backend/app/features/plans/transfer.py has cyclomatic complexity 29 (64 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/plans/transfer.py",
+        "function": "start_transfer",
+        "line": 71,
+        "endLine": 134
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 29,
+        "nesting": 3,
+        "deepestLine": 107,
+        "length": 64
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/plans/transfer.py"
+        ],
+        "lines": [
+          71,
+          134
+        ],
+        "sha256": "64caad6f3767e40058e95c060fc2371e4505253135078f551aa38782ec596bbc"
+      }
+    },
+    {
+      "id": "COMP-fd8b0f295680",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "purge_expired in backend/app/features/recordings/cleanup.py has cyclomatic complexity 15 (68 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/recordings/cleanup.py",
+        "function": "purge_expired",
+        "line": 18,
+        "endLine": 85
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 15,
+        "nesting": 3,
+        "deepestLine": 67,
+        "length": 68
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/recordings/cleanup.py"
+        ],
+        "lines": [
+          18,
+          85
+        ],
+        "sha256": "0654838a87264d82656306dc5db4c43a7a1798a2c325330b25830bf3f552527f"
+      }
+    },
+    {
+      "id": "COMP-9d9f6232a1e3",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "validate_scene in backend/app/features/scenes/bank.py has cyclomatic complexity 23 (50 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/scenes/bank.py",
+        "function": "validate_scene",
+        "line": 66,
+        "endLine": 115
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 23,
+        "nesting": 2,
+        "deepestLine": 83,
+        "length": 50
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/scenes/bank.py"
+        ],
+        "lines": [
+          66,
+          115
+        ],
+        "sha256": "5aaf622b2343dc940d28fd1b58aa57607eb6a821a1859d41ec4f2480031acc7b"
+      }
+    },
+    {
+      "id": "COMP-653f8baa1f11",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "_clean_draft in backend/app/features/scenes/draft.py has cyclomatic complexity 23 (44 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/scenes/draft.py",
+        "function": "_clean_draft",
+        "line": 81,
+        "endLine": 124
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 23,
+        "nesting": 2,
+        "deepestLine": 89,
+        "length": 44
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/scenes/draft.py"
+        ],
+        "lines": [
+          81,
+          124
+        ],
+        "sha256": "946dd934b8faaab822b0b7d75c7824a02b1e60a2308d6aa887921e6620560492"
+      }
+    },
+    {
+      "id": "COMP-2edd399efe4e",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "_clean_questions in backend/app/features/scenes/mine.py has cyclomatic complexity 15 (20 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/scenes/mine.py",
+        "function": "_clean_questions",
+        "line": 38,
+        "endLine": 57
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 15,
+        "nesting": 2,
+        "deepestLine": 42,
+        "length": 20
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/scenes/mine.py"
+        ],
+        "lines": [
+          38,
+          57
+        ],
+        "sha256": "be661739b3c190a3bbc598cef78b0e26ec0ba78d2d029a6da4e202b5bee2c6e1"
+      }
+    },
+    {
+      "id": "COMP-d70397ea0a67",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "generate in backend/app/features/scripts/service.py has cyclomatic complexity 19 (60 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/scripts/service.py",
+        "function": "generate",
+        "line": 42,
+        "endLine": 101
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 19,
+        "nesting": 2,
+        "deepestLine": 64,
+        "length": 60
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/scripts/service.py"
+        ],
+        "lines": [
+          42,
+          101
+        ],
+        "sha256": "43ac1b85a72935d681ffee9591f581d901b48463f668bcff0e3c04b869b88adf"
+      }
+    },
+    {
+      "id": "COMP-8c1756421f6f",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "same_question_attempts in backend/app/features/training/comparison.py has cyclomatic complexity 19 (80 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/comparison.py",
+        "function": "same_question_attempts",
+        "line": 32,
+        "endLine": 111
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 19,
+        "nesting": 3,
+        "deepestLine": 80,
+        "length": 80
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/comparison.py"
+        ],
+        "lines": [
+          32,
+          111
+        ],
+        "sha256": "c5d365fe9636ca07c72449ab1d64f9bbe1d1964590dc58f6dc10efe52dfea991"
+      }
+    },
+    {
+      "id": "COMP-a90089199d54",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "evidence_reply in backend/app/features/training/evidence.py has cyclomatic complexity 50 (74 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/evidence.py",
+        "function": "evidence_reply",
+        "line": 43,
+        "endLine": 116
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 50,
+        "nesting": 2,
+        "deepestLine": 60,
+        "length": 74
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/evidence.py"
+        ],
+        "lines": [
+          43,
+          116
+        ],
+        "sha256": "5e5d0e24af4e5957ea361c92076a5a1663360bdcb6f771342ca7361b5807b40f"
+      }
+    },
+    {
+      "id": "COMP-87c1d560345d",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "prompt_node in backend/app/features/training/graph.py has cyclomatic complexity 17 (102 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/graph.py",
+        "function": "prompt_node",
+        "line": 74,
+        "endLine": 175
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 17,
+        "nesting": 1,
+        "deepestLine": 84,
+        "length": 102
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/graph.py"
+        ],
+        "lines": [
+          74,
+          175
+        ],
+        "sha256": "61a0e7cdc0b430474fc4b0b9cceb64a5aaa472b2873384f5e25731fd8f005d41"
+      }
+    },
+    {
+      "id": "COMP-bbb4db7ca45b",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "fallback_match in backend/app/features/training/job_match.py has cyclomatic complexity 17 (43 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/job_match.py",
+        "function": "fallback_match",
+        "line": 19,
+        "endLine": 61
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 17,
+        "nesting": 2,
+        "deepestLine": 33,
+        "length": 43
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/job_match.py"
+        ],
+        "lines": [
+          19,
+          61
+        ],
+        "sha256": "31e93fced54acf131e35556a919260f387b45f7c78e94e9d8c12a36b5b6e772f"
+      }
+    },
+    {
+      "id": "COMP-c24fc31346c4",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "normalize_match in backend/app/features/training/job_match.py has cyclomatic complexity 22 (37 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/job_match.py",
+        "function": "normalize_match",
+        "line": 64,
+        "endLine": 100
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 22,
+        "nesting": 3,
+        "deepestLine": 79,
+        "length": 37
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/job_match.py"
+        ],
+        "lines": [
+          64,
+          100
+        ],
+        "sha256": "e688b6a5ae9e867f48526f3a5c3a592a41d975131bdbf9e19b0fe75cb9c4c1d8"
+      }
+    },
+    {
+      "id": "COMP-3de2dcfc1286",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "edit_transcript in backend/app/features/training/router.py has cyclomatic complexity 16 (50 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/router.py",
+        "function": "edit_transcript",
+        "line": 363,
+        "endLine": 412
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 2,
+        "deepestLine": 397,
+        "length": 50
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/router.py"
+        ],
+        "lines": [
+          363,
+          412
+        ],
+        "sha256": "70f8b4709cf1cffd381fe4d040f3a8b23d7490353f8edcf28d043cab74915f9a"
+      }
+    },
+    {
+      "id": "COMP-d5712ce23cd6",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "create_training_session in backend/app/features/training/service.py has cyclomatic complexity 38 (101 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/service.py",
+        "function": "create_training_session",
+        "line": 48,
+        "endLine": 148
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 38,
+        "nesting": 3,
+        "deepestLine": 94,
+        "length": 101
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/service.py"
+        ],
+        "lines": [
+          48,
+          148
+        ],
+        "sha256": "27914a25d0e483938593c892e6ddc9a898bc53a0495c44269b7d5b2d4cf816e2"
+      }
+    },
+    {
+      "id": "COMP-8d6ceed03e7c",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "delete_training_session in backend/app/features/training/service.py has cyclomatic complexity 18 (45 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/service.py",
+        "function": "delete_training_session",
+        "line": 272,
+        "endLine": 316
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 18,
+        "nesting": 4,
+        "deepestLine": 285,
+        "length": 45
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/service.py"
+        ],
+        "lines": [
+          272,
+          316
+        ],
+        "sha256": "3c55aeb93fd81770f8f909430f6cdb55d47dff3464a773e57d47a44863854a1f"
+      }
+    },
+    {
+      "id": "COMP-4de28b2b2893",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "session_hint in backend/app/features/training/service.py has cyclomatic complexity 17 (83 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/service.py",
+        "function": "session_hint",
+        "line": 784,
+        "endLine": 866
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 17,
+        "nesting": 1,
+        "deepestLine": 787,
+        "length": 83
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/service.py"
+        ],
+        "lines": [
+          784,
+          866
+        ],
+        "sha256": "a37d958174b0e2ac7deb0337bd6ea1233e3503287f41616262b307e2e0f7ca06"
+      }
+    },
+    {
+      "id": "COMP-acf4be4d4fce",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "stream_reply in backend/app/features/training/service.py has cyclomatic complexity 41 (196 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/training/service.py",
+        "function": "stream_reply",
+        "line": 355,
+        "endLine": 550
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 41,
+        "nesting": 4,
+        "deepestLine": 506,
+        "length": 196
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/training/service.py"
+        ],
+        "lines": [
+          355,
+          550
+        ],
+        "sha256": "f6e8a0a0e21178e99186311477e359fd234f6f3ae88e0ff8e9a69b0501616a97"
+      }
+    },
+    {
+      "id": "COMP-2dba2dc125c8",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "analyze_video in backend/app/features/video/metrics.py has cyclomatic complexity 31 (106 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/video/metrics.py",
+        "function": "analyze_video",
+        "line": 122,
+        "endLine": 227
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 31,
+        "nesting": 5,
+        "deepestLine": 178,
+        "length": 106
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/video/metrics.py"
+        ],
+        "lines": [
+          122,
+          227
+        ],
+        "sha256": "3e81367a61edb0c30778e1acca87013d389efe5fbcb4b842e68457eace836ed9"
+      }
+    },
+    {
+      "id": "COMP-ecf36e95f06b",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "save_voice_session in backend/app/features/voice/router.py has cyclomatic complexity 23 (89 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/voice/router.py",
+        "function": "save_voice_session",
+        "line": 210,
+        "endLine": 298
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 23,
+        "nesting": 2,
+        "deepestLine": 236,
+        "length": 89
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/voice/router.py"
+        ],
+        "lines": [
+          210,
+          298
+        ],
+        "sha256": "f7dd8529766388a6b88f30b6ae6ee50d2559ce4c02f8e64da61e963be00ab5a4"
+      }
+    },
+    {
+      "id": "COMP-6cea81a46a3a",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "voice_pipeline_ws in backend/app/features/voice/router.py has cyclomatic complexity 15 (65 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/voice/router.py",
+        "function": "voice_pipeline_ws",
+        "line": 302,
+        "endLine": 366
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 15,
+        "nesting": 3,
+        "deepestLine": 335,
+        "length": 65
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/voice/router.py"
+        ],
+        "lines": [
+          302,
+          366
+        ],
+        "sha256": "4752122e3c3e13a82eb3174d89af29b37bfce44da3eb141fa6b0b479abf40bb4"
+      }
+    },
+    {
+      "id": "COMP-81c733ab32dd",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "create_voice_session in backend/app/features/voice/session.py has cyclomatic complexity 28 (93 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/features/voice/session.py",
+        "function": "create_voice_session",
+        "line": 23,
+        "endLine": 115
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 28,
+        "nesting": 3,
+        "deepestLine": 75,
+        "length": 93
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/features/voice/session.py"
+        ],
+        "lines": [
+          23,
+          115
+        ],
+        "sha256": "ced8f341cfdd1c92a8b97d9b5875fde7a15823d4549f38985aaf421fbb517c42"
+      }
+    },
+    {
+      "id": "COMP-c2b8f3c96970",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "LlmGateway.stream_text in backend/app/infrastructure/llm.py has nesting depth 5 (47 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/infrastructure/llm.py",
+        "function": "LlmGateway.stream_text",
+        "line": 159,
+        "endLine": 205
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 11,
+        "nesting": 5,
+        "deepestLine": 203,
+        "length": 47
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/infrastructure/llm.py"
+        ],
+        "lines": [
+          159,
+          205
+        ],
+        "sha256": "0eb486fca571a911632e932e714e8ebaa7d4d9b7a2ea3f44b360be35106e8db7"
+      }
+    },
+    {
+      "id": "COMP-49268ccc5854",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "_doubao_tts in backend/app/infrastructure/narration.py has cyclomatic complexity 16 (60 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/infrastructure/narration.py",
+        "function": "_doubao_tts",
+        "line": 78,
+        "endLine": 137
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 3,
+        "deepestLine": 120,
+        "length": 60
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/infrastructure/narration.py"
+        ],
+        "lines": [
+          78,
+          137
+        ],
+        "sha256": "69c098f800afa7adc76aa206ff28d2211a649281f9d1017950a1fd0e22e8336d"
+      }
+    },
+    {
+      "id": "COMP-e3af031a6050",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "synthesize_slide in backend/app/infrastructure/narration.py has cyclomatic complexity 15 (40 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/app/infrastructure/narration.py",
+        "function": "synthesize_slide",
+        "line": 234,
+        "endLine": 273
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 15,
+        "nesting": 4,
+        "deepestLine": 248,
+        "length": 40
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/app/infrastructure/narration.py"
+        ],
+        "lines": [
+          234,
+          273
+        ],
+        "sha256": "f196cc0b995f00a1ee351ac8bd376c7d4ffffa82fd5e0002072cba8d97177df4"
+      }
+    },
+    {
+      "id": "COMP-8932df8a3267",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "upgrade_tasks in backend/migrations/plan_tasks_v2.py has cyclomatic complexity 29 (45 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/migrations/plan_tasks_v2.py",
+        "function": "upgrade_tasks",
+        "line": 8,
+        "endLine": 52
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 29,
+        "nesting": 3,
+        "deepestLine": 26,
+        "length": 45
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/migrations/plan_tasks_v2.py"
+        ],
+        "lines": [
+          8,
+          52
+        ],
+        "sha256": "18894e9e3e12ec44708bfa077cfec85eb3cfe1f25b9a23893b532121b818a1b6"
+      }
+    },
+    {
+      "id": "COMP-ba16bc38c92d",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "main in backend/scripts/archive/purge_legacy_content.py has cyclomatic complexity 33 (74 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/scripts/archive/purge_legacy_content.py",
+        "function": "main",
+        "line": 40,
+        "endLine": 113
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 33,
+        "nesting": 5,
+        "deepestLine": 74,
+        "length": 74
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/scripts/archive/purge_legacy_content.py"
+        ],
+        "lines": [
+          40,
+          113
+        ],
+        "sha256": "1c4938ad262ee29739d51a7645e306ab8c61ba3fe712525199f966e6be02a477"
+      }
+    },
+    {
+      "id": "COMP-3868bc31fbc0",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "validate in backend/scripts/generate_scenes.py has cyclomatic complexity 18 (56 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/scripts/generate_scenes.py",
+        "function": "validate",
+        "line": 50,
+        "endLine": 105
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 18,
+        "nesting": 3,
+        "deepestLine": 78,
+        "length": 56
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/scripts/generate_scenes.py"
+        ],
+        "lines": [
+          50,
+          105
+        ],
+        "sha256": "e4eb3eba39d4239625a365e390af1d997a9134e8df89df8bbc9e9efb40fd4046"
+      }
+    },
+    {
+      "id": "COMP-5c2fc055d26b",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "measure_voice in backend/scripts/measure_latency.py has cyclomatic complexity 16 (51 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/scripts/measure_latency.py",
+        "function": "measure_voice",
+        "line": 96,
+        "endLine": 146
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 4,
+        "deepestLine": 114,
+        "length": 51
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/scripts/measure_latency.py"
+        ],
+        "lines": [
+          96,
+          146
+        ],
+        "sha256": "00aacf74cec84383530c934caf45ea7a86987d27e2a6c1ef5c0ceb63ac96a802"
+      }
+    },
+    {
+      "id": "COMP-5370f87a4a54",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "score_calibration in backend/scripts/research.py has cyclomatic complexity 21 (50 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/scripts/research.py",
+        "function": "score_calibration",
+        "line": 19,
+        "endLine": 68
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 21,
+        "nesting": 4,
+        "deepestLine": 51,
+        "length": 50
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/scripts/research.py"
+        ],
+        "lines": [
+          19,
+          68
+        ],
+        "sha256": "be88a25cb27772c465ecaac9bbe759bd32427714b3ee9a9e9cbc26324e53476e"
+      }
+    },
+    {
+      "id": "COMP-d89dcbf5bf8e",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "load in backend/scripts/score_agreement.py has cyclomatic complexity 22 (45 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/scripts/score_agreement.py",
+        "function": "load",
+        "line": 21,
+        "endLine": 65
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 22,
+        "nesting": 4,
+        "deepestLine": 29,
+        "length": 45
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/scripts/score_agreement.py"
+        ],
+        "lines": [
+          21,
+          65
+        ],
+        "sha256": "8fb1e0f6cca224c92b2053708f91190cd47f68587c1bd698dec94c0bf6add94f"
+      }
+    },
+    {
+      "id": "COMP-cedbcbf9ae1a",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "main in backend/scripts/seed_demo_students.py has cyclomatic complexity 16 (107 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "backend/scripts/seed_demo_students.py",
+        "function": "main",
+        "line": 41,
+        "endLine": 147
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 4,
+        "deepestLine": 82,
+        "length": 107
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "backend/scripts/seed_demo_students.py"
+        ],
+        "lines": [
+          41,
+          147
+        ],
+        "sha256": "d33660a352f48781af5867d679fb16e4aff6a154c7160adbd7029667a1ad0a0f"
+      }
+    }
+  ]
+}

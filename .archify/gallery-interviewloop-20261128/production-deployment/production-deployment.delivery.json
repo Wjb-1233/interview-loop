@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "6d03af13-2550-4e2b-a20a-3446ce7ff6d4",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\production-deployment\\candidate.json",
+  "output": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\production-deployment\\production-deployment.html",
+  "specification": {
+    "sha256": "34c8c2e832ee0ef879c73f2977dea9f8051b74a474e4e41d7f45d1b90826ffb7",
+    "bytes": 5604
+  },
+  "artifact": {
+    "sha256": "f8c9c56aa3650cfdfc31c0c731645a83a4f14ab51d14f0fea38c97e1b1b5e807",
+    "bytes": 946557
+  }
+}

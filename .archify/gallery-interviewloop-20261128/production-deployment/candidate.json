@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "InterviewLoop 生产部署架构",
+    "subtitle": "宿主机 TLS、Compose 容器与媒体持久化",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/production-deployment/production-deployment.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    }
+  },
+  "layout": {
+    "mode": "auto"
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "用户浏览器",
+      "sublabel": "生产域名",
+      "pos": [
+        38,
+        280
+      ],
+      "size": [
+        134,
+        62
+      ],
+      "sources": [
+        {
+          "path": "docs/部署指南.md",
+          "line": 9,
+          "end_line": 27,
+          "label": "浏览器、TLS 与服务拓扑"
+        }
+      ]
+    },
+    {
+      "id": "tls",
+      "type": "security",
+      "label": "宿主机反代",
+      "sublabel": "Nginx / Caddy",
+      "pos": [
+        248,
+        280
+      ],
+      "size": [
+        148,
+        62
+      ],
+      "sources": [
+        {
+          "path": "docs/部署指南.md",
+          "line": 9,
+          "end_line": 28,
+          "label": "宿主机终止 TLS"
+        },
+        {
+          "path": "docs/部署指南.md",
+          "line": 77,
+          "end_line": 104,
+          "label": "域名与证书配置"
+        }
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Web 容器",
+      "sublabel": "Nginx :80",
+      "pos": [
+        475,
+        280
+      ],
+      "size": [
+        143,
+        62
+      ],
+      "sources": [
+        {
+          "path": "docker-compose.prod.yml",
+          "line": 72,
+          "end_line": 86,
+          "label": "Web 服务唯一对外发布的端口"
+        },
+        {
+          "path": "frontend/nginx.conf",
+          "line": 44,
+          "end_line": 84,
+          "label": "反代 HTTP、WebSocket 和媒体"
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "后端容器",
+      "sublabel": "FastAPI :8081",
+      "pos": [
+        702,
+        280
+      ],
+      "size": [
+        155,
+        62
+      ],
+      "sources": [
+        {
+          "path": "docker-compose.prod.yml",
+          "line": 35,
+          "end_line": 70,
+          "label": "内部连接、健康检查与挂载"
+        },
+        {
+          "path": "backend/Dockerfile",
+          "line": 46,
+          "end_line": 50,
+          "label": "单进程 Uvicorn 启动"
+        }
+      ]
+    },
+    {
+      "id": "mysql",
+      "type": "database",
+      "label": "MySQL",
+      "sublabel": "业务持久化",
+      "pos": [
+        994,
+        148
+      ],
+      "size": [
+        151,
+        62
+      ],
+      "sources": [
+        {
+          "path": "docker-compose.prod.yml",
+          "line": 6,
+          "end_line": 21,
+          "label": "数据卷与健康检查"
+        }
+      ]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis",
+      "sublabel": "限流与 AOF",
+      "pos": [
+        994,
+        410
+      ],
+      "size": [
+        151,
+        62
+      ],
+      "sources": [
+        {
+          "path": "docker-compose.prod.yml",
+          "line": 23,
+          "end_line": 33,
+          "label": "限流服务与 AOF"
+        }
+      ]
+    },
+    {
+      "id": "media",
+      "type": "database",
+      "label": "媒体与模型卷",
+      "sublabel": "录像 · 微课 · TTS",
+      "pos": [
+        702,
+        497
+      ],
+      "size": [
+        155,
+        62
+      ],
+      "sources": [
+        {
+          "path": "docker-compose.prod.yml",
+          "line": 58,
+          "end_line": 62,
+          "label": "挂载本地媒体目录与模型缓存"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "生产 Compose · 容器与持久化卷",
+      "wraps": [
+        "web",
+        "api",
+        "mysql",
+        "redis",
+        "media"
+      ],
+      "pad": 24
+    }
+  ],
+  "connections": [
+    {
+      "id": "browser-tls",
+      "from": "browser",
+      "to": "tls",
+      "label": "HTTPS",
+      "variant": "security"
+    },
+    {
+      "id": "tls-web",
+      "from": "tls",
+      "to": "web",
+      "label": "HTTP :80",
+      "variant": "emphasis"
+    },
+    {
+      "id": "web-api",
+      "from": "web",
+      "to": "api",
+      "label": "API / WS / 媒体",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-db",
+      "from": "api",
+      "to": "mysql",
+      "label": "SQL :3306"
+    },
+    {
+      "id": "api-redis",
+      "from": "api",
+      "to": "redis",
+      "label": "限流 :6379"
+    },
+    {
+      "id": "api-media",
+      "from": "api",
+      "to": "media",
+      "label": "读写文件"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "启动与流量入口",
+      "items": [
+        "宿主机反向代理终止 TLS。Compose 发布 Web 的 80 端口，Web 内部反代到后端 8081。",
+        "Web 等待后端健康，后端启动依赖 MySQL 和 Redis 健康检查。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "部署前后的持久化",
+      "items": [
+        "生产关闭自动建表，部署按指南先执行 Alembic 迁移。",
+        "备份需要覆盖数据库和录像、微课、TTS 等业务媒体。"
+      ]
+    }
+  ]
+}

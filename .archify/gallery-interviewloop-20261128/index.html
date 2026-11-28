@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>InterviewLoop 项目图集</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --surface:#f8fafc; --panel:#fff; --ink:#111827; --muted:#48536b; --line:#d4dcec;
+  --primary:#2454cc; --secondary:#7042d6; --tint:#edf2ff; --focus:#8b5cf6;
+  --display: Limelight, Georgia, "Microsoft YaHei UI", sans-serif;
+  --body: "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme:dark) {
+  :root {--surface:#111827; --panel:#172238; --ink:#f4f6ff; --muted:#c4cee4; --line:#354260; --primary:#9cbcff; --secondary:#c4a7ff; --tint:#263653; --focus:#c4a7ff;}
+}
+* {box-sizing:border-box;}
+html {scroll-behavior:smooth;}
+body {margin:0; background:var(--surface); color:var(--ink); font:16px/1.65 var(--body);}
+.wrapper {width:min(1104px,100% - 64px); margin:0 auto;}
+.skip {position:absolute; left:16px; top:8px; transform:translateY(-150%); z-index:2;}
+.skip:focus {transform:none;}
+.hero {padding:72px 0 56px; background:radial-gradient(ellipse at 86% 12%,color-mix(in srgb,var(--secondary) 16%,transparent),transparent 52%),radial-gradient(ellipse at 18% 20%,color-mix(in srgb,var(--primary) 11%,transparent),transparent 50%); border-bottom:1px solid var(--line);}
+.wordmark {margin:0 0 8px; font:700 18px/1.2 var(--display); color:var(--primary);}
+h1 {margin:0; font:800 clamp(30px,5vw,36px)/1.16 var(--body); letter-spacing:-.055em;}
+.intro {margin:16px 0 20px; color:var(--muted); font-size:16px;}
+nav {display:flex; flex-wrap:wrap; gap:8px 12px;}
+nav a,.skip {display:inline-flex; align-items:center; min-height:44px; padding:0 16px; color:var(--primary); background:var(--panel); border:1px solid var(--line); border-radius:6px; text-decoration:none;}
+main {padding:32px 0 64px;}
+section {scroll-margin-top:24px; margin-top:32px;}
+section:first-child {margin-top:0;}
+h2 {margin:0 0 16px; font-size:24px; letter-spacing:-.03em;}
+ul {list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px;}
+.diagram {display:flex; flex-direction:column; height:100%; min-height:160px; position:relative; padding:16px 20px 24px; border:1px solid var(--line); border-radius:12px; background:var(--panel); color:var(--ink); text-decoration:none;}
+.diagram:hover, nav a:hover {background:var(--tint); border-color:var(--primary);}
+a:focus-visible {outline:3px solid var(--focus); outline-offset:3px;}
+.kind {padding-right:32px; color:var(--primary); font:700 12px/1.4 var(--mono); letter-spacing:.02em;}
+strong {margin-top:8px; font-size:18px; line-height:1.4;}
+.summary {margin-top:8px; color:var(--muted); font-size:14px;}
+.arrow {color:var(--secondary); position:absolute; right:20px; top:16px; font-size:18px;}
+footer {padding:16px 0 24px; border-top:1px solid var(--line); color:var(--muted); font-size:12px;}
+@media (max-width:850px) {ul {grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media (max-width:540px) {.wrapper {width:calc(100% - 32px);} .hero {padding:44px 0 32px;} ul {grid-template-columns:1fr;} .diagram {min-height:132px;}}
+@media (prefers-reduced-motion:reduce) {html {scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到图集</a>
+<header class="hero"><div class="wrapper"><p class="wordmark">InterviewLoop</p><h1>项目图集</h1><p class="intro">12 张交互图和一份静态代码诊断，覆盖面试流程、系统实现与测量记录。</p><nav aria-label="图集导航"><a href="#product">面试与学习</a><a href="#system">系统与数据</a><a href="#evidence">演进与测量</a></nav></div></header>
+<main class="wrapper" id="main"><section id="product" aria-labelledby="product-title"><h2 id="product-title">面试与学习</h2><ul>
+<li><a class="diagram" href="learning-loop/learning-loop.html"><span class="kind">工作流图</span><strong>一次面试怎样进入学习闭环</strong><span class="summary">从场景训练到同条件复测，了解每步怎样完成。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="../sequence-interviewloop-20261128-151210/interviewloop-sequence.html"><span class="kind">时序图</span><strong>视频面试的开场时序</strong><span class="summary">从设备预检、Simli 就绪到豆包播报首问。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="finish-to-report/finish-to-report.html"><span class="kind">时序图</span><strong>结束面试到报告出炉</strong><span class="summary">看清先保存结束、再评分和条件性建计划的顺序。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+</ul></section>
+<section id="system" aria-labelledby="system-title"><h2 id="system-title">系统与数据</h2><ul>
+<li><a class="diagram" href="../architecture-interviewloop-20261128-152218/interviewloop-architecture.html"><span class="kind">架构图</span><strong>InterviewLoop 系统架构</strong><span class="summary">浏览器、FastAPI、持久化和模型服务之间的连接。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="production-deployment/production-deployment.html"><span class="kind">架构图</span><strong>生产部署架构</strong><span class="summary">从宿主机 TLS 到 Nginx、后端容器和持久化。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="scoring-dataflow/scoring-dataflow.html"><span class="kind">数据流图</span><strong>原话怎样变成评分与成长数据</strong><span class="summary">问答配对、评分证据落库和成长资格。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="lesson-job-state/lesson-job-state.html"><span class="kind">状态机图</span><strong>微课视频任务状态机</strong><span class="summary">谁领取任务，何时失败，如何重新进入队列。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="plan-storage/plan-storage.html"><span class="kind">实体关系图</span><strong>训练计划与微课任务的表关系</strong><span class="summary">用户、计划和微课渲染任务三张表的物理字段。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="scoring-contracts/scoring-contracts.html"><span class="kind">类图</span><strong>评分模块的数据契约</strong><span class="summary">分辨模型结果、四维分数和前端报告对象。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="repository-tree/repository-tree.html"><span class="kind">目录树</span><strong>InterviewLoop 仓库目录树</strong><span class="summary">定位前后端、迁移、测试和研究材料。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+</ul></section>
+<section id="evidence" aria-labelledby="evidence-title"><h2 id="evidence-title">演进与测量</h2><ul>
+<li><a class="diagram" href="project-history/project-history.html"><span class="kind">时间线</span><strong>InterviewLoop 近期演进</strong><span class="summary">从 Git 提交看安全加固、计时、数字人和复杂度回归。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="sse-latency/sse-latency.html"><span class="kind">耗时瀑布图</span><strong>文字面试 SSE 请求耗时</strong><span class="summary">用受控模型替身的单次记录拆出首事件、首 token 和完整响应。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+<li><a class="diagram" href="../code-analysis-interviewloop-20261128-152218/analysis/repo.analysis.html"><span class="kind">静态分析</span><strong>后端代码静态诊断</strong><span class="summary">按训练、评分和看板等代码模块定位维护信号。</span><span class="arrow" aria-hidden="true">↗</span></a></li>
+</ul></section></main>
+<footer><div class="wrapper">源码图的引用固定到已提交版本。瀑布图取自历史受控样本，静态诊断反映生成时的工作区。</div></footer>
+</body></html>

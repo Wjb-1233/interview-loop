@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "erd",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\plan-storage\\candidate.json",
+    "sha256": "56a4002dfeaf26ea5c401b2924ff5c2c836a48b8f18a77e45e454e897d0735cc",
+    "bytes": 5457
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\plan-storage\\plan-storage.html",
+    "sha256": "359f566f579edbc36713c2470a6b2abad3c88c92a354c059bc3cb68650504f03",
+    "bytes": 949916
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\plan-storage\\plan-storage.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\plan-storage\\plan-storage.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\plan-storage\\plan-storage.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 3
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3556,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

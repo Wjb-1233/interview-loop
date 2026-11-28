@@ -1,0 +1,23 @@
+{
+  "learner": [],
+  "web": [],
+  "api": [
+    "backend-app",
+    "training",
+    "scoring",
+    "dashboard"
+  ],
+  "voicews": [
+    "voice"
+  ],
+  "db": [
+    "db-access"
+  ],
+  "redis": [
+    "rate-limit"
+  ],
+  "llm": [],
+  "doubao": [],
+  "simli": [],
+  "tts": []
+}

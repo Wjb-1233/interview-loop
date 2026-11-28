@@ -1,0 +1,337 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "结束面试 → 评分 → 计划勾销 → 报告页",
+    "subtitle": "一次 finish 请求内的真实调用顺序（含两遍模型评分与进入报告页后的读取）",
+    "locale": "zh-CN",
+    "output": ".archify/sequence-interviewloop-20261126-231101/interviewloop-finish-to-report.html",
+    "viewBox": [
+      1080,
+      620
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "revision": "05013c0aebc156003476513d259c3344f564f46c"
+    }
+  },
+  "participants": [
+    {
+      "id": "learner",
+      "type": "external",
+      "label": "学员",
+      "sublabel": "浏览器",
+      "icon": "person",
+      "sources": [
+        {
+          "path": "README.md",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "id": "training",
+      "type": "frontend",
+      "label": "对练页",
+      "sublabel": "TrainingView",
+      "sources": [
+        {
+          "path": "frontend/src/composables/useTrainingSession.ts",
+          "line": 78,
+          "end_line": 86
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "路由层",
+      "sublabel": "training/router",
+      "sources": [
+        {
+          "path": "backend/app/features/training/router.py",
+          "line": 274,
+          "end_line": 283
+        }
+      ]
+    },
+    {
+      "id": "workflow",
+      "type": "backend",
+      "label": "结束编排",
+      "sublabel": "workflow.py",
+      "sources": [
+        {
+          "path": "backend/app/features/training/workflow.py",
+          "line": 13,
+          "end_line": 23
+        }
+      ]
+    },
+    {
+      "id": "eval",
+      "type": "backend",
+      "label": "评分服务",
+      "sublabel": "evaluations",
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 42,
+          "end_line": 62
+        }
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "backend",
+      "label": "LLM 网关",
+      "sublabel": "LLM 网关",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/llm.py",
+          "line": 118,
+          "end_line": 127
+        }
+      ]
+    },
+    {
+      "id": "plan",
+      "type": "backend",
+      "label": "计划服务",
+      "sublabel": "plans",
+      "sources": [
+        {
+          "path": "backend/app/features/plans/service.py",
+          "line": 85,
+          "end_line": 100
+        }
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "MySQL",
+      "sublabel": "MySQL",
+      "sources": [
+        {
+          "path": "backend/app/db/models.py",
+          "line": 212
+        },
+        {
+          "path": "backend/app/db/models.py",
+          "line": 290
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 250,
+      "label": "① 提交结束"
+    },
+    {
+      "from": 255,
+      "to": 340,
+      "label": "② 模型评分"
+    },
+    {
+      "from": 345,
+      "to": 425,
+      "label": "③ 落库与计划勾销"
+    },
+    {
+      "from": 430,
+      "to": 510,
+      "label": "④ 响应并跳转"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "from": "learner",
+      "to": "training",
+      "y": 160,
+      "label": "点「结束面试」",
+      "variant": "default"
+    },
+    {
+      "id": "m2",
+      "from": "training",
+      "to": "api",
+      "y": 188,
+      "label": "POST /training-sessions/{id}/finish",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m3",
+      "from": "api",
+      "to": "workflow",
+      "y": 216,
+      "label": "end_training_attempt(create_plan)",
+      "variant": "default"
+    },
+    {
+      "id": "m4",
+      "from": "workflow",
+      "to": "db",
+      "y": 244,
+      "label": "finish_session：标记 FINISHED 并提交",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m5",
+      "from": "workflow",
+      "to": "eval",
+      "y": 272,
+      "label": "evaluate_session",
+      "variant": "default"
+    },
+    {
+      "id": "m6",
+      "from": "eval",
+      "to": "llm",
+      "y": 300,
+      "label": "打分：四维分 + 原话证据",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m7",
+      "from": "llm",
+      "to": "eval",
+      "y": 328,
+      "label": "JSON（维度分 / 证据）",
+      "variant": "return"
+    },
+    {
+      "id": "m8",
+      "from": "eval",
+      "to": "db",
+      "y": 356,
+      "label": "写 evaluations + evaluation_evidence",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m9",
+      "from": "eval",
+      "to": "plan",
+      "y": 384,
+      "label": "complete_training_task（非 TRANSFER）",
+      "variant": "default"
+    },
+    {
+      "id": "m10",
+      "from": "plan",
+      "to": "db",
+      "y": 412,
+      "label": "tasks + course_progress",
+      "variant": "default"
+    },
+    {
+      "id": "m11",
+      "from": "eval",
+      "to": "api",
+      "y": 440,
+      "label": "EvaluationView",
+      "variant": "return"
+    },
+    {
+      "id": "m12",
+      "from": "api",
+      "to": "training",
+      "y": 468,
+      "label": "200 { data: 评分 }",
+      "variant": "return"
+    },
+    {
+      "id": "m13",
+      "from": "training",
+      "to": "learner",
+      "y": 496,
+      "label": "跳转 /report/{id}",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "training",
+      "from": 180,
+      "to": 500,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 188,
+      "to": 472,
+      "type": "backend"
+    },
+    {
+      "participant": "workflow",
+      "from": 210,
+      "to": 430,
+      "type": "backend"
+    },
+    {
+      "participant": "eval",
+      "from": 266,
+      "to": 430,
+      "type": "backend"
+    },
+    {
+      "participant": "llm",
+      "from": 296,
+      "to": 332,
+      "type": "backend"
+    },
+    {
+      "participant": "db",
+      "from": 238,
+      "to": 250,
+      "type": "database"
+    },
+    {
+      "participant": "db",
+      "from": 380,
+      "to": 418,
+      "type": "database"
+    },
+    {
+      "participant": "plan",
+      "from": 384,
+      "to": 418,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "先落库再调模型",
+      "items": [
+        "finish_session 先提交 FINISHED，再进入模型 I/O",
+        "重试沿用同一会话 ID，不会产生第二份记录",
+        "评分与计划勾销在同一次 finish 请求内完成"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "模型与降级",
+      "items": [
+        "评分走 complete_json，模型不可用时降级并标记 degraded",
+        "改写建议来自同一评分流程的第二遍模型调用",
+        "已有评分默认直接返回，force=true 才重评"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "条件与后续",
+      "items": [
+        "仅当存在 plan_id + task_key 且非 TRANSFER 才勾销任务",
+        "前端随后跳转 /report/{id}，报告页再 GET /evaluations/{id}",
+        "报告页同时 GET /training-sessions/{id} 取消息"
+      ]
+    }
+  ]
+}

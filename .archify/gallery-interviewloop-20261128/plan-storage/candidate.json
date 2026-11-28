@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "diagram_type": "erd",
+  "meta": {
+    "title": "训练计划与微课任务的表关系",
+    "subtitle": "MySQL 三张表及全部物理字段",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/plan-storage/plan-storage.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    }
+  },
+  "layout": {
+    "mode": "grid",
+    "gapX": 68,
+    "gapY": 24
+  },
+  "entities": [
+    {
+      "id": "users",
+      "label": "users",
+      "tag": "账号",
+      "row": 0,
+      "col": 0,
+      "attributes": [
+        {
+          "name": "id",
+          "type": "VARCHAR(36)",
+          "key": "pk"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(120)",
+          "key": "uk"
+        },
+        {
+          "name": "password_hash",
+          "type": "VARCHAR(255)"
+        },
+        {
+          "name": "display_name",
+          "type": "VARCHAR(60)"
+        },
+        {
+          "name": "role",
+          "type": "VARCHAR(20)"
+        },
+        {
+          "name": "active",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "bio",
+          "type": "VARCHAR(500)"
+        },
+        {
+          "name": "email_verified",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "avatar",
+          "type": "TEXT"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)"
+        }
+      ],
+      "sources": [
+        {
+          "path": "backend/app/db/models.py",
+          "line": 25,
+          "end_line": 41,
+          "label": "账号字段及时间戳"
+        }
+      ]
+    },
+    {
+      "id": "training_plans",
+      "label": "training_plans",
+      "tag": "学习计划",
+      "row": 0,
+      "col": 1,
+      "attributes": [
+        {
+          "name": "id",
+          "type": "VARCHAR(36)",
+          "key": "pk"
+        },
+        {
+          "name": "user_id",
+          "type": "VARCHAR(36)",
+          "key": "fk",
+          "references": "users.id"
+        },
+        {
+          "name": "focus_dimension",
+          "type": "VARCHAR(30)"
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(120)"
+        },
+        {
+          "name": "tasks",
+          "type": "JSON"
+        },
+        {
+          "name": "tasks_version",
+          "type": "INTEGER"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)"
+        },
+        {
+          "name": "sequence",
+          "type": "INTEGER｜学员内序号"
+        },
+        {
+          "name": "created_at",
+          "type": "DATETIME(6)"
+        }
+      ],
+      "sources": [
+        {
+          "path": "backend/app/db/models.py",
+          "line": 289,
+          "end_line": 300,
+          "label": "训练计划字段"
+        }
+      ]
+    },
+    {
+      "id": "lesson_video_jobs",
+      "label": "lesson_video_jobs",
+      "tag": "微课渲染",
+      "row": 0,
+      "col": 2,
+      "attributes": [
+        {
+          "name": "id",
+          "type": "VARCHAR(36)",
+          "key": "pk"
+        },
+        {
+          "name": "plan_id",
+          "type": "VARCHAR(36)",
+          "key": "fk",
+          "references": "training_plans.id"
+        },
+        {
+          "name": "task_key",
+          "type": "VARCHAR(40)"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(16)"
+        },
+        {
+          "name": "progress",
+          "type": "INTEGER"
+        },
+        {
+          "name": "stage",
+          "type": "VARCHAR(20)"
+        },
+        {
+          "name": "engine",
+          "type": "VARCHAR(20)｜请求或实际引擎"
+        },
+        {
+          "name": "video_key",
+          "type": "VARCHAR(80)"
+        },
+        {
+          "name": "chapters",
+          "type": "JSON"
+        },
+        {
+          "name": "error",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME(6)"
+        }
+      ],
+      "sources": [
+        {
+          "path": "backend/app/db/models.py",
+          "line": 303,
+          "end_line": 320,
+          "label": "微课任务字段与复合索引"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "plan-user",
+      "from": "training_plans",
+      "to": "users",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "identifying": false
+    },
+    {
+      "id": "job-plan",
+      "from": "lesson_video_jobs",
+      "to": "training_plans",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "identifying": false
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "计划与任务标识",
+      "items": [
+        "计划里的学习步骤保存在 tasks JSON，微课任务用 task_key 指向其中一项。",
+        "微课任务对 plan_id、task_key 建联合索引。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "外键与删除",
+      "items": [
+        "训练计划通过 user_id 关联用户，微课任务通过 plan_id 关联训练计划。两条外键均配置 ON DELETE CASCADE。"
+      ]
+    }
+  ]
+}

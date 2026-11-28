@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "class",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-contracts\\candidate.json",
+    "sha256": "8aa333711d605f88ea782a88bd9cf5c108ab165626982fc72f0964a47f160169",
+    "bytes": 5126
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-contracts\\scoring-contracts.html",
+    "sha256": "2ee9f1a674febaf402736f24e638c33f049200c1ee61633d7db19b1423136071",
+    "bytes": 939725
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-contracts\\scoring-contracts.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-contracts\\scoring-contracts.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-contracts\\scoring-contracts.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 4
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3441,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "diagram_type": "timeline",
+  "meta": {
+    "title": "InterviewLoop · 近期演进时间线",
+    "subtitle": "近期提交的作者时间 · Asia/Shanghai",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/project-history/project-history.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    },
+    "evidence": "observed",
+    "timezone": "Asia/Shanghai"
+  },
+  "lanes": [
+    {
+      "id": "product",
+      "label": "功能与体验"
+    },
+    {
+      "id": "engineering",
+      "label": "工程与验收"
+    }
+  ],
+  "events": [
+    {
+      "id": "hardening",
+      "at": "2026-11-23T19:39:03+08:00",
+      "title": "登录与分享收敛",
+      "detail": "65ed2ae · 安全加固与入口清理",
+      "lane": "engineering",
+      "kind": "action",
+      "sources": [
+        {
+          "path": "frontend/src/router.ts",
+          "line": 7,
+          "end_line": 38,
+          "label": "当前网页入口"
+        }
+      ]
+    },
+    {
+      "id": "training",
+      "at": "2026-11-25T16:32:13+08:00",
+      "title": "面试功能与验收",
+      "detail": "d92bc1a · 完善训练链路及项目文档",
+      "lane": "product",
+      "kind": "change",
+      "sources": [
+        {
+          "path": "README.md",
+          "line": 123,
+          "end_line": 140,
+          "label": "当前训练流程"
+        }
+      ]
+    },
+    {
+      "id": "rename",
+      "at": "2026-11-26T09:08:11+08:00",
+      "title": "项目命名统一",
+      "detail": "3e1bb46 · 名称统一为 InterviewLoop",
+      "lane": "product",
+      "kind": "change",
+      "sources": [
+        {
+          "path": "README.md",
+          "line": 1,
+          "end_line": 7,
+          "label": "项目名称"
+        }
+      ]
+    },
+    {
+      "id": "timezone",
+      "at": "2026-11-27T23:15:28+08:00",
+      "title": "修正会话计时",
+      "detail": "4e46f71 · 统一返回可识别的时间信息",
+      "lane": "engineering",
+      "kind": "recovery",
+      "sources": [
+        {
+          "path": "backend/tests/test_api_model_utc.py",
+          "line": 1,
+          "end_line": 19,
+          "label": "时区输出回归"
+        }
+      ]
+    },
+    {
+      "id": "simli",
+      "at": "2026-11-28T11:43:15+08:00",
+      "title": "视频形象切换到 Simli",
+      "detail": "4d57772 · 视频开场统一依赖在线数字人",
+      "lane": "product",
+      "kind": "change",
+      "sources": [
+        {
+          "path": "frontend/src/components/training/LiveInterviewRoom.vue",
+          "line": 279,
+          "end_line": 298,
+          "label": "数字人就绪条件"
+        }
+      ]
+    },
+    {
+      "id": "complexity",
+      "at": "2026-11-28T16:12:33+08:00",
+      "title": "重构核心入口",
+      "detail": "10f84bd · 加入后端复杂度回归门",
+      "lane": "engineering",
+      "kind": "action",
+      "sources": [
+        {
+          "path": "backend/tests/test_complexity_gate.py",
+          "line": 57,
+          "end_line": 77,
+          "label": "复杂度回归"
+        }
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "violet",
+      "title": "时间来源",
+      "items": [
+        "节点读取本地 Git 的提交作者时间，覆盖此次选取的近期里程碑。源码链接定位这些能力当前的实现。"
+      ]
+    }
+  ]
+}

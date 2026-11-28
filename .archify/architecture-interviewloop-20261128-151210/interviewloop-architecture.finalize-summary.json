@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+    "sha256": "b7206e81aa5979576a916c21541894deef95ee9829fbd2ecd4f84e0b19deacce",
+    "bytes": 8968
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+    "sha256": "d01f3a9da3507a86950ff6a93152804fe123b48ac81672c3e78ef0143e4075cc",
+    "bytes": 956479
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "fail"
+  },
+  "failedStage": "browser-check",
+  "diagnostics": [
+    {
+      "code": "viewer/evidence-path-conflict",
+      "severity": "error",
+      "message": "browser-check will not replace the existing unowned evidence path \"D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json\".",
+      "subject": {
+        "artifact": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "evidencePath": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json"
+      },
+      "evidence": {
+        "reason": {
+          "code": "ownership-artifact-mismatch"
+        }
+      },
+      "supportedFixes": [
+        "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1296,
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  }
+}

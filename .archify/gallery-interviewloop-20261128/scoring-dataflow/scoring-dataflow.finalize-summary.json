@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "dataflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\candidate.json",
+    "sha256": "1009e3a5d7e33690fc861d7700fd16a946deb771069c7a3e4cd2c124d87d3d17",
+    "bytes": 4469
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\scoring-dataflow.html",
+    "sha256": "f584e2aacd1cccb25aedacd1f659cd68426246535a719d365e0d3fc5519be7e1",
+    "bytes": 929606
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "autoRepair": {
+    "originalSha256": "9eadabcf9d6613536e8d23dd3ab755a5bd56f6afecfd6e5b1d966f8f3c13c1f8",
+    "repairedSha256": "1009e3a5d7e33690fc861d7700fd16a946deb771069c7a3e4cd2c124d87d3d17",
+    "sourceRanges": [
+      {
+        "path": "/nodes/1/sources/0",
+        "endLine": [
+          38,
+          35
+        ]
+      }
+    ],
+    "outcome": "applied"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\scoring-dataflow.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\scoring-dataflow.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\scoring-dataflow.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 8
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3894,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

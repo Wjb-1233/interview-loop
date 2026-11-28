@@ -1,0 +1,27 @@
+{
+  "modules": {
+    "groups": {
+      "training": [
+        "backend/app/features/training/**"
+      ],
+      "scoring": [
+        "backend/app/features/evaluations/**"
+      ],
+      "dashboard": [
+        "backend/app/features/dashboard/**"
+      ],
+      "voice": [
+        "backend/app/features/voice/**"
+      ],
+      "db-access": [
+        "backend/app/db/**"
+      ],
+      "rate-limit": [
+        "backend/app/infrastructure/rate_limit.py"
+      ],
+      "migrations": [
+        "backend/migrations/**"
+      ]
+    }
+  }
+}

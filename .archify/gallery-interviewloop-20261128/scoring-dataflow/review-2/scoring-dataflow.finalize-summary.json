@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "dataflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\candidate.json",
+    "sha256": "a32f5914b4bb85ef108ccfddfd8b4b0feb2047c72084c891d7daf91c97dfffbf",
+    "bytes": 5198
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\scoring-dataflow.html",
+    "sha256": "f4d866ebf7ffc57f4ccd0618db21473f8ca6791caee9db16b22ae0fd664caf27",
+    "bytes": 932189
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\review-2\\scoring-dataflow.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\review-2\\scoring-dataflow.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\review-2\\scoring-dataflow.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 10
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4622,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "timeline",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\project-history\\candidate.json",
+    "sha256": "776edfd89f286d6f723f572b59812b5d27c93b5d66afd3140b5aef323d463015",
+    "bytes": 3572
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\project-history\\project-history.html",
+    "sha256": "109ebbdde37d51684021c7d7c2c6e0c07f71cd6c5ba6dfdbba57aa7d4729c7d5",
+    "bytes": 935777
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\project-history\\review-2\\project-history.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\project-history\\review-2\\project-history.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\project-history\\review-2\\project-history.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 6
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4494,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

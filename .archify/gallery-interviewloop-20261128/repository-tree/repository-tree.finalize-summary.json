@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "tree",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\repository-tree\\candidate.json",
+    "sha256": "77b0b4ee6c42040c256fe381c1489cc86cab47960131a6e1af5e2fd79ef09368",
+    "bytes": 3325
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\repository-tree\\repository-tree.html",
+    "sha256": "4a8374dd301e6255e7645c6b04fcd173c7f7e4904d7b173a2295c41e9a15d8e1",
+    "bytes": 942676
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\repository-tree\\repository-tree.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\repository-tree\\repository-tree.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\repository-tree\\repository-tree.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 12
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3870,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

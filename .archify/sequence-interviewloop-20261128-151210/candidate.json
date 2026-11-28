@@ -1,0 +1,341 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "视频面试开场 · 从设备检查到首问",
+    "subtitle": "豆包实时引擎的成功路径，附数字人失败与语音引擎切换条件",
+    "locale": "zh-CN",
+    "output": ".archify/sequence-interviewloop-20261128-151210/interviewloop-sequence.html",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [
+      1080,
+      692
+    ],
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    },
+    "visual_preset": "signal-flow"
+  },
+  "participants": [
+    {
+      "id": "learner",
+      "type": "external",
+      "label": "学员",
+      "sublabel": "设备检查 · 开始面试",
+      "sources": [
+        {
+          "path": "frontend/src/views/VideoInterviewView.vue",
+          "line": 261,
+          "end_line": 284,
+          "label": "开始条件与改用语音面试"
+        }
+      ]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "面试房间",
+      "sublabel": "设备页 · 实时房间",
+      "sources": [
+        {
+          "path": "frontend/src/views/VideoInterviewView.vue",
+          "line": 291,
+          "end_line": 298,
+          "label": "设备准备页先查询引擎"
+        },
+        {
+          "path": "frontend/src/components/training/LiveInterviewRoom.vue",
+          "line": 255,
+          "end_line": 367,
+          "label": "数字人就绪后查状态、取票、建立语音会话"
+        },
+        {
+          "path": "frontend/src/components/training/LiveInterviewRoom.vue",
+          "line": 885,
+          "end_line": 904,
+          "label": "复用或创建会话并读取上下文"
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI",
+      "sublabel": "/api/v1 · WS 转发",
+      "sources": [
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 97,
+          "end_line": 174,
+          "label": "状态、签票、授权与转发"
+        },
+        {
+          "path": "backend/app/core/security.py",
+          "line": 62,
+          "end_line": 98,
+          "label": "票据过期、签名和类型校验"
+        },
+        {
+          "path": "backend/app/features/training/router.py",
+          "line": 84,
+          "end_line": 178,
+          "label": "面试准备和上下文接口"
+        }
+      ]
+    },
+    {
+      "id": "simli",
+      "type": "external",
+      "label": "Simli",
+      "sublabel": "令牌 + WebRTC",
+      "sources": [
+        {
+          "path": "backend/app/features/avatar/service.py",
+          "line": 48,
+          "end_line": 97,
+          "label": "换取短时会话令牌"
+        },
+        {
+          "path": "frontend/src/components/media/SimliPresenter.vue",
+          "line": 118,
+          "end_line": 145,
+          "label": "令牌请求与驱动口型的音轨"
+        },
+        {
+          "path": "frontend/src/components/media/SimliPresenter.vue",
+          "line": 196,
+          "end_line": 224,
+          "label": "WebRTC 建连与回流音轨"
+        }
+      ]
+    },
+    {
+      "id": "rt",
+      "type": "external",
+      "label": "豆包实时对话",
+      "sublabel": "duplex/realtime/dialogue",
+      "sources": [
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 35,
+          "end_line": 40,
+          "label": "服务地址和并发槽位"
+        },
+        {
+          "path": "frontend/src/components/training/LiveInterviewRoom.vue",
+          "line": 199,
+          "end_line": 234,
+          "label": "会话就绪后提交开场白与接收 PCM"
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "from": 149,
+      "to": 200,
+      "label": "设备预检"
+    },
+    {
+      "from": 204,
+      "to": 368,
+      "label": "准备上下文与数字人"
+    },
+    {
+      "from": 372,
+      "to": 479,
+      "label": "检查语音与取票"
+    },
+    {
+      "from": 483,
+      "to": 590,
+      "label": "建立豆包会话并播报首问"
+    }
+  ],
+  "messages": [
+    {
+      "id": "preflight-status",
+      "from": "ui",
+      "to": "api",
+      "y": 160,
+      "label": "GET /voice/status · 查询引擎",
+      "variant": "emphasis"
+    },
+    {
+      "id": "start-interview",
+      "from": "learner",
+      "to": "ui",
+      "y": 188,
+      "label": "设备检查后开始",
+      "variant": "emphasis"
+    },
+    {
+      "id": "context",
+      "from": "ui",
+      "to": "api",
+      "y": 216,
+      "label": "读取指令与场景开场白"
+    },
+    {
+      "id": "avatar-token",
+      "from": "ui",
+      "to": "api",
+      "y": 244,
+      "label": "GET /avatar/simli-session",
+      "variant": "emphasis"
+    },
+    {
+      "id": "simli-token",
+      "from": "api",
+      "to": "simli",
+      "y": 272,
+      "label": "POST /compose/token",
+      "variant": "security"
+    },
+    {
+      "id": "simli-ok",
+      "from": "simli",
+      "to": "api",
+      "y": 300,
+      "label": "返回 session_token",
+      "variant": "return"
+    },
+    {
+      "id": "token-to-ui",
+      "from": "api",
+      "to": "ui",
+      "y": 328,
+      "label": "返回 sessionToken",
+      "variant": "return"
+    },
+    {
+      "id": "webrtc",
+      "from": "ui",
+      "to": "simli",
+      "y": 356,
+      "label": "SDK 建立 WebRTC",
+      "variant": "emphasis"
+    },
+    {
+      "id": "voice-status",
+      "from": "ui",
+      "to": "api",
+      "y": 384,
+      "label": "数字人就绪后检查语音"
+    },
+    {
+      "id": "ws-ticket",
+      "from": "ui",
+      "to": "api",
+      "y": 412,
+      "label": "POST /voice/ws-ticket",
+      "variant": "security"
+    },
+    {
+      "id": "ticket",
+      "from": "api",
+      "to": "ui",
+      "y": 440,
+      "label": "短时语音票据",
+      "variant": "return"
+    },
+    {
+      "id": "ws-open",
+      "from": "ui",
+      "to": "api",
+      "y": 468,
+      "label": "WS /voice/ws?ticket=…",
+      "variant": "emphasis"
+    },
+    {
+      "id": "upstream",
+      "from": "api",
+      "to": "rt",
+      "y": 496,
+      "label": "授权后连接豆包 WSS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "session-create",
+      "from": "ui",
+      "to": "rt",
+      "y": 524,
+      "label": "经 FastAPI 建会并提交开场白"
+    },
+    {
+      "id": "first-audio",
+      "from": "rt",
+      "to": "ui",
+      "y": 552,
+      "label": "经 FastAPI 回传首问 PCM",
+      "variant": "return"
+    },
+    {
+      "id": "speak",
+      "from": "ui",
+      "to": "learner",
+      "y": 580,
+      "label": "显示数字人并播放首问",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "ui",
+      "from": 160,
+      "to": 580,
+      "type": "frontend"
+    },
+    {
+      "participant": "api",
+      "from": 160,
+      "to": 552,
+      "type": "backend"
+    },
+    {
+      "participant": "simli",
+      "from": 272,
+      "to": 356,
+      "type": "external"
+    },
+    {
+      "participant": "rt",
+      "from": 496,
+      "to": 552,
+      "type": "external"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "开场就绪条件",
+      "items": [
+        "设备准备页先获取引擎，设备检查通过后才进入房间；本图跟随豆包引擎。",
+        "房间复用准备会话，缺失时先创建。读取指令、开场白和最少轮次；数字人初始化可以与上下文请求并行。",
+        "Simli 就绪后再次查询语音可用性与音色，签发 60 秒票据。Simli 密钥留在服务端，浏览器凭会话令牌直连 WebRTC。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "首问如何播报",
+      "items": [
+        "WebSocket 打开后，浏览器开始计时并启用麦克风。豆包分支发送 session.create，输入 16 kHz，输出 24 kHz。",
+        "FastAPI 双向转发。收到豆包的 session.created 后，浏览器发送 speech_text_buffer.commit，明确请求播报场景开场白。",
+        "回传的 PCM 音轨驱动 Simli 口型。数字人接管出声时用 WebRTC 回流音轨，否则由浏览器本地播放。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "失败与切换",
+      "items": [
+        "数字人开场失败时阻止语音建连，显示具体原因和重连入口。可改用语音面试，但同条件复测须保留原训练方式。",
+        "配置选择管线时直接用 /voice/ws/pipeline。豆包遇到指定连接错误时只自动切换一次，并重新获取语音票据。",
+        "会中数字人断开时提示画面丢失，训练可继续，已答内容保留。"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "lifecycle",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\lesson-job-state\\candidate.json",
+    "sha256": "b9f57028dd160dc6be3d9f7aa7064d96e1c6e1b6362de38a0de663b82798e3a7",
+    "bytes": 3641
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\lesson-job-state\\lesson-job-state.html",
+    "sha256": "644005e9782babf1d1ccf3300e073e71ff288de43c9d16cd5de8eb273e71e90f",
+    "bytes": 930857
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\lesson-job-state\\review-2\\lesson-job-state.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\lesson-job-state\\review-2\\lesson-job-state.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\lesson-job-state\\review-2\\lesson-job-state.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 6
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4805,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

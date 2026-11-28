@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "原话怎样变成评分与成长数据",
+    "subtitle": "从答题消息到报告与成长统计",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/scoring-dataflow/scoring-dataflow.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    }
+  },
+  "stages": [
+    {
+      "label": "原始记录"
+    },
+    {
+      "label": "整理输入"
+    },
+    {
+      "label": "生成与核验"
+    },
+    {
+      "label": "持久化"
+    },
+    {
+      "label": "读取与使用"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "messages",
+      "type": "database",
+      "label": "对话消息",
+      "sublabel": "问题与用户回答",
+      "stage": 0,
+      "row": 1,
+      "sources": [
+        {
+          "path": "backend/app/db/models.py",
+          "line": 197,
+          "end_line": 208,
+          "label": "消息、轮次及发言人"
+        }
+      ]
+    },
+    {
+      "id": "turns",
+      "type": "backend",
+      "label": "问答配对",
+      "sublabel": "按渠道处理轮次",
+      "stage": 1,
+      "row": 1,
+      "sources": [
+        {
+          "path": "backend/app/features/training/answer_turns.py",
+          "line": 14,
+          "end_line": 35,
+          "label": "统一组装问答轮次"
+        }
+      ]
+    },
+    {
+      "id": "context",
+      "type": "database",
+      "label": "面试上下文",
+      "sublabel": "场景与可选简历",
+      "stage": 1,
+      "row": 0,
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 61,
+          "end_line": 84,
+          "label": "场景、简历与岗位考察标准"
+        },
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 209,
+          "end_line": 221,
+          "label": "读取上下文并拼接评分输入"
+        }
+      ]
+    },
+    {
+      "id": "score",
+      "type": "backend",
+      "label": "评分与证据校验",
+      "sublabel": "采样 · 复核 · 降级",
+      "stage": 2,
+      "row": 1,
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 209,
+          "end_line": 243,
+          "label": "整理输入、采样与复核"
+        },
+        {
+          "path": "backend/app/features/evaluations/scoring.py",
+          "line": 161,
+          "end_line": 211,
+          "label": "原句证据校验"
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "报告和证据",
+      "sublabel": "MySQL 业务表",
+      "stage": 3,
+      "row": 1,
+      "sources": [
+        {
+          "path": "backend/app/db/models.py",
+          "line": 211,
+          "end_line": 250,
+          "label": "报告与证据的数据表"
+        },
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 244,
+          "end_line": 283,
+          "label": "报告、证据与计划写入"
+        }
+      ]
+    },
+    {
+      "id": "growth",
+      "type": "backend",
+      "label": "报告与成长看板",
+      "sublabel": "按质量筛选",
+      "stage": 4,
+      "row": 1,
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/quality.py",
+          "line": 13,
+          "end_line": 74,
+          "label": "证据校验与统计资格"
+        },
+        {
+          "path": "backend/app/features/evaluations/report_queries.py",
+          "line": 22,
+          "end_line": 70,
+          "label": "报告读取投影"
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "id": "raw-turns",
+      "from": "messages",
+      "to": "turns",
+      "label": "发言人与轮次",
+      "variant": "emphasis"
+    },
+    {
+      "id": "turns-score",
+      "from": "turns",
+      "to": "score",
+      "label": "题目与原话",
+      "variant": "emphasis"
+    },
+    {
+      "id": "context-score",
+      "from": "context",
+      "to": "score",
+      "label": "场景与简历",
+      "variant": "security"
+    },
+    {
+      "id": "score-store",
+      "from": "score",
+      "to": "store",
+      "label": "分数与有效引文",
+      "variant": "emphasis"
+    },
+    {
+      "id": "store-growth",
+      "from": "store",
+      "to": "growth",
+      "label": "报告与证据",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "评分还读取哪些输入",
+      "items": [
+        "场景、岗位考察标准与可选简历均进入评分上下文。客观表达指标在模型调用前计算。",
+        "评分可能进行多次采样；出现专业核查冲突时可以请求复核。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "进入成长统计的条件",
+      "items": [
+        "已结束的中文训练、至少两轮、证据齐全且报告质量合格。待重评、降级和迁移验证场次使用各自的标记。"
+      ]
+    }
+  ]
+}

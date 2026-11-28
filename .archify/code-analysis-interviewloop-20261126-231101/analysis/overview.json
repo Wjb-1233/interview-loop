@@ -1,0 +1,1706 @@
+{
+  "verdict": "attention",
+  "counts": {
+    "findings": 56,
+    "error": 0,
+    "warning": 17,
+    "info": 39,
+    "accepted": 0,
+    "acceptedErrors": 0,
+    "offDiagram": 7
+  },
+  "review": null,
+  "groups": [
+    {
+      "code": "complexity/function",
+      "severity": "warning",
+      "count": 56,
+      "ids": [
+        "COMP-2336e19111fc",
+        "COMP-84ebe991b7b0",
+        "COMP-a90089199d54",
+        "COMP-a65a5adc060b",
+        "COMP-c7672930a2ed",
+        "COMP-1e5c4f061224",
+        "COMP-acf4be4d4fce",
+        "COMP-d5712ce23cd6",
+        "COMP-42375cf15c43",
+        "COMP-e7f71e49b466",
+        "COMP-982f1604b9c7",
+        "COMP-ba16bc38c92d",
+        "COMP-b77e0b5e9adb",
+        "COMP-2dba2dc125c8",
+        "COMP-38569ce140c1",
+        "COMP-8932df8a3267",
+        "COMP-81c733ab32dd",
+        "COMP-653f8baa1f11",
+        "COMP-9d9f6232a1e3",
+        "COMP-ecf36e95f06b",
+        "COMP-29990fc62836",
+        "COMP-c24fc31346c4",
+        "COMP-ca3a9a5fa268",
+        "COMP-d89dcbf5bf8e",
+        "COMP-5370f87a4a54",
+        "COMP-492a3a9df1d4",
+        "COMP-8c1756421f6f",
+        "COMP-8d5572af0121",
+        "COMP-d70397ea0a67",
+        "COMP-683ef9bddaf6",
+        "COMP-8d6ceed03e7c",
+        "COMP-b30ee0924d8e",
+        "COMP-f9eb79e4fcbe",
+        "COMP-3868bc31fbc0",
+        "COMP-015661c940e0",
+        "COMP-4de28b2b2893",
+        "COMP-87c1d560345d",
+        "COMP-bbb4db7ca45b",
+        "COMP-f82179aa7c6a",
+        "COMP-3de2dcfc1286",
+        "COMP-49268ccc5854",
+        "COMP-49c02e97e3e3",
+        "COMP-78e77939b31f",
+        "COMP-96a436cc08dc",
+        "COMP-9fbd6b389c73",
+        "COMP-b5194b7ea684",
+        "COMP-c4467d402f5e",
+        "COMP-eb2a9314c295",
+        "COMP-ef16bbf48416",
+        "COMP-5c2fc055d26b",
+        "COMP-cedbcbf9ae1a",
+        "COMP-2edd399efe4e",
+        "COMP-6cea81a46a3a",
+        "COMP-e3af031a6050",
+        "COMP-fd8b0f295680",
+        "COMP-c2b8f3c96970"
+      ]
+    }
+  ],
+  "priorities": [
+    "COMP-2336e19111fc",
+    "COMP-84ebe991b7b0",
+    "COMP-a90089199d54"
+  ],
+  "investigation": {
+    "leads": [
+      {
+        "id": "COMP-2336e19111fc",
+        "code": "complexity/function",
+        "severity": "warning",
+        "message": "complete_training_task in backend/app/features/plans/service.py has cyclomatic complexity 69 (111 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+        "where": "backend/app/features/plans/service.py:85",
+        "symbol": "complete_training_task",
+        "impact": {
+          "modules": 1,
+          "size": 69,
+          "fanIn": 0,
+          "files": 134
+        }
+      },
+      {
+        "id": "COMP-84ebe991b7b0",
+        "code": "complexity/function",
+        "severity": "warning",
+        "message": "evaluate_session in backend/app/features/evaluations/service.py has cyclomatic complexity 62 (192 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+        "where": "backend/app/features/evaluations/service.py:42",
+        "symbol": "evaluate_session",
+        "impact": {
+          "modules": 1,
+          "size": 62,
+          "fanIn": 0,
+          "files": 134
+        }
+      },
+      {
+        "id": "COMP-a90089199d54",
+        "code": "complexity/function",
+        "severity": "warning",
+        "message": "evidence_reply in backend/app/features/training/evidence.py has cyclomatic complexity 50 (74 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+        "where": "backend/app/features/training/evidence.py:43",
+        "symbol": "evidence_reply",
+        "impact": {
+          "modules": 1,
+          "size": 50,
+          "fanIn": 0,
+          "files": 134
+        }
+      }
+    ],
+    "architecture": {
+      "modules": 4,
+      "edges": 0,
+      "hotspots": [],
+      "hotspotRanking": "Connected modules ordered by loc * (1 + log2(1 + fanIn)), then fanIn, fanOut and id. A bounded reading order, not inferred business importance, defect severity or refactoring advice.",
+      "strongestEdges": [],
+      "structuralSignals": []
+    }
+  },
+  "findings": [
+    {
+      "id": "COMP-2336e19111fc",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 69,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-84ebe991b7b0",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 62,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-a90089199d54",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 50,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-a65a5adc060b",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 47,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-c7672930a2ed",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 44,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-1e5c4f061224",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 42,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-acf4be4d4fce",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 41,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-d5712ce23cd6",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 38,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-42375cf15c43",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 35,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-e7f71e49b466",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 35,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-982f1604b9c7",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 33,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-ba16bc38c92d",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "backend-scripts"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 33,
+        "fanIn": 0,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-b77e0b5e9adb",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 32,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-2dba2dc125c8",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 31,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-38569ce140c1",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 29,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-8932df8a3267",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "backend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 29,
+        "fanIn": 0,
+        "files": 55
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-81c733ab32dd",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 28,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-653f8baa1f11",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 23,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-9d9f6232a1e3",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 23,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-ecf36e95f06b",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 23,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-29990fc62836",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 22,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-c24fc31346c4",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 22,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-ca3a9a5fa268",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 22,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-d89dcbf5bf8e",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "backend-scripts"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 22,
+        "fanIn": 0,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-5370f87a4a54",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "backend-scripts"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 21,
+        "fanIn": 0,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-492a3a9df1d4",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 20,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-8c1756421f6f",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 19,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-8d5572af0121",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 19,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-d70397ea0a67",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 19,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-683ef9bddaf6",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 18,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-8d6ceed03e7c",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 18,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-b30ee0924d8e",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 18,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-f9eb79e4fcbe",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 18,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-3868bc31fbc0",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "backend-scripts"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 18,
+        "fanIn": 0,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-015661c940e0",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 17,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-4de28b2b2893",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 17,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-87c1d560345d",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 17,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-bbb4db7ca45b",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 17,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-f82179aa7c6a",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 17,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-3de2dcfc1286",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-49268ccc5854",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-49c02e97e3e3",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-78e77939b31f",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-96a436cc08dc",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-9fbd6b389c73",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-b5194b7ea684",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-c4467d402f5e",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-eb2a9314c295",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-ef16bbf48416",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-5c2fc055d26b",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "backend-scripts"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-cedbcbf9ae1a",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "backend-scripts"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-2edd399efe4e",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 15,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-6cea81a46a3a",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 15,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-e3af031a6050",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 15,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-fd8b0f295680",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 15,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-c2b8f3c96970",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [
+        "api",
+        "routers",
+        "svc",
+        "orm",
+        "redis",
+        "llm",
+        "voice",
+        "voiceProvider",
+        "worker",
+        "remotion"
+      ],
+      "moduleIds": [
+        "backend-app"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 11,
+        "fanIn": 0,
+        "files": 134
+      },
+      "relatedIds": [],
+      "status": "open"
+    }
+  ],
+  "coverage": {
+    "language": "py",
+    "adapter": "pyright-parser@1.1.414/python-3.14",
+    "files": {
+      "analyzed": 206,
+      "excludedByRole": 97,
+      "excludedRoles": [
+        "generated",
+        "test"
+      ],
+      "excludePatterns": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/target/**/*.java",
+        "**/coverage/**",
+        "**/*.d.ts",
+        "**/venv/**",
+        "**/venv-*/**",
+        "**/.venv/**",
+        "**/site-packages/**",
+        "**/__pycache__/**",
+        "**/.pytest_cache/**",
+        "**/.git/**",
+        "**/_archive/**"
+      ],
+      "parseErrors": []
+    },
+    "otherLanguages": [
+      {
+        "adapter": "ts",
+        "files": 62
+      }
+    ],
+    "unresolved": {
+      "external": 1806,
+      "outside": 0,
+      "unknown": 7,
+      "opaque": 0
+    },
+    "rules": {
+      "run": [
+        "coupling/import-cycle",
+        "coupling/cycle",
+        "coupling/hub",
+        "coupling/concentration",
+        "coupling/internal-leak",
+        "complexity/function"
+      ],
+      "suppressed": []
+    },
+    "unmappedModules": [
+      "backend",
+      "backend-scripts",
+      "scripts"
+    ],
+    "ambiguousModules": [
+      {
+        "id": "backend-app",
+        "components": [
+          "api",
+          "llm",
+          "orm",
+          "redis",
+          "remotion",
+          "routers",
+          "svc",
+          "voice",
+          "voiceProvider",
+          "worker"
+        ]
+      }
+    ],
+    "boundaries": null,
+    "duplicates": null
+  }
+}

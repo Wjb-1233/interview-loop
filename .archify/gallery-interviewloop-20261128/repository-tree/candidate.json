@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "diagram_type": "tree",
+  "meta": {
+    "title": "InterviewLoop 仓库目录树",
+    "subtitle": "入口、业务代码、测试与项目材料",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/repository-tree/repository-tree.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    }
+  },
+  "layout": {
+    "direction": "right",
+    "gapX": 94,
+    "gapY": 24
+  },
+  "nodes": [
+    {
+      "id": "root",
+      "label": "InterviewLoop",
+      "sublabel": "仓库根目录",
+      "sources": [
+        {
+          "path": "."
+        }
+      ]
+    },
+    {
+      "id": "backend",
+      "label": "backend",
+      "sublabel": "FastAPI 与数据层",
+      "parent": "root",
+      "sources": [
+        {
+          "path": "backend"
+        }
+      ]
+    },
+    {
+      "id": "app",
+      "label": "app",
+      "sublabel": "业务与基础设施",
+      "parent": "backend",
+      "sources": [
+        {
+          "path": "backend/app"
+        }
+      ]
+    },
+    {
+      "id": "migrations",
+      "label": "migrations",
+      "sublabel": "Alembic 迁移",
+      "parent": "backend",
+      "sources": [
+        {
+          "path": "backend/migrations"
+        }
+      ]
+    },
+    {
+      "id": "backend-tests",
+      "label": "tests",
+      "sublabel": "后端回归",
+      "parent": "backend",
+      "sources": [
+        {
+          "path": "backend/tests"
+        }
+      ]
+    },
+    {
+      "id": "frontend",
+      "label": "frontend",
+      "sublabel": "Vue 3 与浏览器测试",
+      "parent": "root",
+      "sources": [
+        {
+          "path": "frontend"
+        }
+      ]
+    },
+    {
+      "id": "src",
+      "label": "src",
+      "sublabel": "页面与组件",
+      "parent": "frontend",
+      "sources": [
+        {
+          "path": "frontend/src"
+        }
+      ]
+    },
+    {
+      "id": "e2e",
+      "label": "e2e",
+      "sublabel": "Playwright 用例",
+      "parent": "frontend",
+      "sources": [
+        {
+          "path": "frontend/e2e"
+        }
+      ]
+    },
+    {
+      "id": "content",
+      "label": "content",
+      "sublabel": "场景与题库",
+      "parent": "root",
+      "sources": [
+        {
+          "path": "content"
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "label": "research",
+      "sublabel": "实验与性能证据",
+      "parent": "root",
+      "sources": [
+        {
+          "path": "research"
+        }
+      ]
+    },
+    {
+      "id": "video",
+      "label": "video",
+      "sublabel": "Remotion 视频源码",
+      "parent": "root",
+      "sources": [
+        {
+          "path": "video"
+        }
+      ]
+    },
+    {
+      "id": "deploy",
+      "label": "deploy",
+      "sublabel": "部署配置示例",
+      "parent": "root",
+      "sources": [
+        {
+          "path": "deploy"
+        }
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "入口定位",
+      "items": [
+        "后端从 backend/app/main.py 注册功能路由。前端从 frontend/src/router.ts 串起场景、训练、报告和计划。"
+      ]
+    }
+  ]
+}

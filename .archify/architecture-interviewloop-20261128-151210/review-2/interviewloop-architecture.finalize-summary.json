@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+    "sha256": "df8a24ad7f3b459c4109871c171c03d48d951725f0064d65c6339970f33cc113",
+    "bytes": 10434
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+    "sha256": "874b0e7664a8427a8408e3c9f886e1b8d8d36d33dd7323a09198f80029ad7d02",
+    "bytes": 963705
+  },
+  "gates": {
+    "validate": "fail",
+    "deliver": "not-run",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "validate",
+  "diagnostics": [
+    {
+      "code": "layout/boundary-encloses-non-member",
+      "severity": "error",
+      "message": "Component \"web\" is not wrapped by boundary \"uvicorn 进程 127.0.0.1:8081\" but sits inside its frame — move it outside the frame, place the wrapped members in one compact axis-aligned cluster (no empty bay for a non-member), or add it to wraps only when it truly belongs there.",
+      "subject": {
+        "diagramType": "architecture",
+        "boundary": {
+          "kind": "region",
+          "label": "uvicorn 进程 127.0.0.1:8081",
+          "wraps": [
+            "api",
+            "voicews"
+          ]
+        },
+        "component": "web"
+      },
+      "evidence": {
+        "bounds": {
+          "x": 270,
+          "y": 490,
+          "width": 570,
+          "height": 312
+        },
+        "component": {
+          "id": "web",
+          "type": "frontend",
+          "label": "InterviewLoop Web",
+          "x": 300,
+          "y": 520,
+          "width": 160,
+          "height": 62,
+          "pos": [
+            300,
+            520
+          ]
+        }
+      },
+      "supportedFixes": [
+        "move \"web\" outside the boundary frame",
+        "reposition the wrapped members into one compact axis-aligned cluster (no empty bay) that leaves non-members outside"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\review-2\\interviewloop-architecture.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\review-2\\interviewloop-architecture.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 754,
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "nextAction": {
+    "action": "edit-in-place",
+    "candidate": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+    "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
+    "then": "finalize-once"
+  }
+}

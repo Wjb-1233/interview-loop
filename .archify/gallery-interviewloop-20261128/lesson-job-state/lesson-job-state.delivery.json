@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "cca434b3-3e97-4733-9052-d5e230b4c60f",
+  "status": "current",
+  "command": "deliver",
+  "type": "lifecycle",
+  "input": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\lesson-job-state\\candidate.json",
+  "output": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\lesson-job-state\\lesson-job-state.html",
+  "specification": {
+    "sha256": "b9f57028dd160dc6be3d9f7aa7064d96e1c6e1b6362de38a0de663b82798e3a7",
+    "bytes": 3641
+  },
+  "artifact": {
+    "sha256": "644005e9782babf1d1ccf3300e073e71ff288de43c9d16cd5de8eb273e71e90f",
+    "bytes": 930857
+  }
+}

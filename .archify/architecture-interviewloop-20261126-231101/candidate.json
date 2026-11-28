@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "InterviewLoop 运行时架构",
+    "subtitle": "一次训练从浏览器到数据库的组件、边界与外部依赖",
+    "locale": "zh-CN",
+    "output": ".archify/architecture-interviewloop-20261126-231101/interviewloop-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "revision": "05013c0aebc156003476513d259c3344f564f46c"
+    },
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "前端"
+        },
+        "backend": {
+          "label": "后端进程"
+        },
+        "database": {
+          "label": "存储"
+        },
+        "cloud": {
+          "label": "托管 / 第三方"
+        },
+        "external": {
+          "label": "使用者"
+        }
+      }
+    }
+  },
+  "layout": {
+    "mode": "auto"
+  },
+  "components": [
+    {
+      "id": "learner",
+      "type": "external",
+      "label": "学员",
+      "sublabel": "桌面 Chrome / Edge",
+      "icon": "person",
+      "sources": [
+        {
+          "path": "README.md",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "id": "spa",
+      "type": "frontend",
+      "label": "前端 SPA",
+      "sublabel": "Vue 3 + Vite · 20 个视图",
+      "icon": "frontend",
+      "sources": [
+        {
+          "path": "frontend/src/App.vue",
+          "line": 18,
+          "end_line": 24
+        },
+        {
+          "path": "frontend/src/lib/api.ts",
+          "line": 5,
+          "end_line": 20
+        }
+      ]
+    },
+    {
+      "id": "edge",
+      "type": "cloud",
+      "label": "静态托管 + 反向代理",
+      "sublabel": "nginx :80 / Vite :5173",
+      "sources": [
+        {
+          "path": "frontend/nginx.conf",
+          "line": 4,
+          "end_line": 14
+        },
+        {
+          "path": "frontend/vite.config.ts",
+          "line": 38,
+          "end_line": 43
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI 应用",
+      "sublabel": "uvicorn :8081 · 前缀 /api/v1",
+      "icon": "backend",
+      "sources": [
+        {
+          "path": "backend/app/main.py",
+          "line": 105,
+          "end_line": 116
+        },
+        {
+          "path": "backend/app/main.py",
+          "line": 255,
+          "end_line": 274
+        }
+      ]
+    },
+    {
+      "id": "routers",
+      "type": "backend",
+      "label": "路由层",
+      "sublabel": "features/*/router.py · 鉴权 + 限流",
+      "sources": [
+        {
+          "path": "backend/app/features/training/router.py",
+          "line": 274,
+          "end_line": 283
+        },
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 119,
+          "end_line": 133
+        }
+      ]
+    },
+    {
+      "id": "svc",
+      "type": "backend",
+      "label": "业务服务层",
+      "sublabel": "training / evaluations / plans",
+      "sources": [
+        {
+          "path": "backend/app/features/training/workflow.py",
+          "line": 13,
+          "end_line": 23
+        },
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 42,
+          "end_line": 62
+        },
+        {
+          "path": "backend/app/features/plans/service.py",
+          "line": 85,
+          "end_line": 100
+        }
+      ]
+    },
+    {
+      "id": "orm",
+      "type": "database",
+      "label": "ORM 模型",
+      "sublabel": "SQLAlchemy async · 22 张表",
+      "sources": [
+        {
+          "path": "backend/app/db/models.py",
+          "line": 156
+        },
+        {
+          "path": "backend/app/db/models.py",
+          "line": 212
+        }
+      ]
+    },
+    {
+      "id": "mysql",
+      "type": "database",
+      "label": "MySQL 8.4",
+      "sublabel": "容器 mysql · :3308",
+      "icon": "database",
+      "sources": [
+        {
+          "path": "docker-compose.yml",
+          "line": 4,
+          "end_line": 13
+        }
+      ]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis 7.4",
+      "sublabel": "限流计数 · :6380",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/rate_limit.py",
+          "line": 42,
+          "end_line": 60
+        },
+        {
+          "path": "docker-compose.yml",
+          "line": 22,
+          "end_line": 24
+        }
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "backend",
+      "label": "LLM 网关",
+      "sublabel": "OpenAI 兼容 · complete_json",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/llm.py",
+          "line": 118,
+          "end_line": 127
+        }
+      ]
+    },
+    {
+      "id": "llmProvider",
+      "type": "cloud",
+      "label": "DeepSeek / 豆包 / 通义",
+      "sublabel": "POST /chat/completions",
+      "sources": [
+        {
+          "path": ".env.example",
+          "line": 15,
+          "end_line": 18
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "type": "backend",
+      "label": "实时语音通道",
+      "sublabel": "WS /voice/ws · 票据 + 并发 2 路",
+      "sources": [
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 119,
+          "end_line": 136
+        }
+      ]
+    },
+    {
+      "id": "voiceProvider",
+      "type": "cloud",
+      "label": "豆包 duplex 实时语音",
+      "sublabel": "openspeech 上游 wss",
+      "sources": [
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 35,
+          "end_line": 40
+        }
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "微课视频 worker",
+      "sublabel": "lifespan 内轮询 lesson_video_jobs",
+      "sources": [
+        {
+          "path": "backend/app/main.py",
+          "line": 67,
+          "end_line": 86
+        }
+      ]
+    },
+    {
+      "id": "remotion",
+      "type": "backend",
+      "label": "Remotion 渲染",
+      "sublabel": "video/ 工程 · npx remotion render",
+      "sources": [
+        {
+          "path": "backend/app/features/lessons/remotion_render.py",
+          "line": 112,
+          "end_line": 127
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "浏览器",
+      "wraps": [
+        "spa"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "后端进程 · uvicorn :8081",
+      "wraps": [
+        "api",
+        "routers",
+        "svc",
+        "llm",
+        "voice",
+        "worker"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "数据与第三方服务",
+      "wraps": [
+        "mysql",
+        "redis",
+        "llmProvider",
+        "voiceProvider"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "learner-spa",
+      "from": "learner",
+      "to": "spa",
+      "label": "打开页面",
+      "variant": "emphasis"
+    },
+    {
+      "id": "spa-edge",
+      "from": "spa",
+      "to": "edge",
+      "label": "静态资源 + /api/v1"
+    },
+    {
+      "id": "edge-api",
+      "from": "edge",
+      "to": "api",
+      "label": "反向代理 :8081"
+    },
+    {
+      "id": "api-routers",
+      "from": "api",
+      "to": "routers",
+      "label": "include_router ×17"
+    },
+    {
+      "id": "routers-svc",
+      "from": "routers",
+      "to": "svc",
+      "label": "调用 service"
+    },
+    {
+      "id": "svc-orm",
+      "from": "svc",
+      "to": "orm",
+      "label": "会话读写"
+    },
+    {
+      "id": "orm-mysql",
+      "from": "orm",
+      "to": "mysql",
+      "label": "asyncmy :3306"
+    },
+    {
+      "id": "svc-redis",
+      "from": "svc",
+      "to": "redis",
+      "label": "限流 INCR+TTL"
+    },
+    {
+      "id": "svc-llm",
+      "from": "svc",
+      "to": "llm",
+      "label": "评分 / 计划生成"
+    },
+    {
+      "id": "llm-provider",
+      "from": "llm",
+      "to": "llmProvider",
+      "label": "JSON 补全"
+    },
+    {
+      "id": "spa-voice",
+      "from": "spa",
+      "to": "voice",
+      "label": "WS + 一次性票据"
+    },
+    {
+      "id": "voice-provider",
+      "from": "voice",
+      "to": "voiceProvider",
+      "label": "音频帧转发"
+    },
+    {
+      "id": "api-worker",
+      "from": "api",
+      "to": "worker",
+      "label": "启动后台任务",
+      "variant": "dashed"
+    },
+    {
+      "id": "worker-orm",
+      "from": "worker",
+      "to": "orm",
+      "label": "读 lesson_video_jobs",
+      "variant": "dashed"
+    },
+    {
+      "id": "worker-remotion",
+      "from": "worker",
+      "to": "remotion",
+      "label": "渲染 mp4"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "主链路",
+      "items": [
+        "学员 → SPA → nginx/Vite 反代 → FastAPI → 路由 → 服务 → MySQL",
+        "结束面试时评分与计划勾销在同一个 finish 请求内完成",
+        "所有接口都挂在 /api/v1 下，只有 /media/recordings 例外"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "外部依赖",
+      "items": [
+        "LLM 网关按 .env 在 DeepSeek / 豆包 / 通义之间切换",
+        "模型不可用时评分降级并落库，报告标注 degraded",
+        "语音走豆包 duplex，同时最多 2 路会话"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "运行时",
+      "items": [
+        "微课视频由 lifespan 启动的 worker 轮询渲染",
+        "渲染调用 video/ 的 Remotion 工程产出 mp4",
+        "限流优先 Redis，连不上自动降级进程内计数"
+      ]
+    }
+  ]
+}

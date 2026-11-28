@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "baseline": null,
+  "comparison": {
+    "previousSnapshot": "6ffadd5cbfc7f2b38717afc2883adfa3eed2bffb317ebccfe987f35f5a984cd9",
+    "comparable": true,
+    "reasons": [],
+    "new": [],
+    "evidenceChanged": [
+      "COMP-84ebe991b7b0",
+      "COMP-acf4be4d4fce",
+      "COMP-d5712ce23cd6",
+      "COMP-e7f71e49b466"
+    ],
+    "notDetected": [],
+    "fixed": [],
+    "unchanged": 51
+  },
+  "findings": {
+    "COMP-ef16bbf48416": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-f82179aa7c6a": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-8d5572af0121": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-b5194b7ea684": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-f9eb79e4fcbe": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-e7f71e49b466": {
+      "status": "open",
+      "since": "evidence-changed"
+    },
+    "COMP-015661c940e0": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-b63827a569d6": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-9fbd6b389c73": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-c4467d402f5e": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-b30ee0924d8e": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-ca3a9a5fa268": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-982f1604b9c7": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-84ebe991b7b0": {
+      "status": "open",
+      "since": "evidence-changed"
+    },
+    "COMP-87baf764db36": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-49c02e97e3e3": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-1e5c4f061224": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-eb2a9314c295": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-492a3a9df1d4": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-ee3d619f5c23": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-6b52cce3bc42": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-683ef9bddaf6": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-96a436cc08dc": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-78e77939b31f": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-2336e19111fc": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-c7672930a2ed": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-29990fc62836": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-fd8b0f295680": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-9d9f6232a1e3": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-653f8baa1f11": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-2edd399efe4e": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-d70397ea0a67": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-8c1756421f6f": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-7625e9c41d9d": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-87c1d560345d": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-bbb4db7ca45b": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-c24fc31346c4": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-3de2dcfc1286": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-d5712ce23cd6": {
+      "status": "open",
+      "since": "evidence-changed"
+    },
+    "COMP-8d6ceed03e7c": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-4de28b2b2893": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-acf4be4d4fce": {
+      "status": "open",
+      "since": "evidence-changed"
+    },
+    "COMP-ecf36e95f06b": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-6cea81a46a3a": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-c2b8f3c96970": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-49268ccc5854": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-e3af031a6050": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-8932df8a3267": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-ba16bc38c92d": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-3868bc31fbc0": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-5c2fc055d26b": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-5370f87a4a54": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-d89dcbf5bf8e": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COMP-cedbcbf9ae1a": {
+      "status": "open",
+      "since": "unchanged"
+    },
+    "COUP-56dbd537076f": {
+      "status": "open",
+      "since": "unchanged"
+    }
+  }
+}

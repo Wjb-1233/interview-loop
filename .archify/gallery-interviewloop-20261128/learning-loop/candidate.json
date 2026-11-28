@@ -1,0 +1,193 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "一次面试怎样进入学习闭环",
+    "subtitle": "从场景训练到同条件复测",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/learning-loop/learning-loop.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    },
+    "legend": {
+      "mode": "hidden"
+    }
+  },
+  "lanes": [
+    {
+      "id": "practice",
+      "label": "面试与能力提升"
+    }
+  ],
+  "mainPath": [
+    "train",
+    "report",
+    "review",
+    "rewrite",
+    "course",
+    "retest"
+  ],
+  "nodes": [
+    {
+      "id": "train",
+      "lane": "practice",
+      "col": 0,
+      "type": "frontend",
+      "label": "场景训练",
+      "sublabel": "选择方式并作答",
+      "sources": [
+        {
+          "path": "backend/app/features/training/service.py",
+          "line": 69,
+          "end_line": 155,
+          "label": "场景与训练会话准备"
+        }
+      ]
+    },
+    {
+      "id": "report",
+      "lane": "practice",
+      "col": 1,
+      "type": "backend",
+      "label": "四维报告",
+      "sublabel": "结束后生成",
+      "sources": [
+        {
+          "path": "backend/app/features/training/workflow.py",
+          "line": 13,
+          "end_line": 25,
+          "label": "结束、评分与条件性结算"
+        }
+      ]
+    },
+    {
+      "id": "review",
+      "lane": "practice",
+      "col": 2,
+      "type": "frontend",
+      "label": "读原话复盘",
+      "sublabel": "确认薄弱点",
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/plan_builder.py",
+          "line": 56,
+          "end_line": 65,
+          "label": "复盘与改写任务定义"
+        }
+      ]
+    },
+    {
+      "id": "rewrite",
+      "lane": "practice",
+      "col": 3,
+      "type": "backend",
+      "label": "改写一题",
+      "sublabel": "通过教练检查",
+      "sources": [
+        {
+          "path": "backend/app/features/plans/service.py",
+          "line": 152,
+          "end_line": 223,
+          "label": "改写判定与任务顺序"
+        }
+      ]
+    },
+    {
+      "id": "course",
+      "lane": "practice",
+      "col": 4,
+      "type": "frontend",
+      "label": "微课与练习",
+      "sublabel": "课程任务通过",
+      "sources": [
+        {
+          "path": "backend/app/features/plans/service.py",
+          "line": 226,
+          "end_line": 318,
+          "label": "学习步骤、练习检查和完成条件"
+        }
+      ]
+    },
+    {
+      "id": "retest",
+      "lane": "practice",
+      "col": 5,
+      "type": "backend",
+      "label": "同条件复测",
+      "sublabel": "对比分维变化",
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/plan_builder.py",
+          "line": 72,
+          "end_line": 95,
+          "label": "同条件复测任务"
+        },
+        {
+          "path": "backend/app/features/plans/service.py",
+          "line": 358,
+          "end_line": 401,
+          "label": "复测对比"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "train-report",
+      "from": "train",
+      "to": "report",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "report-review",
+      "from": "report",
+      "to": "review",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "review-rewrite",
+      "from": "review",
+      "to": "rewrite",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "rewrite-course",
+      "from": "rewrite",
+      "to": "course",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "course-retest",
+      "from": "course",
+      "to": "retest",
+      "role": "main",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "什么时候生成计划",
+      "items": [
+        "符合条件的首次评分生成计划；计划内发起的训练沿用原任务。",
+        "首份规则降级报告也能通过教练模板生成练习计划。"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "如何比较复测",
+      "items": [
+        "复测复用来源场次的渠道、强度与题目条件。看板会另外判断报告质量和有效样本。"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-11-28T07:18:55.406Z",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+    "sha256": "b7206e81aa5979576a916c21541894deef95ee9829fbd2ecd4f84e0b19deacce",
+    "bytes": 8968
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+    "sha256": "d01f3a9da3507a86950ff6a93152804fe123b48ac81672c3e78ef0143e4075cc",
+    "bytes": 956479
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "D:\\public skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "D:\\interview-loop",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "b7206e81aa5979576a916c21541894deef95ee9829fbd2ecd4f84e0b19deacce",
+          "bytes": 8968
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 784,
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "D:\\public skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "D:\\interview-loop",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "075f490c-7a6d-4159-904b-3a3889a3dbff",
+        "ok": true,
+        "command": "deliver",
+        "type": "architecture",
+        "input": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+        "output": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "specification": {
+          "sha256": "b7206e81aa5979576a916c21541894deef95ee9829fbd2ecd4f84e0b19deacce",
+          "bytes": 8968
+        },
+        "artifact": {
+          "sha256": "d01f3a9da3507a86950ff6a93152804fe123b48ac81672c3e78ef0143e4075cc",
+          "bytes": 956479
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "evidence": {
+          "verified": true,
+          "repository": "git@github.com:Wjb-1233/interview-loop",
+          "revision": "4d57772d62b295b88103904dbf81f3380314630d",
+          "references": 16,
+          "linkMode": "local-only"
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 233,
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "D:\\public skills\\archify\\bin\\archify.mjs",
+        "check",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "artifact": {
+          "sha256": "d01f3a9da3507a86950ff6a93152804fe123b48ac81672c3e78ef0143e4075cc",
+          "bytes": 956479
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "metrics": {
+            "properCrossings": 0,
+            "resolvedCrossovers": 0,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 14,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 6.098360655737705,
+            "maxBends": 2,
+            "routesOverSuggestedBends": 0,
+            "maxStretch": 1,
+            "routesOverSuggestedStretch": 0,
+            "minSegmentPx": 9,
+            "minInteriorSegmentPx": 298,
+            "shortSegmentCount": 1,
+            "shortEndpointSegmentCount": 1,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [],
+            "detours": []
+          },
+          "leadingSpace": {
+            "measured": true,
+            "emptyTopPx": 200,
+            "emptyTopRatio": 0.202,
+            "occupiedTop": 200,
+            "viewBoxTop": 0,
+            "canvasHeight": 990,
+            "typicalNodeHeight": 62,
+            "reviewSuggested": true
+          },
+          "desktopReadability": {
+            "budgetBasis": "legacy-930",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 930,
+            "actualBudgetPx": 930,
+            "limit": "legacy",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": false,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "edge",
+              "id": "web-api-rest",
+              "from": "web",
+              "to": "api"
+            },
+            "minimumSourceTextPx": 8,
+            "minimumProjectedTextPx": 6.098360655737705,
+            "semanticTextCount": 31
+          },
+          "issues": []
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "075f490c-7a6d-4159-904b-3a3889a3dbff"
+      }
+    },
+    "browser-check": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": 36,
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "D:\\public skills\\archify\\bin\\archify.mjs",
+        "browser-check",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "--json",
+        "--require-provenance"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "fail",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "075f490c-7a6d-4159-904b-3a3889a3dbff",
+        "artifact": {
+          "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+          "sha256": "d01f3a9da3507a86950ff6a93152804fe123b48ac81672c3e78ef0143e4075cc",
+          "bytes": 956479
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "not-checked",
+          "executable": null
+        },
+        "diagnostics": [
+          {
+            "code": "viewer/evidence-path-conflict",
+            "severity": "error",
+            "message": "browser-check will not replace the existing unowned evidence path \"D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json\".",
+            "subject": {
+              "artifact": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+              "evidencePath": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json"
+            },
+            "evidence": {
+              "reason": {
+                "code": "ownership-artifact-mismatch"
+              }
+            },
+            "supportedFixes": [
+              "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+            ]
+          }
+        ],
+        "containment": {
+          "status": "fail",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": []
+        },
+        "themeStates": {
+          "status": "fail",
+          "viewports": []
+        },
+        "readability": {
+          "status": "fail",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": []
+        },
+        "viewerChrome": {
+          "status": "fail",
+          "viewports": []
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "receipt": "interviewloop-architecture.browser-check.json",
+          "files": []
+        },
+        "error": "browser-check will not replace the existing unowned evidence path \"D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json\"."
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "viewer/evidence-path-conflict",
+      "severity": "error",
+      "message": "browser-check will not replace the existing unowned evidence path \"D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json\".",
+      "subject": {
+        "artifact": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "evidencePath": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json"
+      },
+      "evidence": {
+        "reason": {
+          "code": "ownership-artifact-mismatch"
+        }
+      },
+      "supportedFixes": [
+        "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "browser-check",
+  "finishedAt": "2026-11-28T07:18:56.703Z",
+  "durationMs": 1296,
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "cache-valid"
+  }
+}

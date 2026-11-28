@@ -1,0 +1,1064 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-11-28T08:58:13.328Z",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\candidate.json",
+    "sha256": "bab245b23086ea6781adbde0d6eba5005072a66420942adbf9fb1a09f73e35ff",
+    "bytes": 11249
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\interviewloop-architecture.html",
+    "sha256": "9ad577c41cd5a4094bc9e66a7cc9153984c48407264bc9154c5149a017064405",
+    "bytes": 959188
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "C:\\Users\\wjb\\.codex\\plugins\\cache\\personal-local\\archify\\3.3.2\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\candidate.json",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\interviewloop-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "D:\\interview-loop",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "bab245b23086ea6781adbde0d6eba5005072a66420942adbf9fb1a09f73e35ff",
+          "bytes": 11249
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 853,
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "C:\\Users\\wjb\\.codex\\plugins\\cache\\personal-local\\archify\\3.3.2\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\candidate.json",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\interviewloop-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "D:\\interview-loop",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "bb31d4bc-4790-47b8-a62e-fcd7f0787226",
+        "ok": true,
+        "command": "deliver",
+        "type": "architecture",
+        "input": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\candidate.json",
+        "output": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\interviewloop-architecture.html",
+        "specification": {
+          "sha256": "bab245b23086ea6781adbde0d6eba5005072a66420942adbf9fb1a09f73e35ff",
+          "bytes": 11249
+        },
+        "artifact": {
+          "sha256": "9ad577c41cd5a4094bc9e66a7cc9153984c48407264bc9154c5149a017064405",
+          "bytes": 959188
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "evidence": {
+          "verified": true,
+          "repository": "git@github.com:Wjb-1233/interview-loop",
+          "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+          "references": 24,
+          "linkMode": "local-only"
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 218,
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "C:\\Users\\wjb\\.codex\\plugins\\cache\\personal-local\\archify\\3.3.2\\skills\\archify\\bin\\archify.mjs",
+        "check",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\interviewloop-architecture.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\interviewloop-architecture.html",
+        "artifact": {
+          "sha256": "9ad577c41cd5a4094bc9e66a7cc9153984c48407264bc9154c5149a017064405",
+          "bytes": 959188
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "metrics": {
+            "properCrossings": 0,
+            "resolvedCrossovers": 0,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 14,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 6.860655737704918,
+            "maxBends": 2,
+            "routesOverSuggestedBends": 0,
+            "maxStretch": 1,
+            "routesOverSuggestedStretch": 0,
+            "minSegmentPx": 9,
+            "minInteriorSegmentPx": 298,
+            "shortSegmentCount": 2,
+            "shortEndpointSegmentCount": 2,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [],
+            "detours": []
+          },
+          "leadingSpace": {
+            "measured": true,
+            "emptyTopPx": 60,
+            "emptyTopRatio": 0.071,
+            "occupiedTop": 60,
+            "viewBoxTop": 0,
+            "canvasHeight": 850,
+            "typicalNodeHeight": 62,
+            "reviewSuggested": false
+          },
+          "desktopReadability": {
+            "budgetBasis": "legacy-930",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 930,
+            "actualBudgetPx": 930,
+            "limit": "legacy",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": false,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "edge",
+              "id": "api-llm",
+              "from": "api",
+              "to": "llm"
+            },
+            "minimumSourceTextPx": 9,
+            "minimumProjectedTextPx": 6.860655737704918,
+            "semanticTextCount": 32
+          },
+          "issues": []
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "bb31d4bc-4790-47b8-a62e-fcd7f0787226"
+      }
+    },
+    "browser-check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 8501,
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "C:\\Users\\wjb\\.codex\\plugins\\cache\\personal-local\\archify\\3.3.2\\skills\\archify\\bin\\archify.mjs",
+        "browser-check",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\interviewloop-architecture.html",
+        "--json",
+        "--require-provenance",
+        "--out-dir",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\review-10f84bd"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "pass",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "bb31d4bc-4790-47b8-a62e-fcd7f0787226",
+        "artifact": {
+          "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\interviewloop-architecture.html",
+          "sha256": "9ad577c41cd5a4094bc9e66a7cc9153984c48407264bc9154c5149a017064405",
+          "bytes": 959188
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "available",
+          "executable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        },
+        "diagnostics": [],
+        "containment": {
+          "status": "pass",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 900,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1064,
+              "diagramWidth": 1034,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 78,
+                "diagramChromePx": 78,
+                "svgPx": 720,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 7.627868852459017,
+              "minimumProjectedNonEdgeTextPx": 7.627868852459017,
+              "minimumProjectedEdgeTextPx": 7.627868852459017,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1000,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1113,
+              "diagramWidth": 1083,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 86,
+                "diagramChromePx": 84,
+                "svgPx": 755,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 7.989344262295082,
+              "minimumProjectedNonEdgeTextPx": 7.989344262295082,
+              "minimumProjectedEdgeTextPx": 7.989344262295082,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1080,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1227,
+              "diagramWidth": 1197,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 86,
+                "diagramChromePx": 84,
+                "svgPx": 834,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 8.830327868852459,
+              "minimumProjectedNonEdgeTextPx": 8.830327868852459,
+              "minimumProjectedEdgeTextPx": 8.830327868852459,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1566,
+              "diagramWidth": 1516,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 94,
+                "diagramChromePx": 94,
+                "svgPx": 1056,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 9,
+              "minimumProjectedNonEdgeTextPx": 9,
+              "minimumProjectedEdgeTextPx": 9,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "themeStates": {
+          "status": "pass",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1440,
+              "height": 900,
+              "requestedTheme": "dark",
+              "resolvedTheme": "dark",
+              "ok": true
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "requestedTheme": "dark",
+              "resolvedTheme": "dark",
+              "ok": true
+            }
+          ]
+        },
+        "readability": {
+          "status": "pass",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 900,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1064,
+              "diagramWidth": 1034,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 78,
+                "diagramChromePx": 78,
+                "svgPx": 720,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 7.627868852459017,
+              "minimumProjectedNonEdgeTextPx": 7.627868852459017,
+              "minimumProjectedEdgeTextPx": 7.627868852459017,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1000,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1113,
+              "diagramWidth": 1083,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 86,
+                "diagramChromePx": 84,
+                "svgPx": 755,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 7.989344262295082,
+              "minimumProjectedNonEdgeTextPx": 7.989344262295082,
+              "minimumProjectedEdgeTextPx": 7.989344262295082,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1080,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1227,
+              "diagramWidth": 1197,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 86,
+                "diagramChromePx": 84,
+                "svgPx": 834,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 8.830327868852459,
+              "minimumProjectedNonEdgeTextPx": 8.830327868852459,
+              "minimumProjectedEdgeTextPx": 8.830327868852459,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1566,
+              "diagramWidth": 1516,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 94,
+                "diagramChromePx": 94,
+                "svgPx": 1056,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 9,
+              "minimumProjectedNonEdgeTextPx": 9,
+              "minimumProjectedEdgeTextPx": 9,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "viewerChrome": {
+          "status": "pass",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 900,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1064,
+              "diagramWidth": 1034,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 78,
+                "diagramChromePx": 78,
+                "svgPx": 720,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 7.627868852459017,
+              "minimumProjectedNonEdgeTextPx": 7.627868852459017,
+              "minimumProjectedEdgeTextPx": 7.627868852459017,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1000,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1113,
+              "diagramWidth": 1083,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 86,
+                "diagramChromePx": 84,
+                "svgPx": 755,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 7.989344262295082,
+              "minimumProjectedNonEdgeTextPx": 7.989344262295082,
+              "minimumProjectedEdgeTextPx": 7.989344262295082,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1080,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1227,
+              "diagramWidth": 1197,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 86,
+                "diagramChromePx": 84,
+                "svgPx": 834,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 8.830327868852459,
+              "minimumProjectedNonEdgeTextPx": 8.830327868852459,
+              "minimumProjectedEdgeTextPx": 8.830327868852459,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1566,
+              "diagramWidth": 1516,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 94,
+                "diagramChromePx": 94,
+                "svgPx": 1056,
+                "cardsPx": 0,
+                "viewBoxHeight": 850
+              },
+              "viewBoxWidth": 1220,
+              "minimumProjectedNodeTextPx": 9,
+              "minimumProjectedNonEdgeTextPx": 9,
+              "minimumProjectedEdgeTextPx": 9,
+              "minimumProjectedNodeText": "问答 · 评分 · 计划",
+              "minimumProjectedNodeTextDetail": "edge",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "edge",
+                "id": "api-llm",
+                "from": "api",
+                "to": "llm"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "directory": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\review-10f84bd",
+          "receipt": "interviewloop-architecture.browser-check.json",
+          "files": []
+        }
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\review-10f84bd\\interviewloop-architecture.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\review-10f84bd\\interviewloop-architecture.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\review-10f84bd\\interviewloop-architecture.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "autoRepair": {
+    "originalSha256": "35c51d37111e2b5ec1dee161b54d2587c8f0b63c739e5116f12847b6c42d7207",
+    "repairedSha256": "bab245b23086ea6781adbde0d6eba5005072a66420942adbf9fb1a09f73e35ff",
+    "sourceRanges": [
+      {
+        "path": "/components/9/sources/0",
+        "endLine": [
+          310,
+          273
+        ]
+      }
+    ],
+    "outcome": "applied"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 24
+  },
+  "codeAnalysisOffer": {
+    "action": "offer-code-analysis",
+    "reason": "Archify’s built-in Architecture Diagnosis adds component findings, a radial star map, and a rotatable 3D view of repository dependencies.",
+    "instruction": "Use the referenced pitch once per repository and wait for consent before starting.",
+    "dependencies": "installed",
+    "diagramButton": true,
+    "quality": "showcase",
+    "start": {
+      "argv": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "C:\\Users\\wjb\\.codex\\plugins\\cache\\personal-local\\archify\\3.3.2\\skills\\archify\\bin\\archify.mjs",
+        "start",
+        "D:\\interview-loop",
+        "--ir",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-152218\\candidate.json",
+        "--quality",
+        "showcase"
+      ]
+    },
+    "reference": "references/delivery-contract.md#architecture-diagnosis-offer"
+  },
+  "finishedAt": "2026-11-28T08:58:24.882Z",
+  "durationMs": 11554,
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "cache-valid"
+  }
+}

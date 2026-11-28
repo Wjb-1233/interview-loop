@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5001e060-403f-4f5a-982b-9501ed1edf16",
+  "status": "current",
+  "command": "deliver",
+  "type": "timeline",
+  "input": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\project-history\\candidate.json",
+  "output": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\project-history\\project-history.html",
+  "specification": {
+    "sha256": "776edfd89f286d6f723f572b59812b5d27c93b5d66afd3140b5aef323d463015",
+    "bytes": 3572
+  },
+  "artifact": {
+    "sha256": "109ebbdde37d51684021c7d7c2c6e0c07f71cd6c5ba6dfdbba57aa7d4729c7d5",
+    "bytes": 935777
+  }
+}

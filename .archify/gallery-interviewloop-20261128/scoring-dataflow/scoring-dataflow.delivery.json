@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "ca12d257-6df0-4fb8-8298-4839d860a89a",
+  "status": "current",
+  "command": "deliver",
+  "type": "dataflow",
+  "input": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\candidate.json",
+  "output": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\scoring-dataflow\\scoring-dataflow.html",
+  "specification": {
+    "sha256": "a32f5914b4bb85ef108ccfddfd8b4b0feb2047c72084c891d7daf91c97dfffbf",
+    "bytes": 5198
+  },
+  "artifact": {
+    "sha256": "f4d866ebf7ffc57f4ccd0618db21473f8ca6791caee9db16b22ae0fd664caf27",
+    "bytes": 932189
+  }
+}

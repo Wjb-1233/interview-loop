@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "workflow",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\learning-loop\\candidate.json",
+    "sha256": "436d94aeff50afaf83322e74647d0d38ab4a624b6643601cb7eb193b512afcb6",
+    "bytes": 4532
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\learning-loop\\learning-loop.html",
+    "sha256": "514a644cd43533978b0306419d65d98e20400d548e14cc585eacef21cbe11a0f",
+    "bytes": 931618
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\learning-loop\\learning-loop.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\learning-loop\\learning-loop.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\learning-loop\\learning-loop.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 7
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3313,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

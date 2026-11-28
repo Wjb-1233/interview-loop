@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "16f0f12f-9391-439e-ad99-cfe4074eb2d4",
+  "status": "current",
+  "command": "deliver",
+  "type": "tree",
+  "input": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\repository-tree\\candidate.json",
+  "output": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\repository-tree\\repository-tree.html",
+  "specification": {
+    "sha256": "77b0b4ee6c42040c256fe381c1489cc86cab47960131a6e1af5e2fd79ef09368",
+    "bytes": 3325
+  },
+  "artifact": {
+    "sha256": "4a8374dd301e6255e7645c6b04fcd173c7f7e4904d7b173a2295c41e9a15d8e1",
+    "bytes": 942676
+  }
+}

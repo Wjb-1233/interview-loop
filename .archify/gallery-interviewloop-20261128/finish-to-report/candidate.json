@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "结束面试到报告出炉",
+    "subtitle": "评分失败可复用同一会话重试",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/finish-to-report/finish-to-report.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    }
+  },
+  "participants": [
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "训练页面",
+      "sublabel": "结束并请求报告",
+      "sources": [
+        {
+          "path": "frontend/src/composables/useTrainingSession.ts",
+          "line": 75,
+          "end_line": 88,
+          "label": "结束文字训练"
+        },
+        {
+          "path": "frontend/src/composables/useInterviewSubmission.ts",
+          "line": 18,
+          "end_line": 38,
+          "label": "媒体会话保存与重试"
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI",
+      "sublabel": "训练与评分编排",
+      "sources": [
+        {
+          "path": "backend/app/features/training/router.py",
+          "line": 274,
+          "end_line": 284,
+          "label": "结束训练接口"
+        },
+        {
+          "path": "backend/app/features/training/workflow.py",
+          "line": 13,
+          "end_line": 25,
+          "label": "结束、评分与条件性结算"
+        },
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 225,
+          "end_line": 283,
+          "label": "评分、证据与写入"
+        }
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "MySQL",
+      "sublabel": "会话与报告持久化",
+      "sources": [
+        {
+          "path": "backend/app/features/training/service.py",
+          "line": 346,
+          "end_line": 360,
+          "label": "会话结束写入"
+        },
+        {
+          "path": "backend/app/db/models.py",
+          "line": 211,
+          "end_line": 250,
+          "label": "报告与证据"
+        }
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "external",
+      "label": "评分模型",
+      "sublabel": "可配置模型",
+      "sources": [
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 87,
+          "end_line": 102,
+          "label": "评分采样"
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "from": 149,
+      "to": 230,
+      "label": "持久化结束状态"
+    },
+    {
+      "from": 235,
+      "to": 461,
+      "label": "评分并生成报告"
+    }
+  ],
+  "messages": [
+    {
+      "id": "finish",
+      "from": "web",
+      "to": "api",
+      "y": 160,
+      "label": "POST /training-sessions/{id}/finish",
+      "variant": "emphasis"
+    },
+    {
+      "id": "save-finished",
+      "from": "api",
+      "to": "db",
+      "y": 188,
+      "label": "写入 FINISHED",
+      "variant": "emphasis"
+    },
+    {
+      "id": "saved",
+      "from": "db",
+      "to": "api",
+      "y": 216,
+      "label": "结束状态提交",
+      "variant": "return"
+    },
+    {
+      "id": "load",
+      "from": "api",
+      "to": "db",
+      "y": 244,
+      "label": "读取已答对话",
+      "variant": "default"
+    },
+    {
+      "id": "context",
+      "from": "db",
+      "to": "api",
+      "y": 272,
+      "label": "问题、回答和上下文",
+      "variant": "return"
+    },
+    {
+      "id": "sample",
+      "from": "api",
+      "to": "llm",
+      "y": 300,
+      "label": "请求四维评分",
+      "variant": "emphasis"
+    },
+    {
+      "id": "model-result",
+      "from": "llm",
+      "to": "api",
+      "y": 328,
+      "label": "评分和证据候选",
+      "variant": "return"
+    },
+    {
+      "id": "persist-report",
+      "from": "api",
+      "to": "db",
+      "y": 356,
+      "label": "写报告与证据；条件性建计划",
+      "variant": "emphasis"
+    },
+    {
+      "id": "report-stored",
+      "from": "db",
+      "to": "api",
+      "y": 384,
+      "label": "报告提交完成",
+      "variant": "return"
+    },
+    {
+      "id": "respond",
+      "from": "api",
+      "to": "web",
+      "y": 412,
+      "label": "返回报告 ID",
+      "variant": "return"
+    },
+    {
+      "id": "open-report",
+      "from": "web",
+      "to": "api",
+      "y": 440,
+      "label": "GET /evaluations/{sessionId}",
+      "variant": "default"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "结束和评分是两次提交",
+      "items": [
+        "先保存会话结束状态。首次评分可降级出报告；重评失败保留原报告。"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "怎样恢复",
+      "items": [
+        "语音和视频先上传本场作答；若报告生成失败，复用已经上传的会话 ID 再请求结束。",
+        "符合条件的首次评分新建计划，原计划任务根据自己的达标条件结算。"
+      ]
+    }
+  ]
+}

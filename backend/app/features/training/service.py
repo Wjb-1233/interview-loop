@@ -2,7 +2,7 @@ import re
 import asyncio
 import json
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -66,6 +66,18 @@ async def _startable_plan_task(session: AsyncSession, user_id: str, scene_id: st
     return task
 
 
+async def _training_opening(
+    scene: Scene, resume_filename: str | None, resume_text: str | None
+) -> tuple[str, bool]:
+    if resume_filename and resume_text:
+        return await opening_question(scene, resume_text)
+    opening = (scene.opening_line or "").strip()
+    if not opening:
+        # A scene without a preset can start without a model request.
+        opening = f"你好，我是{scene.role_name}，今天这场是{scene.category}，请先做个自我介绍。"
+    return opening, False
+
+
 async def create_training_session(
     session: AsyncSession,
     user_id: str,
@@ -107,13 +119,7 @@ async def create_training_session(
             resume_text = source_resume.content if source_resume else None
         elif task["actionType"] in {"VOICE", "VIDEO"}:
             channel = task["actionType"]
-    opening_line = (scene.opening_line or "").strip()
-    opening_degraded = False
-    if resume_filename and resume_text:
-        opening_line, opening_degraded = await opening_question(scene, resume_text)
-    elif not opening_line:
-        # 场景没有预设开场白时用确定性文案，不再请求模型，创建会话保持毫秒级
-        opening_line = f"你好，我是{scene.role_name}，今天这场是{scene.category}，请先做个自我介绍。"
+    opening_line, opening_degraded = await _training_opening(scene, resume_filename, resume_text)
 
     training = TrainingSession(
         user_id=user_id,
@@ -460,6 +466,28 @@ async def _stream_model_reply(system_prompt: str, messages: list[dict], graph_st
             await asyncio.sleep(0.025)
 
 
+async def _reply_from_evidence(
+    training: TrainingSession,
+    history: Sequence[Message],
+    bank: list[dict],
+    pending: list[int],
+    questions: list[str],
+    answer: Message,
+) -> tuple[str, bool]:
+    from app.features.training.evidence import evidence_reply
+
+    previous_question = questions[-1] if questions else ""
+    # Reserve one answer slot for each required question before allowing a probe.
+    allow_probe = (
+        bool(covered_question_indexes(bank, [previous_question]))
+        and training.max_rounds - training.current_round > len(pending)
+    )
+    next_required = bank[pending[0]]["text"] if pending and not allow_probe else None
+    return await evidence_reply(
+        training, history, previous_question, answer.content, answer.id, next_required=next_required
+    )
+
+
 async def stream_reply(session_id: str, user_id: str, user_text: str, finish_after_reply: bool = False) -> AsyncIterator[str]:
     async with session_factory() as db:
         training = await db.get(TrainingSession, session_id)
@@ -517,31 +545,24 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
                 "flags": graph_state["flags"],
             },
         )
-        system_prompt = graph_state["prompt"]
-        messages = [
-            {
-                "role": "assistant" if item.speaker == "AI" else "user",
-                "content": item.content,
-            }
-            for item in history_rows[-10:]
-        ] + [{"role": "user", "content": user_text}]
         reply = {"text": "", "degraded": False}
         if graph_state["should_finish"]:
             reply["text"] = "谢谢你的回答。本场模拟到这里结束，现在可以结束训练并查看四维评分与改进建议。"
             yield sse("token", {"content": reply["text"]})
         elif (training.assessment_context or {}).get("adaptiveEnabled"):
-            from app.features.training.evidence import evidence_reply
-            previous_question = questions[-1] if questions else ""
-            # Reserve enough answer slots for required questions. Between two
-            # required questions there can be one evidence-based follow-up.
-            allow_probe = (bool(covered_question_indexes(bank, [previous_question]))
-                           and training.max_rounds - training.current_round > len(pending))
-            next_required = bank[pending[0]]["text"] if pending and not allow_probe else None
-            reply["text"], reply["degraded"] = await evidence_reply(training, history_rows, previous_question, user_text, user_message.id,
-                                                                    next_required=next_required)
+            reply["text"], reply["degraded"] = await _reply_from_evidence(
+                training, history_rows, bank, pending, questions, user_message
+            )
             yield sse("token", {"content": reply["text"]})
         else:
-            async for event in _stream_model_reply(system_prompt, messages, graph_state, user_text, reply):
+            messages = [
+                {
+                    "role": "assistant" if item.speaker == "AI" else "user",
+                    "content": item.content,
+                }
+                for item in history_rows[-10:]
+            ] + [{"role": "user", "content": user_text}]
+            async for event in _stream_model_reply(graph_state["prompt"], messages, graph_state, user_text, reply):
                 yield event
         full_text, degraded = reply["text"], reply["degraded"]
         # A reply arriving after the learner left must not recreate messages/state.

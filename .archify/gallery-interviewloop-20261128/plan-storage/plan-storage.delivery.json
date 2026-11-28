@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "35e52217-c624-4f25-a5e5-41689b9a6287",
+  "status": "current",
+  "command": "deliver",
+  "type": "erd",
+  "input": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\plan-storage\\candidate.json",
+  "output": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\plan-storage\\plan-storage.html",
+  "specification": {
+    "sha256": "56a4002dfeaf26ea5c401b2924ff5c2c836a48b8f18a77e45e454e897d0735cc",
+    "bytes": 5457
+  },
+  "artifact": {
+    "sha256": "359f566f579edbc36713c2470a6b2abad3c88c92a354c059bc3cb68650504f03",
+    "bytes": 949916
+  }
+}

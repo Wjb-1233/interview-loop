@@ -119,6 +119,20 @@ def _stability_report(payloads: list[EvaluationPayload], failures: int) -> dict 
     }
 
 
+def _select_scoring_payload(
+    payloads: list[EvaluationPayload],
+    objective: dict,
+    user_messages: list[Message],
+    *,
+    is_rescore: bool,
+) -> EvaluationPayload:
+    if payloads:
+        return _blend_with_objectives(_median_payload(payloads), objective)
+    if is_rescore:
+        raise AppError(503, "RESCORE_UNAVAILABLE", "重新评分暂时不可用，原报告已保留，请稍后重试")
+    return fallback_evaluation(user_messages)
+
+
 async def _review_conflicts(
     payload: EvaluationPayload, checks: list, conflicts: list, turns: list,
     system_prompt: str, user_prompt: str, objective: dict | None,
@@ -227,13 +241,7 @@ async def evaluate_session(
     degraded = not payloads
     metrics.incr_event("evaluation", "degraded" if degraded else "ok")
     stability = _stability_report(payloads, failures)
-    if payloads:
-        # 客观指标做锚定：极端偏差时压制模型的高分冲动
-        payload = _blend_with_objectives(_median_payload(payloads), objective)
-    elif existing:
-        raise AppError(503, "RESCORE_UNAVAILABLE", "重新评分暂时不可用，原报告已保留，请稍后重试")
-    else:
-        payload = fallback_evaluation(user_messages)
+    payload = _select_scoring_payload(payloads, objective, user_messages, is_rescore=existing is not None)
 
     checks = validated_technical_checks(payload.technical_checks, turns)
     conflicts = score_conflicts(payload.scores.model_dump(), checks)

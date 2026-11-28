@@ -1,0 +1,449 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "InterviewLoop · 言阶系统架构",
+    "subtitle": "训练与报告、实时音视频、持久化和外部服务",
+    "locale": "zh-CN",
+    "output": ".archify/architecture-interviewloop-20261128-152218/interviewloop-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    },
+    "visual_preset": "signal-flow"
+  },
+  "layout": {
+    "mode": "auto"
+  },
+  "components": [
+    {
+      "id": "learner",
+      "type": "external",
+      "label": "学员 / 管理员",
+      "sublabel": "浏览器",
+      "sources": [
+        {
+          "path": "frontend/src/router.ts",
+          "line": 9,
+          "end_line": 38,
+          "label": "学员与管理员入口"
+        }
+      ],
+      "pos": [
+        40,
+        380
+      ],
+      "size": [
+        150,
+        62
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "InterviewLoop Web",
+      "sublabel": "Vue 3 · Vite / Nginx",
+      "sources": [
+        {
+          "path": "frontend/src/lib/api.ts",
+          "line": 5,
+          "end_line": 15,
+          "label": "同源版本化 API"
+        },
+        {
+          "path": "frontend/vite.config.ts",
+          "line": 36,
+          "end_line": 44,
+          "label": "开发代理 HTTP 与 WebSocket"
+        },
+        {
+          "path": "frontend/nginx.conf",
+          "line": 44,
+          "end_line": 81,
+          "label": "生产代理 API、WebSocket 与媒体"
+        }
+      ],
+      "pos": [
+        300,
+        380
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI 应用",
+      "sublabel": "/api/v1 · 单进程",
+      "sources": [
+        {
+          "path": "backend/app/features/training/workflow.py",
+          "line": 13,
+          "end_line": 25,
+          "label": "先结束训练，再评分与条件性结算"
+        },
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 187,
+          "end_line": 284,
+          "label": "评分、证据、报告与计划"
+        },
+        {
+          "path": "backend/app/features/plans/service.py",
+          "line": 184,
+          "end_line": 223,
+          "label": "分派课程、训练证据与改写检查"
+        }
+      ],
+      "pos": [
+        640,
+        380
+      ],
+      "size": [
+        190,
+        62
+      ],
+      "explanation": "训练结算按“保存结束状态 → 评分 → 条件性结算计划任务”编排。评分服务依次整理答题证据、采样和复核、保存报告，并在符合条件的首次评分后创建训练计划。"
+    },
+    {
+      "id": "voicews",
+      "type": "backend",
+      "label": "实时面试网关",
+      "sublabel": "FastAPI · 两种语音引擎",
+      "sources": [
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 93,
+          "end_line": 136,
+          "label": "引擎选择、短时票据、连接授权"
+        },
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 145,
+          "end_line": 174,
+          "label": "豆包双向事件转发"
+        },
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 301,
+          "end_line": 366,
+          "label": "本地语音管线路由与上下文"
+        }
+      ],
+      "pos": [
+        640,
+        560
+      ],
+      "size": [
+        190,
+        62
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "MySQL 8.4",
+      "sublabel": "会话 · 报告 · 计划",
+      "sources": [
+        {
+          "path": "backend/app/db/base.py",
+          "line": 10,
+          "end_line": 30,
+          "label": "异步引擎与数据库连接池"
+        },
+        {
+          "path": "backend/app/db/models.py",
+          "line": 211,
+          "end_line": 253,
+          "label": "报告与答题证据模型"
+        },
+        {
+          "path": "docker-compose.yml",
+          "line": 4,
+          "end_line": 21,
+          "label": "开发容器与 MySQL 默认端口"
+        }
+      ],
+      "pos": [
+        700,
+        200
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis 7.4",
+      "sublabel": "Redis 7.4 · 限流",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/rate_limit.py",
+          "line": 14,
+          "end_line": 35,
+          "label": "限流器连接 Redis"
+        },
+        {
+          "path": "docker-compose.yml",
+          "line": 22,
+          "end_line": 36,
+          "label": "容器与端口"
+        }
+      ],
+      "pos": [
+        960,
+        200
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "external",
+      "label": "大模型 API",
+      "sublabel": "DeepSeek 等兼容服务",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/llm.py",
+          "line": 118,
+          "end_line": 157,
+          "label": "JSON 补全与重试"
+        },
+        {
+          "path": "backend/app/features/evaluations/service.py",
+          "line": 87,
+          "end_line": 103,
+          "label": "报告采样"
+        },
+        {
+          "path": "backend/app/features/voice/pipeline.py",
+          "line": 166,
+          "end_line": 199,
+          "label": "语音管线接入兼容模型"
+        }
+      ],
+      "pos": [
+        1000,
+        520
+      ],
+      "size": [
+        180,
+        62
+      ]
+    },
+    {
+      "id": "doubao",
+      "type": "external",
+      "label": "豆包实时对话",
+      "sublabel": "duplex/realtime/dialogue",
+      "sources": [
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 35,
+          "end_line": 37,
+          "label": "上游地址与资源"
+        }
+      ],
+      "pos": [
+        640,
+        720
+      ],
+      "size": [
+        190,
+        62
+      ]
+    },
+    {
+      "id": "simli",
+      "type": "external",
+      "label": "Simli 数字人",
+      "sublabel": "短时令牌 · WebRTC",
+      "sources": [
+        {
+          "path": "backend/app/features/avatar/service.py",
+          "line": 48,
+          "end_line": 97,
+          "label": "服务端换取令牌并传回错误原因"
+        },
+        {
+          "path": "frontend/src/components/media/SimliPresenter.vue",
+          "line": 196,
+          "end_line": 226,
+          "label": "浏览器通过 SDK 连接数字人"
+        },
+        {
+          "path": "frontend/src/components/training/LiveInterviewRoom.vue",
+          "line": 255,
+          "end_line": 297,
+          "label": "开场等待与会中断开处理"
+        }
+      ],
+      "pos": [
+        300,
+        60
+      ],
+      "size": [
+        170,
+        62
+      ]
+    },
+    {
+      "id": "tts",
+      "type": "external",
+      "label": "语音合成",
+      "sublabel": "豆包 TTS · Edge TTS",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/narration.py",
+          "line": 234,
+          "end_line": 273,
+          "label": "配音引擎选择与回退"
+        },
+        {
+          "path": "backend/app/features/plans/lesson_videos.py",
+          "line": 322,
+          "end_line": 369,
+          "label": "生成微课视频与配音"
+        }
+      ],
+      "pos": [
+        1000,
+        340
+      ],
+      "size": [
+        180,
+        62
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "本地开发 Compose · 数据服务",
+      "wraps": [
+        "db",
+        "redis"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "learner-web",
+      "from": "learner",
+      "to": "web",
+      "label": "选场景 · 开始训练"
+    },
+    {
+      "id": "web-api-rest",
+      "from": "web",
+      "to": "api",
+      "label": "HTTP /api/v1",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-db",
+      "from": "api",
+      "to": "db",
+      "label": "SQL 业务读写"
+    },
+    {
+      "id": "api-redis",
+      "from": "api",
+      "to": "redis",
+      "label": "请求与模型限流"
+    },
+    {
+      "id": "api-llm",
+      "from": "api",
+      "to": "llm",
+      "label": "问答 · 评分 · 计划",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-tts",
+      "from": "api",
+      "to": "tts",
+      "label": "试听与微课配音"
+    },
+    {
+      "id": "api-simli",
+      "from": "api",
+      "to": "simli",
+      "label": "用服务端密钥换令牌",
+      "variant": "security"
+    },
+    {
+      "id": "web-voicews",
+      "from": "web",
+      "to": "voicews",
+      "label": "WS 语音票据",
+      "variant": "emphasis"
+    },
+    {
+      "id": "voicews-doubao",
+      "from": "voicews",
+      "to": "doubao",
+      "label": "豆包引擎 · 双向 WSS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "web-simli",
+      "from": "web",
+      "to": "simli",
+      "label": "WebRTC 音视频"
+    },
+    {
+      "id": "voicews-llm",
+      "from": "voicews",
+      "to": "llm",
+      "label": "管线引擎 · 模型问答",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "训练与报告",
+      "items": [
+        "文字训练共享完整回复和 SSE 接口的问答逻辑。证据驱动追问拆为观察、原句校验、澄清与选题。",
+        "结束时先保存会话，再生成四维报告；符合条件的首次评分建计划，原计划任务另行检查完成条件。",
+        "评分采样、冲突复核、报告与证据落库均有独立职责。模型失败时新报告可降级，重评失败保留原报告。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "实时音视频",
+      "items": [
+        "两种语音引擎共用短时票据。豆包引擎转发双向事件，管线引擎组合本地 Whisper、模型和语音合成。",
+        "视频形象通过浏览器直连 Simli；开场等数字人连好再启动语音，失败可重连。会中数字人掉线仅提示，面试可继续。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "数据与任务",
+      "items": [
+        "MySQL 保存会话、报告、证据、计划和微课任务。Redis 负责限流。",
+        "微课视频任务由同进程后台任务从 MySQL 领取并渲染；微课、配音与录像文件分别经 /media 路由提供。",
+        "录像播放走授权校验；微课和 TTS 经静态挂载提供。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "开发与部署",
+      "items": [
+        "开发期 Vite 代理到 8081，Windows 启动脚本使用 backend/.venv。MySQL 与 Redis 默认本机端口为 3308、6380。",
+        "生产由 Nginx 提供前端站点并反代 API 与 WebSocket，后端镜像默认单 worker。",
+        "复杂度回归测试覆盖 backend/app 中的方法，防止已拆分函数回涨。"
+      ]
+    }
+  ]
+}

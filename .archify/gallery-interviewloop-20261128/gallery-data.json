@@ -1,0 +1,62 @@
+[
+  {
+    "type": "workflow",
+    "slug": "learning-loop",
+    "title": "一次面试怎样进入学习闭环",
+    "description": "六步学习路径与每一步的完成条件。"
+  },
+  {
+    "type": "dataflow",
+    "slug": "scoring-dataflow",
+    "title": "原话怎样变成评分与成长数据",
+    "description": "追踪问答配对、评分证据落库和成长资格。"
+  },
+  {
+    "type": "lifecycle",
+    "slug": "lesson-job-state",
+    "title": "微课视频任务状态机",
+    "description": "谁领取任务，何时失败，如何重新进入队列。"
+  },
+  {
+    "type": "erd",
+    "slug": "plan-storage",
+    "title": "训练计划与微课任务的表关系",
+    "description": "用户、计划和微课渲染任务的数据库关系。"
+  },
+  {
+    "type": "class",
+    "slug": "scoring-contracts",
+    "title": "评分模块的数据契约",
+    "description": "分辨内部评分结构、证据草稿和前端报告对象。"
+  },
+  {
+    "type": "tree",
+    "slug": "repository-tree",
+    "title": "InterviewLoop 仓库目录树",
+    "description": "按真实目录定位前后端、数据迁移、内容和研究材料。"
+  },
+  {
+    "type": "timeline",
+    "slug": "project-history",
+    "title": "InterviewLoop 丨近期演进时间线",
+    "description": "基于 Git 的项目演进，涵盖验收、计时、数字人和复杂度回归。"
+  },
+  {
+    "type": "waterfall",
+    "slug": "sse-latency",
+    "title": "文字面试 SSE 请求耗时瀑布图",
+    "description": "按实际观测拆出响应头、首事件、首 token 和完整响应。"
+  },
+  {
+    "type": "sequence",
+    "slug": "finish-to-report",
+    "title": "结束面试到报告出炉",
+    "description": "看清先保存结束、再评分和条件性建计划的顺序。"
+  },
+  {
+    "type": "architecture",
+    "slug": "production-deployment",
+    "title": "InterviewLoop 生产部署架构",
+    "description": "宿主机 TLS、Nginx 与 Docker Compose 的生产流量路径。"
+  }
+]

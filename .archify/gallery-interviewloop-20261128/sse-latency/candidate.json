@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "diagram_type": "waterfall",
+  "meta": {
+    "title": "文字面试 SSE 请求耗时瀑布图",
+    "subtitle": "2026-11-25 单用户受控模型替身 · 毫秒",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/sse-latency/sse-latency.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    },
+    "evidence": "measured",
+    "unit": "ms"
+  },
+  "spans": [
+    {
+      "id": "sse",
+      "name": "完整 SSE 响应",
+      "start": 0,
+      "end": 389.27,
+      "status": "ok",
+      "service": "客户端",
+      "detail": "单次 HTTP 200 响应，总时长 389.27 ms。",
+      "sources": [
+        {
+          "path": "research/2026-11-25/performance/controlled-1.json",
+          "line": 66,
+          "end_line": 81,
+          "label": "单请求原始时间观测"
+        }
+      ]
+    },
+    {
+      "id": "headers",
+      "name": "请求到响应头",
+      "start": 0,
+      "end": 10.82,
+      "status": "ok",
+      "service": "HTTP",
+      "detail": "从发送请求起算，10.82 ms 收到响应头。",
+      "sources": [
+        {
+          "path": "research/2026-11-25/performance/controlled-1.json",
+          "line": 66,
+          "end_line": 81,
+          "label": "单请求原始时间观测"
+        }
+      ],
+      "parent": "sse"
+    },
+    {
+      "id": "event",
+      "name": "响应头到首事件",
+      "start": 10.82,
+      "end": 22.32,
+      "status": "ok",
+      "service": "SSE",
+      "detail": "第 22.32 ms 观测到首事件。",
+      "sources": [
+        {
+          "path": "research/2026-11-25/performance/controlled-1.json",
+          "line": 66,
+          "end_line": 81,
+          "label": "单请求原始时间观测"
+        }
+      ],
+      "parent": "sse"
+    },
+    {
+      "id": "token",
+      "name": "首事件到首 token",
+      "start": 22.32,
+      "end": 273.76,
+      "status": "ok",
+      "service": "SSE",
+      "detail": "第 273.76 ms 观测到首 token。",
+      "sources": [
+        {
+          "path": "research/2026-11-25/performance/controlled-1.json",
+          "line": 66,
+          "end_line": 81,
+          "label": "单请求原始时间观测"
+        }
+      ],
+      "parent": "sse"
+    },
+    {
+      "id": "tail",
+      "name": "首 token 到响应结束",
+      "start": 273.76,
+      "end": 389.27,
+      "status": "ok",
+      "service": "SSE",
+      "detail": "第 389.27 ms 结束响应。",
+      "sources": [
+        {
+          "path": "research/2026-11-25/performance/controlled-1.json",
+          "line": 66,
+          "end_line": 81,
+          "label": "单请求原始时间观测"
+        }
+      ],
+      "parent": "sse"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "样本口径",
+      "items": [
+        "单用户、单个成功的受控模型替身请求；以请求发出为时间零点。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "如何阅读",
+      "items": [
+        "相邻阶段由观测时间点相减得到。阶段区间归属于同一条请求。",
+        "真实模型延迟、语音设备耗时和线上负载需独立测量。"
+      ]
+    }
+  ]
+}

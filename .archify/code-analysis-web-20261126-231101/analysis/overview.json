@@ -1,0 +1,673 @@
+{
+  "verdict": "attention",
+  "counts": {
+    "findings": 25,
+    "error": 0,
+    "warning": 14,
+    "info": 11,
+    "accepted": 0,
+    "acceptedErrors": 0,
+    "offDiagram": null
+  },
+  "review": null,
+  "groups": [
+    {
+      "code": "complexity/function",
+      "severity": "warning",
+      "count": 24,
+      "ids": [
+        "COMP-1c3e6af809a4",
+        "COMP-124ecd4a2c2c",
+        "COMP-5419ad8d47b1",
+        "COMP-b815a8d23da7",
+        "COMP-1572881045e3",
+        "COMP-a7f9657540fd",
+        "COMP-912560c624a0",
+        "COMP-dd87fa84ee9a",
+        "COMP-8225e73611d2",
+        "COMP-e5481c1e480e",
+        "COMP-3d30816b02f4",
+        "COMP-57e40aa4a60a",
+        "COMP-0c17fbcffafa",
+        "COMP-c8dc36ebfb8f",
+        "COMP-9d510e32ac06",
+        "COMP-2de4290b4a4b",
+        "COMP-46aab65875c6",
+        "COMP-e531944bf6e3",
+        "COMP-db38ae8ee93b",
+        "COMP-fbde40145fa2",
+        "COMP-e4a23145ae91",
+        "COMP-569447f05dc3",
+        "COMP-d3bfbca061e9",
+        "COMP-459df50c19b0"
+      ]
+    },
+    {
+      "code": "coupling/internal-leak",
+      "severity": "info",
+      "count": 1,
+      "ids": [
+        "COUP-8656bac516d5"
+      ]
+    }
+  ],
+  "priorities": [
+    "COMP-1c3e6af809a4",
+    "COMP-124ecd4a2c2c",
+    "COMP-5419ad8d47b1"
+  ],
+  "investigation": {
+    "leads": [
+      {
+        "id": "COMP-1c3e6af809a4",
+        "code": "complexity/function",
+        "severity": "warning",
+        "message": "<anonymous>.<locals>.da.<locals>.i in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 767 and nesting depth 9 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+        "where": "frontend/public/avatars/live2d/live2dcubismcore.min.js:9",
+        "symbol": "<anonymous>.<locals>.da.<locals>.i",
+        "impact": {
+          "modules": 1,
+          "size": 767,
+          "fanIn": 0,
+          "files": 3
+        }
+      },
+      {
+        "id": "COMP-124ecd4a2c2c",
+        "code": "complexity/function",
+        "severity": "warning",
+        "message": "<anonymous>.<locals>.da.<locals>.ua in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 424 and nesting depth 12 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+        "where": "frontend/public/avatars/live2d/live2dcubismcore.min.js:9",
+        "symbol": "<anonymous>.<locals>.da.<locals>.ua",
+        "impact": {
+          "modules": 1,
+          "size": 424,
+          "fanIn": 0,
+          "files": 3
+        }
+      },
+      {
+        "id": "COMP-5419ad8d47b1",
+        "code": "complexity/function",
+        "severity": "warning",
+        "message": "<anonymous>.<locals>.da in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 289 and nesting depth 7 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+        "where": "frontend/public/avatars/live2d/live2dcubismcore.min.js:9",
+        "symbol": "<anonymous>.<locals>.da",
+        "impact": {
+          "modules": 1,
+          "size": 289,
+          "fanIn": 0,
+          "files": 3
+        }
+      }
+    ],
+    "architecture": {
+      "modules": 7,
+      "edges": 3,
+      "hotspots": [
+        {
+          "id": "frontend-src-lib",
+          "path": "frontend/src/lib",
+          "files": 16,
+          "loc": 1039,
+          "fanIn": 2,
+          "fanOut": 0,
+          "instability": 0,
+          "entry": [
+            "frontend/src/lib/api.ts",
+            "frontend/src/lib/types.ts",
+            "frontend/src/lib/activeTrainingAttempt.ts"
+          ],
+          "readingWeight": 2685.776
+        },
+        {
+          "id": "frontend-src-composables",
+          "path": "frontend/src/composables",
+          "files": 15,
+          "loc": 1092,
+          "fanIn": 1,
+          "fanOut": 1,
+          "instability": 0.5,
+          "entry": [
+            "frontend/src/composables/useAuth.ts",
+            "frontend/src/composables/useBrowserSpeech.ts",
+            "frontend/src/composables/useCourseLearning.ts"
+          ],
+          "readingWeight": 2184
+        },
+        {
+          "id": "frontend-src",
+          "path": "frontend/src",
+          "files": 2,
+          "loc": 72,
+          "fanIn": 0,
+          "fanOut": 2,
+          "instability": 1,
+          "entry": [
+            "frontend/src/main.ts",
+            "frontend/src/router.ts"
+          ],
+          "readingWeight": 72
+        }
+      ],
+      "hotspotRanking": "Connected modules ordered by loc * (1 + log2(1 + fanIn)), then fanIn, fanOut and id. A bounded reading order, not inferred business importance, defect severity or refactoring advice.",
+      "strongestEdges": [
+        {
+          "from": "frontend-src-composables",
+          "to": "frontend-src-lib",
+          "weight": 22,
+          "sample": "frontend/src/composables/useAuth.ts:3"
+        },
+        {
+          "from": "frontend-src",
+          "to": "frontend-src-composables",
+          "weight": 1,
+          "sample": "frontend/src/router.ts:3"
+        },
+        {
+          "from": "frontend-src",
+          "to": "frontend-src-lib",
+          "weight": 1,
+          "sample": "frontend/src/main.ts:6"
+        }
+      ],
+      "structuralSignals": [
+        {
+          "id": "COUP-8656bac516d5",
+          "code": "coupling/internal-leak",
+          "severity": "info",
+          "message": "frontend/src/lib has no entry file: 2 modules import 6 of its 16 files directly (23 imports).",
+          "where": "frontend/src/composables/useAuth.ts:3",
+          "impact": {
+            "modules": 1,
+            "size": 0,
+            "fanIn": 2,
+            "files": 16
+          }
+        }
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "COMP-1c3e6af809a4",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 767,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-124ecd4a2c2c",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 424,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-5419ad8d47b1",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 289,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-b815a8d23da7",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 162,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-1572881045e3",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 132,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-a7f9657540fd",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 127,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-912560c624a0",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 69,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-dd87fa84ee9a",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 62,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-8225e73611d2",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 55,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-e5481c1e480e",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 53,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-3d30816b02f4",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 47,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-57e40aa4a60a",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 28,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-0c17fbcffafa",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 15,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-c8dc36ebfb8f",
+      "code": "complexity/function",
+      "severity": "warning",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 14,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-9d510e32ac06",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 24,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-2de4290b4a4b",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend-src-composables"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 23,
+        "fanIn": 1,
+        "files": 15
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-46aab65875c6",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "video-src"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 20,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-e531944bf6e3",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend-src-lib"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 19,
+        "fanIn": 2,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-db38ae8ee93b",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 18,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-fbde40145fa2",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 18,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-e4a23145ae91",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 17,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-569447f05dc3",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend-src-composables"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 1,
+        "files": 15
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-d3bfbca061e9",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 16,
+        "fanIn": 0,
+        "files": 3
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COMP-459df50c19b0",
+      "code": "complexity/function",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend-src-lib"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 15,
+        "fanIn": 2,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    },
+    {
+      "id": "COUP-8656bac516d5",
+      "code": "coupling/internal-leak",
+      "severity": "info",
+      "componentIds": [],
+      "moduleIds": [
+        "frontend-src-lib"
+      ],
+      "impact": {
+        "modules": 1,
+        "size": 0,
+        "fanIn": 2,
+        "files": 16
+      },
+      "relatedIds": [],
+      "status": "open"
+    }
+  ],
+  "coverage": {
+    "language": "ts",
+    "adapter": "typescript@5.9.3",
+    "files": {
+      "analyzed": 43,
+      "excludedByRole": 19,
+      "excludedRoles": [
+        "generated",
+        "test"
+      ],
+      "excludePatterns": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/target/**/*.java",
+        "**/coverage/**",
+        "**/*.d.ts",
+        "**/venv/**",
+        "**/venv-*/**",
+        "**/.venv/**",
+        "**/site-packages/**",
+        "**/__pycache__/**",
+        "**/.pytest_cache/**",
+        "**/.git/**",
+        "**/_archive/**"
+      ],
+      "parseErrors": []
+    },
+    "otherLanguages": [
+      {
+        "adapter": "py",
+        "files": 303
+      }
+    ],
+    "unresolved": {
+      "external": 84,
+      "outside": 0,
+      "unknown": 3,
+      "opaque": 1
+    },
+    "rules": {
+      "run": [
+        "coupling/import-cycle",
+        "coupling/cycle",
+        "coupling/hub",
+        "coupling/concentration",
+        "coupling/internal-leak",
+        "complexity/function"
+      ],
+      "suppressed": []
+    },
+    "unmappedModules": [],
+    "boundaries": null,
+    "duplicates": null
+  }
+}

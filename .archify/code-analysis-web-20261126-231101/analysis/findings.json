@@ -1,0 +1,1638 @@
+{
+  "schema_version": 1,
+  "repository": {
+    "revision": null,
+    "baseRevision": "05013c0aebc156003476513d259c3344f564f46c",
+    "sourceKind": "working-tree",
+    "root": ".",
+    "url": "git@github.com:Wjb-1233/interview-loop.git",
+    "language": "ts",
+    "adapter": "typescript@5.9.3",
+    "adapterRevision": 30,
+    "snapshotId": "843342da24b309785389dc6c050887ef6b79155bafa79e8d0e8f999fa90ddff2"
+  },
+  "rules": [
+    "coupling/import-cycle",
+    "coupling/cycle",
+    "coupling/hub",
+    "coupling/concentration",
+    "coupling/internal-leak",
+    "complexity/function"
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 14,
+    "info": 11,
+    "suppressed": 0
+  },
+  "analysis": {
+    "analyzer": {
+      "name": "@archify/code-analysis",
+      "version": "0.1.0-dev.1"
+    },
+    "language": "ts",
+    "adapter": "typescript@5.9.3",
+    "adapterRevision": 30,
+    "configDigest": "d397e2218ca2e4e99d58638cbd078e3ff3f853b160fd02e61013868859f6e58d",
+    "ruleVersions": {
+      "complexity/function": 1,
+      "coupling/concentration": 1,
+      "coupling/cycle": 2,
+      "coupling/hub": 1,
+      "coupling/import-cycle": 3,
+      "coupling/internal-leak": 1
+    },
+    "tsProjects": [
+      {
+        "config": null,
+        "optionsDigest": "9167281fd736d5b33fbf5d47ebaf96e43bc05c1e45b269faf80a3020c23a13fd",
+        "files": [
+          "frontend/e2e/a11y-report-plan.spec.ts",
+          "frontend/e2e/a11y.spec.ts",
+          "frontend/e2e/admin-content.spec.ts",
+          "frontend/e2e/app.spec.ts",
+          "frontend/e2e/avatar-config.spec.ts",
+          "frontend/e2e/course-replay.spec.ts",
+          "frontend/e2e/dashboard-growth.spec.ts",
+          "frontend/e2e/desktop.spec.ts",
+          "frontend/e2e/functional-repairs.spec.ts",
+          "frontend/e2e/hint.spec.ts",
+          "frontend/e2e/interview-exit.spec.ts",
+          "frontend/e2e/interview-setup.spec.ts",
+          "frontend/e2e/nav.spec.ts",
+          "frontend/e2e/report-review.spec.ts",
+          "frontend/e2e/script-actions.spec.ts",
+          "frontend/e2e/self-review.spec.ts",
+          "frontend/e2e/upgrade.spec.ts",
+          "frontend/e2e/video-immersion.spec.ts",
+          "frontend/playwright.config.ts",
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+          "frontend/scripts/verify-build.mjs",
+          "tools/remotion/remotion.config.ts",
+          "video/src/LessonVideo.tsx",
+          "video/src/Root.tsx",
+          "video/src/index.tsx"
+        ],
+        "members": [
+          "frontend/e2e/a11y-report-plan.spec.ts",
+          "frontend/e2e/a11y.spec.ts",
+          "frontend/e2e/admin-content.spec.ts",
+          "frontend/e2e/app.spec.ts",
+          "frontend/e2e/avatar-config.spec.ts",
+          "frontend/e2e/course-replay.spec.ts",
+          "frontend/e2e/dashboard-growth.spec.ts",
+          "frontend/e2e/desktop.spec.ts",
+          "frontend/e2e/functional-repairs.spec.ts",
+          "frontend/e2e/hint.spec.ts",
+          "frontend/e2e/interview-exit.spec.ts",
+          "frontend/e2e/interview-setup.spec.ts",
+          "frontend/e2e/nav.spec.ts",
+          "frontend/e2e/report-review.spec.ts",
+          "frontend/e2e/script-actions.spec.ts",
+          "frontend/e2e/self-review.spec.ts",
+          "frontend/e2e/upgrade.spec.ts",
+          "frontend/e2e/video-immersion.spec.ts",
+          "frontend/playwright.config.ts",
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+          "frontend/scripts/verify-build.mjs",
+          "frontend/src/lib/contracts/interviewAssessment.ts",
+          "frontend/src/lib/contracts/trainingMetadata.ts",
+          "frontend/src/lib/dashboard.ts",
+          "frontend/src/lib/types.ts",
+          "tools/remotion/remotion.config.ts",
+          "video/src/LessonVideo.tsx",
+          "video/src/Root.tsx",
+          "video/src/index.tsx"
+        ],
+        "sdkIndex": 0,
+        "sdkVersion": "5.9.3"
+      },
+      {
+        "config": "frontend/tsconfig.app.json",
+        "optionsDigest": "0c5c6caefa0ef3731732968eba2094ec0f4d5e9cbc1318c397f2c51492540491",
+        "selectionDigest": "29673313fc7e29d341275b69e9ba634a8e472ae33f3b4c955e7a21cb425fc80c",
+        "files": [
+          "frontend/src/composables/useAuth.ts",
+          "frontend/src/composables/useBrowserSpeech.ts",
+          "frontend/src/composables/useCourseLearning.ts",
+          "frontend/src/composables/useDashboard.ts",
+          "frontend/src/composables/useInterviewExit.ts",
+          "frontend/src/composables/useInterviewPlayback.ts",
+          "frontend/src/composables/useInterviewRecording.ts",
+          "frontend/src/composables/useInterviewSubmission.ts",
+          "frontend/src/composables/useNetworkStatus.ts",
+          "frontend/src/composables/useSceneFilters.ts",
+          "frontend/src/composables/useScriptPreview.ts",
+          "frontend/src/composables/useTheme.ts",
+          "frontend/src/composables/useTrainingPlan.ts",
+          "frontend/src/composables/useTrainingReport.ts",
+          "frontend/src/composables/useTrainingSession.ts",
+          "frontend/src/lib/activeTrainingAttempt.ts",
+          "frontend/src/lib/answerTurns.ts",
+          "frontend/src/lib/api.ts",
+          "frontend/src/lib/avatarConfig.ts",
+          "frontend/src/lib/contracts/interviewAssessment.ts",
+          "frontend/src/lib/contracts/trainingMetadata.ts",
+          "frontend/src/lib/dashboard.ts",
+          "frontend/src/lib/diff.ts",
+          "frontend/src/lib/errorReporting.ts",
+          "frontend/src/lib/expressionWarnings.ts",
+          "frontend/src/lib/live2d.ts",
+          "frontend/src/lib/planActions.ts",
+          "frontend/src/lib/questionRubric.ts",
+          "frontend/src/lib/sceneTaxonomy.ts",
+          "frontend/src/lib/scriptPresentation.ts",
+          "frontend/src/lib/types.ts",
+          "frontend/src/main.ts",
+          "frontend/src/router.ts"
+        ],
+        "members": [
+          "frontend/src/composables/useAuth.ts",
+          "frontend/src/composables/useBrowserSpeech.ts",
+          "frontend/src/composables/useCourseLearning.ts",
+          "frontend/src/composables/useDashboard.ts",
+          "frontend/src/composables/useInterviewExit.ts",
+          "frontend/src/composables/useInterviewPlayback.ts",
+          "frontend/src/composables/useInterviewRecording.ts",
+          "frontend/src/composables/useInterviewSubmission.ts",
+          "frontend/src/composables/useNetworkStatus.ts",
+          "frontend/src/composables/useSceneFilters.ts",
+          "frontend/src/composables/useScriptPreview.ts",
+          "frontend/src/composables/useTheme.ts",
+          "frontend/src/composables/useTrainingPlan.ts",
+          "frontend/src/composables/useTrainingReport.ts",
+          "frontend/src/composables/useTrainingSession.ts",
+          "frontend/src/lib/activeTrainingAttempt.ts",
+          "frontend/src/lib/answerTurns.ts",
+          "frontend/src/lib/api.ts",
+          "frontend/src/lib/avatarConfig.ts",
+          "frontend/src/lib/contracts/interviewAssessment.ts",
+          "frontend/src/lib/contracts/trainingMetadata.ts",
+          "frontend/src/lib/dashboard.ts",
+          "frontend/src/lib/diff.ts",
+          "frontend/src/lib/errorReporting.ts",
+          "frontend/src/lib/expressionWarnings.ts",
+          "frontend/src/lib/live2d.ts",
+          "frontend/src/lib/planActions.ts",
+          "frontend/src/lib/questionRubric.ts",
+          "frontend/src/lib/sceneTaxonomy.ts",
+          "frontend/src/lib/scriptPresentation.ts",
+          "frontend/src/lib/types.ts",
+          "frontend/src/main.ts",
+          "frontend/src/router.ts"
+        ],
+        "sdkIndex": 0,
+        "sdkVersion": "5.9.3"
+      },
+      {
+        "config": "frontend/tsconfig.node.json",
+        "optionsDigest": "aadd91a12e3b0d4b9a99a9de9faa8b13457fb53f8ebc2ab6937bf6a3996e2dff",
+        "selectionDigest": "8d163aed1c03fdcaaf5df271cfa7937665fc26afca97610a18c9df72576ca8e0",
+        "files": [
+          "frontend/vite.config.ts"
+        ],
+        "members": [
+          "frontend/vite.config.ts"
+        ],
+        "sdkIndex": 0,
+        "sdkVersion": "5.9.3"
+      },
+      {
+        "config": "tools/remotion/tsconfig.json",
+        "optionsDigest": "c16998a9d3657f02d82e6567b54101131b76d8bb66bb0c9fa0de7930143805f4",
+        "selectionDigest": "f3a7a6f7089b2ba142b04e38e73af1346eb2c93dce599e80327d6ef5e3d7e93e",
+        "files": [
+          "tools/remotion/src/LessonVideo.tsx",
+          "tools/remotion/src/Root.tsx",
+          "tools/remotion/src/index.ts"
+        ],
+        "members": [
+          "tools/remotion/src/LessonVideo.tsx",
+          "tools/remotion/src/Root.tsx",
+          "tools/remotion/src/index.ts"
+        ],
+        "sdkIndex": 0,
+        "sdkVersion": "5.9.3"
+      }
+    ],
+    "tsSdks": [
+      {
+        "version": "5.9.3",
+        "source": "bundled",
+        "status": "fallback",
+        "packagePath": null
+      }
+    ],
+    "coverage": {
+      "files": 43,
+      "excludedRoles": [
+        "generated",
+        "test"
+      ],
+      "parseErrors": []
+    }
+  },
+  "diagnostics": [
+    {
+      "id": "COMP-912560c624a0",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous> in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 69 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 69,
+        "nesting": 2,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-c8dc36ebfb8f",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.ccall.<locals>.f.string in frontend/public/avatars/live2d/live2dcubismcore.min.js has nesting depth 7 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.ccall.<locals>.f.string",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 14,
+        "nesting": 7,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-5419ad8d47b1",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 289 and nesting depth 7 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 289,
+        "nesting": 7,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-db38ae8ee93b",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.$ in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 18 and nesting depth 5 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.$",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 18,
+        "nesting": 5,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-9d510e32ac06",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.Aa in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 24 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.Aa",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 24,
+        "nesting": 3,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-e4a23145ae91",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.Ba in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 17 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.Ba",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 17,
+        "nesting": 3,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-8225e73611d2",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.Da in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 55 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.Da",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 55,
+        "nesting": 5,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-57e40aa4a60a",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.Fa in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 28 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.Fa",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 28,
+        "nesting": 5,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-d3bfbca061e9",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.La in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 16 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.La",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 3,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-1c3e6af809a4",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.i in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 767 and nesting depth 9 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.i",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 767,
+        "nesting": 9,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-dd87fa84ee9a",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.k in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 62 and nesting depth 15 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.k",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 62,
+        "nesting": 15,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-fbde40145fa2",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.oa in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 18 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.oa",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 18,
+        "nesting": 3,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-e5481c1e480e",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.pa in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 53 and nesting depth 7 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.pa",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 53,
+        "nesting": 7,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-b815a8d23da7",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.qa in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 162 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.qa",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 162,
+        "nesting": 5,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-1572881045e3",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.ra in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 132 and nesting depth 7 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.ra",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 132,
+        "nesting": 7,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-124ecd4a2c2c",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.ua in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 424 and nesting depth 12 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.ua",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 424,
+        "nesting": 12,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-0c17fbcffafa",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.va in frontend/public/avatars/live2d/live2dcubismcore.min.js has nesting depth 8 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.va",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 15,
+        "nesting": 8,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-a7f9657540fd",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.wa in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 127 and nesting depth 14 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.wa",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 127,
+        "nesting": 14,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-3d30816b02f4",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "warning",
+      "confidence": 1,
+      "message": "<anonymous>.<locals>.da.<locals>.za in frontend/public/avatars/live2d/live2dcubismcore.min.js has cyclomatic complexity 47 and nesting depth 6 (1 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "function": "<anonymous>.<locals>.da.<locals>.za",
+        "line": 9,
+        "endLine": 9
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 25,
+          "nesting": 6
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 47,
+        "nesting": 6,
+        "deepestLine": 9,
+        "length": 1
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/public/avatars/live2d/live2dcubismcore.min.js"
+        ],
+        "lines": [
+          9,
+          9
+        ],
+        "sha256": "0dc9a88b924db3046ee360089e3c03ad2a164010a6d9aee78f81152fef5f51e5"
+      }
+    },
+    {
+      "id": "COMP-2de4290b4a4b",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "useSceneFilters in frontend/src/composables/useSceneFilters.ts has cyclomatic complexity 23 (71 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/src/composables/useSceneFilters.ts",
+        "function": "useSceneFilters",
+        "line": 7,
+        "endLine": 77
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 23,
+        "nesting": 1,
+        "deepestLine": 42,
+        "length": 71
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/src/composables/useSceneFilters.ts"
+        ],
+        "lines": [
+          7,
+          77
+        ],
+        "sha256": "9d58010d855dd6d5b1375be45c33e3cc088abab5036969da62e8152b0a405259"
+      }
+    },
+    {
+      "id": "COMP-569447f05dc3",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "useTrainingSession.<locals>.send in frontend/src/composables/useTrainingSession.ts has cyclomatic complexity 16 (59 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/src/composables/useTrainingSession.ts",
+        "function": "useTrainingSession.<locals>.send",
+        "line": 18,
+        "endLine": 76
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 16,
+        "nesting": 3,
+        "deepestLine": 65,
+        "length": 59
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/src/composables/useTrainingSession.ts"
+        ],
+        "lines": [
+          18,
+          76
+        ],
+        "sha256": "75888674d8f5aca9bf80e39e4e45320c7f3766bd9805d67658bb068fef4164c0"
+      }
+    },
+    {
+      "id": "COMP-459df50c19b0",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "createLocalAvatar in frontend/src/lib/live2d.ts has cyclomatic complexity 15 (93 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/src/lib/live2d.ts",
+        "function": "createLocalAvatar",
+        "line": 27,
+        "endLine": 119
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 15,
+        "nesting": 3,
+        "deepestLine": 87,
+        "length": 93
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/src/lib/live2d.ts"
+        ],
+        "lines": [
+          27,
+          119
+        ],
+        "sha256": "f58cc381e960e043a292d1dea0509ac74ff7c7d15e3121bfeca86c07d3204ae1"
+      }
+    },
+    {
+      "id": "COMP-e531944bf6e3",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "taskRoute in frontend/src/lib/planActions.ts has cyclomatic complexity 19 (26 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "frontend/src/lib/planActions.ts",
+        "function": "taskRoute",
+        "line": 14,
+        "endLine": 39
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 19,
+        "nesting": 1,
+        "deepestLine": 16,
+        "length": 26
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/src/lib/planActions.ts"
+        ],
+        "lines": [
+          14,
+          39
+        ],
+        "sha256": "aef55e305aae95df61f73f8122225f88ab9b01140970aa397e51f3e6df49e32f"
+      }
+    },
+    {
+      "id": "COMP-46aab65875c6",
+      "code": "complexity/function",
+      "dimension": "complexity",
+      "severity": "info",
+      "confidence": 1,
+      "message": "LessonVideo in video/src/LessonVideo.tsx has cyclomatic complexity 20 (203 lines). More independent paths make it harder to read and to test fully; this is a maintenance signal, not a defect.",
+      "subject": {
+        "file": "video/src/LessonVideo.tsx",
+        "function": "LessonVideo",
+        "line": 197,
+        "endLine": 399
+      },
+      "evidence": {
+        "threshold": {
+          "complexity": 15,
+          "nesting": 5
+        },
+        "thresholds": {
+          "info": {
+            "complexity": 15,
+            "nesting": 5
+          },
+          "warning": {
+            "complexity": 25,
+            "nesting": 6
+          }
+        },
+        "complexity": 20,
+        "nesting": 2,
+        "deepestLine": 214,
+        "length": 203
+      },
+      "supportedFixes": [
+        "start at the deepest nested block: extract it into a named helper with its own tests",
+        "replace long if/elif chains on one value with a lookup table or dispatch",
+        "return early for edge cases so the main path is not nested",
+        "if the branching is inherent, raise the threshold in the analysis config rather than splitting artificially"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "video/src/LessonVideo.tsx"
+        ],
+        "lines": [
+          197,
+          399
+        ],
+        "sha256": "34a3f9b94fa28e6e86584823cd1a287b5824e70cda207b9455c9f91df1861400"
+      }
+    },
+    {
+      "id": "COUP-8656bac516d5",
+      "code": "coupling/internal-leak",
+      "dimension": "coupling",
+      "severity": "info",
+      "confidence": 1,
+      "message": "frontend/src/lib has no entry file: 2 modules import 6 of its 16 files directly (23 imports).",
+      "subject": {
+        "module": "frontend-src-lib"
+      },
+      "evidence": {
+        "entries": [],
+        "entrySource": "none",
+        "internalFiles": [
+          "frontend/src/lib/activeTrainingAttempt.ts",
+          "frontend/src/lib/api.ts",
+          "frontend/src/lib/dashboard.ts",
+          "frontend/src/lib/errorReporting.ts",
+          "frontend/src/lib/sceneTaxonomy.ts",
+          "frontend/src/lib/types.ts"
+        ],
+        "moduleFiles": 16,
+        "consumers": [
+          "frontend-src",
+          "frontend-src-composables"
+        ],
+        "viaEntry": 0,
+        "totalImports": 23,
+        "files": [
+          "frontend/src/composables/useAuth.ts",
+          "frontend/src/composables/useCourseLearning.ts",
+          "frontend/src/composables/useDashboard.ts",
+          "frontend/src/composables/useInterviewExit.ts",
+          "frontend/src/composables/useInterviewPlayback.ts",
+          "frontend/src/composables/useInterviewSubmission.ts",
+          "frontend/src/composables/useSceneFilters.ts",
+          "frontend/src/composables/useScriptPreview.ts",
+          "frontend/src/composables/useTrainingPlan.ts",
+          "frontend/src/composables/useTrainingReport.ts",
+          "frontend/src/composables/useTrainingSession.ts",
+          "frontend/src/main.ts"
+        ],
+        "imports": [
+          {
+            "file": "frontend/src/composables/useAuth.ts",
+            "line": 3,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useAuth.ts",
+            "line": 4,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useCourseLearning.ts",
+            "line": 3,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useCourseLearning.ts",
+            "line": 4,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useDashboard.ts",
+            "line": 3,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useDashboard.ts",
+            "line": 4,
+            "to": "frontend/src/lib/dashboard.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useDashboard.ts",
+            "line": 5,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useInterviewExit.ts",
+            "line": 3,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useInterviewExit.ts",
+            "line": 4,
+            "to": "frontend/src/lib/activeTrainingAttempt.ts"
+          },
+          {
+            "file": "frontend/src/composables/useInterviewPlayback.ts",
+            "line": 3,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useInterviewSubmission.ts",
+            "line": 2,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useInterviewSubmission.ts",
+            "line": 3,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useSceneFilters.ts",
+            "line": 4,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useSceneFilters.ts",
+            "line": 5,
+            "to": "frontend/src/lib/sceneTaxonomy.ts"
+          },
+          {
+            "file": "frontend/src/composables/useScriptPreview.ts",
+            "line": 3,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useScriptPreview.ts",
+            "line": 4,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useTrainingPlan.ts",
+            "line": 3,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useTrainingPlan.ts",
+            "line": 4,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useTrainingReport.ts",
+            "line": 2,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useTrainingReport.ts",
+            "line": 3,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/composables/useTrainingSession.ts",
+            "line": 3,
+            "to": "frontend/src/lib/api.ts"
+          },
+          {
+            "file": "frontend/src/composables/useTrainingSession.ts",
+            "line": 4,
+            "to": "frontend/src/lib/types.ts",
+            "typeOnly": true
+          },
+          {
+            "file": "frontend/src/main.ts",
+            "line": 6,
+            "to": "frontend/src/lib/errorReporting.ts"
+          }
+        ],
+        "threshold": {
+          "minFiles": 3
+        }
+      },
+      "supportedFixes": [
+        "add an entry file to frontend/src/lib that re-exports what other modules use, and import from it",
+        "if deep imports are the project convention, set rules.coupling.internalLeak.entries or ignore the rule in the analysis config"
+      ],
+      "evidenceDigest": {
+        "files": [
+          "frontend/src/composables/useAuth.ts",
+          "frontend/src/composables/useCourseLearning.ts",
+          "frontend/src/composables/useDashboard.ts",
+          "frontend/src/composables/useInterviewExit.ts",
+          "frontend/src/composables/useInterviewPlayback.ts",
+          "frontend/src/composables/useInterviewSubmission.ts",
+          "frontend/src/composables/useSceneFilters.ts",
+          "frontend/src/composables/useScriptPreview.ts",
+          "frontend/src/composables/useTrainingPlan.ts",
+          "frontend/src/composables/useTrainingReport.ts",
+          "frontend/src/composables/useTrainingSession.ts",
+          "frontend/src/lib/activeTrainingAttempt.ts",
+          "frontend/src/lib/api.ts",
+          "frontend/src/lib/dashboard.ts",
+          "frontend/src/lib/errorReporting.ts",
+          "frontend/src/lib/sceneTaxonomy.ts",
+          "frontend/src/lib/types.ts",
+          "frontend/src/main.ts"
+        ],
+        "sha256": "85f2db0c3e7b426f22ed3c1f16b93b96c27c538652e726bef02433ceeb3586b8"
+      }
+    }
+  ]
+}

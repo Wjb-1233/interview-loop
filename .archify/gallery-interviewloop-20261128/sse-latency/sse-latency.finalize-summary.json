@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "waterfall",
+  "quality": "showcase",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\sse-latency\\candidate.json",
+    "sha256": "09173199f2266e895db23f8dee66923ac2f06cea87bf37d06da5a9118bd259b7",
+    "bytes": 3389
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\sse-latency\\sse-latency.html",
+    "sha256": "512c20a77110c2d51eca96f54cea389adda43ab5453e04e574041960c44ea0d4",
+    "bytes": 932848
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\sse-latency\\sse-latency.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\sse-latency\\sse-latency.finalize-summary.json",
+    "browserCheckReceipt": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\sse-latency\\sse-latency.browser-check.json"
+  },
+  "repositoryReferences": {
+    "status": "verified",
+    "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5",
+    "count": 5
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3691,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

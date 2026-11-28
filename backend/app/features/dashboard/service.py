@@ -78,15 +78,22 @@ def _recent_aggregates(recent: list) -> tuple[dict, list[str]]:
     return averages, tags
 
 
+def _select_reference(candidates: list, anchor_session_id: str | None):
+    if not anchor_session_id:
+        return next(iter(candidates), None)
+    selected = next((row for row in candidates if row[0].id == anchor_session_id), None)
+    if selected is None:
+        raise not_found('可比较的参考训练')
+    return selected
+
+
 async def dashboard_data(db: AsyncSession, user_id: str, channel: str | None = None, scene_id: str | None = None, anchor_session_id: str | None = None) -> dict:
     totals = await overview(db, user_id)
     formal = (Evaluation.user_id == user_id, TrainingSession.user_id == user_id, *formal_filters())
     ordering = training_order()
     options = await _scored_history(db, formal, ordering)
     candidates = [row for row in options if (not channel or row[0].channel == channel) and (not scene_id or row[0].scene_id == scene_id)]
-    selected = next((row for row in candidates if row[0].id == anchor_session_id), None) if anchor_session_id else next(iter(candidates), None)
-    if anchor_session_id and selected is None:
-        raise not_found('可比较的参考训练')
+    selected = _select_reference(candidates, anchor_session_id)
     selected_resume, total_matches, matching = (await _matching_samples(db, selected, formal, ordering)) if selected else (None, 0, [])
     recent = matching[:RECENT_SAMPLES]
     averages, style_tags = _recent_aggregates(recent)

@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-11-28T07:18:12.618Z",
+  "specification": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+    "sha256": "df8a24ad7f3b459c4109871c171c03d48d951725f0064d65c6339970f33cc113",
+    "bytes": 10434
+  },
+  "artifact": {
+    "path": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+    "sha256": "874b0e7664a8427a8408e3c9f886e1b8d8d36d33dd7323a09198f80029ad7d02",
+    "bytes": 963705
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "D:\\Astudy\\Employment\\tools\\nodejs\\node.exe",
+        "D:\\public skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+        "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "D:\\interview-loop",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "85b1cf8d-79f4-470c-8b7d-3101205401fa",
+        "stage": "render",
+        "type": "architecture",
+        "input": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\candidate.json",
+        "output": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\interviewloop-architecture.html",
+        "error": "Architecture layout validation failed:\n- Component \"web\" is not wrapped by boundary \"uvicorn 进程 127.0.0.1:8081\" but sits inside its frame — move it outside the frame, place the wrapped members in one compact axis-aligned cluster (no empty bay for a non-member), or add it to wraps only when it truly belongs there.",
+        "diagnostics": [
+          {
+            "code": "layout/boundary-encloses-non-member",
+            "severity": "error",
+            "message": "Component \"web\" is not wrapped by boundary \"uvicorn 进程 127.0.0.1:8081\" but sits inside its frame — move it outside the frame, place the wrapped members in one compact axis-aligned cluster (no empty bay for a non-member), or add it to wraps only when it truly belongs there.",
+            "subject": {
+              "diagramType": "architecture",
+              "boundary": {
+                "kind": "region",
+                "label": "uvicorn 进程 127.0.0.1:8081",
+                "wraps": [
+                  "api",
+                  "voicews"
+                ]
+              },
+              "component": "web"
+            },
+            "evidence": {
+              "bounds": {
+                "x": 270,
+                "y": 490,
+                "width": 570,
+                "height": 312
+              },
+              "component": {
+                "id": "web",
+                "type": "frontend",
+                "label": "InterviewLoop Web",
+                "x": 300,
+                "y": 520,
+                "width": 160,
+                "height": 62,
+                "pos": [
+                  300,
+                  520
+                ]
+              }
+            },
+            "supportedFixes": [
+              "move \"web\" outside the boundary frame",
+              "reposition the wrapped members into one compact axis-aligned cluster (no empty bay) that leaves non-members outside"
+            ]
+          }
+        ],
+        "provenance": "failed",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "layout/boundary-encloses-non-member",
+      "severity": "error",
+      "message": "Component \"web\" is not wrapped by boundary \"uvicorn 进程 127.0.0.1:8081\" but sits inside its frame — move it outside the frame, place the wrapped members in one compact axis-aligned cluster (no empty bay for a non-member), or add it to wraps only when it truly belongs there.",
+      "subject": {
+        "diagramType": "architecture",
+        "boundary": {
+          "kind": "region",
+          "label": "uvicorn 进程 127.0.0.1:8081",
+          "wraps": [
+            "api",
+            "voicews"
+          ]
+        },
+        "component": "web"
+      },
+      "evidence": {
+        "bounds": {
+          "x": 270,
+          "y": 490,
+          "width": 570,
+          "height": 312
+        },
+        "component": {
+          "id": "web",
+          "type": "frontend",
+          "label": "InterviewLoop Web",
+          "x": 300,
+          "y": 520,
+          "width": 160,
+          "height": 62,
+          "pos": [
+            300,
+            520
+          ]
+        }
+      },
+      "supportedFixes": [
+        "move \"web\" outside the boundary frame",
+        "reposition the wrapped members into one compact axis-aligned cluster (no empty bay) that leaves non-members outside"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\review-2\\interviewloop-architecture.finalize.json",
+    "summaryReceipt": "D:\\interview-loop\\.archify\\architecture-interviewloop-20261128-151210\\review-2\\interviewloop-architecture.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-11-28T07:18:13.373Z",
+  "durationMs": 754,
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "cache-valid"
+  }
+}

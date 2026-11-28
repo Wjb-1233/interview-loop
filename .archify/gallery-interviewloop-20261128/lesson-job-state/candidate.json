@@ -1,0 +1,154 @@
+{
+  "schema_version": 3,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "微课视频任务状态机",
+    "subtitle": "排队、渲染、完成与重试",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "output": ".archify/gallery-interviewloop-20261128/lesson-job-state/lesson-job-state.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "10f84bde9fd402f83f5c4f1c401f8d1e2534fbb5"
+    }
+  },
+  "mainPath": [
+    "pending",
+    "running",
+    "done"
+  ],
+  "states": [
+    {
+      "id": "pending",
+      "type": "start",
+      "label": "排队",
+      "sublabel": "PENDING",
+      "sources": [
+        {
+          "path": "backend/app/features/plans/lesson_videos.py",
+          "line": 122,
+          "end_line": 142,
+          "label": "创建或重新入队"
+        }
+      ]
+    },
+    {
+      "id": "running",
+      "type": "active",
+      "label": "生成中",
+      "sublabel": "RUNNING",
+      "sources": [
+        {
+          "path": "backend/app/features/plans/lesson_videos.py",
+          "line": 232,
+          "end_line": 257,
+          "label": "认领任务与更新进度"
+        },
+        {
+          "path": "backend/app/features/plans/lesson_videos.py",
+          "line": 260,
+          "end_line": 289,
+          "label": "后台执行渲染"
+        }
+      ]
+    },
+    {
+      "id": "done",
+      "type": "success",
+      "label": "已完成",
+      "sublabel": "DONE",
+      "sources": [
+        {
+          "path": "backend/app/features/plans/lesson_videos.py",
+          "line": 295,
+          "end_line": 308,
+          "label": "保存渲染结果和章节"
+        }
+      ]
+    },
+    {
+      "id": "failed",
+      "type": "failure",
+      "label": "生成失败",
+      "sublabel": "FAILED",
+      "sources": [
+        {
+          "path": "backend/app/features/plans/lesson_videos.py",
+          "line": 210,
+          "end_line": 229,
+          "label": "运行超时失败"
+        },
+        {
+          "path": "backend/app/features/plans/lesson_videos.py",
+          "line": 288,
+          "end_line": 296,
+          "label": "渲染异常落库"
+        }
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "id": "claim",
+      "from": "pending",
+      "to": "running",
+      "label": "后台领取",
+      "variant": "default"
+    },
+    {
+      "id": "published",
+      "from": "running",
+      "to": "done",
+      "label": "渲染完成",
+      "variant": "default"
+    },
+    {
+      "id": "failed-run",
+      "from": "running",
+      "to": "failed",
+      "label": "异常或超时",
+      "variant": "security"
+    },
+    {
+      "id": "retry",
+      "from": "failed",
+      "to": "pending",
+      "label": "重新生成",
+      "variant": "dashed"
+    },
+    {
+      "id": "requeue",
+      "from": "running",
+      "to": "pending",
+      "label": "启动时回收卡住任务",
+      "variant": "dashed"
+    },
+    {
+      "id": "force-requeue",
+      "from": "done",
+      "to": "pending",
+      "label": "强制重新生成",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "缓存与渲染",
+      "items": [
+        "GET 查询现有状态；发起生成的入口先检查可复用的视频缓存。",
+        "强制重新生成可以将已完成任务重新排队。"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "执行归属",
+      "items": [
+        "FastAPI 同进程后台任务轮询 MySQL；前端读取进度和失败原因。"
+      ]
+    }
+  ]
+}

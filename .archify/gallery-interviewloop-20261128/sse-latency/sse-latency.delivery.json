@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "eb4c4bd1-3124-4463-9dab-c94ffdcb8abf",
+  "status": "current",
+  "command": "deliver",
+  "type": "waterfall",
+  "input": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\sse-latency\\candidate.json",
+  "output": "D:\\interview-loop\\.archify\\gallery-interviewloop-20261128\\sse-latency\\sse-latency.html",
+  "specification": {
+    "sha256": "09173199f2266e895db23f8dee66923ac2f06cea87bf37d06da5a9118bd259b7",
+    "bytes": 3389
+  },
+  "artifact": {
+    "sha256": "512c20a77110c2d51eca96f54cea389adda43ab5453e04e574041960c44ea0d4",
+    "bytes": 932848
+  }
+}

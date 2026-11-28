@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "mode": "standalone",
+  "ir": null,
+  "map": null,
+  "run": {
+    "locale": "zh-CN",
+    "openAnalysis": true,
+    "resume": {
+      "command": "node \"D:\\public skills\\archify\\bin\\archify.mjs\" start D:\\interview-loop --out D:\\interview-loop\\.archify\\code-analysis-interviewloop-20261128-151210 --locale zh-CN --language py --baseline D:\\interview-loop\\.archify\\code-analysis-interviewloop-20261128-151210\\baseline.json --quality standard",
+      "shell": "cmd.exe"
+    },
+    "suppressed": [],
+    "exclude": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/target/**/*.java",
+      "**/coverage/**",
+      "**/*.d.ts",
+      "**/venv/**",
+      "**/venv-*/**",
+      "**/.venv/**",
+      "**/site-packages/**",
+      "**/__pycache__/**",
+      "**/.pytest_cache/**",
+      "**/.git/**",
+      "**/_archive/**"
+    ],
+    "otherLanguages": [
+      {
+        "adapter": "ts",
+        "files": 59
+      }
+    ],
+    "boundaries": null
+  }
+}

@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "repository": {
+    "revision": null,
+    "baseRevision": "05013c0aebc156003476513d259c3344f564f46c",
+    "sourceKind": "working-tree",
+    "root": ".",
+    "url": "git@github.com:Wjb-1233/interview-loop.git",
+    "language": "ts",
+    "adapter": "typescript@5.9.3",
+    "adapterRevision": 30,
+    "snapshotId": "843342da24b309785389dc6c050887ef6b79155bafa79e8d0e8f999fa90ddff2"
+  },
+  "grouping": {
+    "depth": 2,
+    "packageBoundaries": true,
+    "groups": [],
+    "typescript": "nested-source-roots-v2"
+  },
+  "excluded": {
+    "roles": [
+      "generated",
+      "test"
+    ],
+    "files": 19
+  },
+  "modules": [
+    {
+      "id": "frontend",
+      "label": "frontend",
+      "path": "frontend",
+      "files": 3,
+      "loc": 89,
+      "fanIn": 0,
+      "fanOut": 0,
+      "instability": null,
+      "entry": [
+        "frontend/public/avatars/live2d/live2dcubismcore.min.js",
+        "frontend/scripts/verify-build.mjs",
+        "frontend/vite.config.ts"
+      ]
+    },
+    {
+      "id": "frontend-src",
+      "label": "frontend/src",
+      "path": "frontend/src",
+      "files": 2,
+      "loc": 72,
+      "fanIn": 0,
+      "fanOut": 2,
+      "instability": 1,
+      "entry": [
+        "frontend/src/main.ts",
+        "frontend/src/router.ts"
+      ]
+    },
+    {
+      "id": "frontend-src-composables",
+      "label": "frontend/src/composables",
+      "path": "frontend/src/composables",
+      "files": 15,
+      "loc": 1092,
+      "fanIn": 1,
+      "fanOut": 1,
+      "instability": 0.5,
+      "entry": [
+        "frontend/src/composables/useAuth.ts",
+        "frontend/src/composables/useBrowserSpeech.ts",
+        "frontend/src/composables/useCourseLearning.ts"
+      ]
+    },
+    {
+      "id": "frontend-src-lib",
+      "label": "frontend/src/lib",
+      "path": "frontend/src/lib",
+      "files": 16,
+      "loc": 1039,
+      "fanIn": 2,
+      "fanOut": 0,
+      "instability": 0,
+      "entry": [
+        "frontend/src/lib/api.ts",
+        "frontend/src/lib/types.ts",
+        "frontend/src/lib/activeTrainingAttempt.ts"
+      ]
+    },
+    {
+      "id": "tools-remotion",
+      "label": "tools/remotion",
+      "path": "tools/remotion",
+      "files": 1,
+      "loc": 5,
+      "fanIn": 0,
+      "fanOut": 0,
+      "instability": null,
+      "entry": [
+        "tools/remotion/remotion.config.ts"
+      ]
+    },
+    {
+      "id": "tools-remotion-src",
+      "label": "tools/remotion/src",
+      "path": "tools/remotion/src",
+      "files": 3,
+      "loc": 191,
+      "fanIn": 0,
+      "fanOut": 0,
+      "instability": null,
+      "entry": [
+        "tools/remotion/src/index.ts",
+        "tools/remotion/src/LessonVideo.tsx",
+        "tools/remotion/src/Root.tsx"
+      ]
+    },
+    {
+      "id": "video-src",
+      "label": "video/src",
+      "path": "video/src",
+      "files": 3,
+      "loc": 438,
+      "fanIn": 0,
+      "fanOut": 0,
+      "instability": null,
+      "entry": [
+        "video/src/index.tsx",
+        "video/src/LessonVideo.tsx",
+        "video/src/Root.tsx"
+      ]
+    }
+  ],
+  "fileModules": {
+    "frontend/public/avatars/live2d/live2dcubismcore.min.js": "frontend",
+    "frontend/scripts/verify-build.mjs": "frontend",
+    "frontend/src/composables/useAuth.ts": "frontend-src-composables",
+    "frontend/src/composables/useBrowserSpeech.ts": "frontend-src-composables",
+    "frontend/src/composables/useCourseLearning.ts": "frontend-src-composables",
+    "frontend/src/composables/useDashboard.ts": "frontend-src-composables",
+    "frontend/src/composables/useInterviewExit.ts": "frontend-src-composables",
+    "frontend/src/composables/useInterviewPlayback.ts": "frontend-src-composables",
+    "frontend/src/composables/useInterviewRecording.ts": "frontend-src-composables",
+    "frontend/src/composables/useInterviewSubmission.ts": "frontend-src-composables",
+    "frontend/src/composables/useNetworkStatus.ts": "frontend-src-composables",
+    "frontend/src/composables/useSceneFilters.ts": "frontend-src-composables",
+    "frontend/src/composables/useScriptPreview.ts": "frontend-src-composables",
+    "frontend/src/composables/useTheme.ts": "frontend-src-composables",
+    "frontend/src/composables/useTrainingPlan.ts": "frontend-src-composables",
+    "frontend/src/composables/useTrainingReport.ts": "frontend-src-composables",
+    "frontend/src/composables/useTrainingSession.ts": "frontend-src-composables",
+    "frontend/src/lib/activeTrainingAttempt.ts": "frontend-src-lib",
+    "frontend/src/lib/answerTurns.ts": "frontend-src-lib",
+    "frontend/src/lib/api.ts": "frontend-src-lib",
+    "frontend/src/lib/avatarConfig.ts": "frontend-src-lib",
+    "frontend/src/lib/contracts/interviewAssessment.ts": "frontend-src-lib",
+    "frontend/src/lib/contracts/trainingMetadata.ts": "frontend-src-lib",
+    "frontend/src/lib/dashboard.ts": "frontend-src-lib",
+    "frontend/src/lib/diff.ts": "frontend-src-lib",
+    "frontend/src/lib/errorReporting.ts": "frontend-src-lib",
+    "frontend/src/lib/expressionWarnings.ts": "frontend-src-lib",
+    "frontend/src/lib/live2d.ts": "frontend-src-lib",
+    "frontend/src/lib/planActions.ts": "frontend-src-lib",
+    "frontend/src/lib/questionRubric.ts": "frontend-src-lib",
+    "frontend/src/lib/sceneTaxonomy.ts": "frontend-src-lib",
+    "frontend/src/lib/scriptPresentation.ts": "frontend-src-lib",
+    "frontend/src/lib/types.ts": "frontend-src-lib",
+    "frontend/src/main.ts": "frontend-src",
+    "frontend/src/router.ts": "frontend-src",
+    "frontend/vite.config.ts": "frontend",
+    "tools/remotion/remotion.config.ts": "tools-remotion",
+    "tools/remotion/src/LessonVideo.tsx": "tools-remotion-src",
+    "tools/remotion/src/Root.tsx": "tools-remotion-src",
+    "tools/remotion/src/index.ts": "tools-remotion-src",
+    "video/src/LessonVideo.tsx": "video-src",
+    "video/src/Root.tsx": "video-src",
+    "video/src/index.tsx": "video-src"
+  },
+  "edges": [
+    {
+      "from": "frontend-src",
+      "to": "frontend-src-composables",
+      "weight": 1,
+      "kinds": {
+        "eager": 1,
+        "static": 1
+      },
+      "evidence": [
+        {
+          "file": "frontend/src/router.ts",
+          "line": 3,
+          "to": "frontend/src/composables/useAuth.ts"
+        }
+      ]
+    },
+    {
+      "from": "frontend-src",
+      "to": "frontend-src-lib",
+      "weight": 1,
+      "kinds": {
+        "eager": 1,
+        "static": 1
+      },
+      "evidence": [
+        {
+          "file": "frontend/src/main.ts",
+          "line": 6,
+          "to": "frontend/src/lib/errorReporting.ts"
+        }
+      ]
+    },
+    {
+      "from": "frontend-src-composables",
+      "to": "frontend-src-lib",
+      "weight": 22,
+      "kinds": {
+        "eager": 12,
+        "static": 22,
+        "typeOnly": 10
+      },
+      "evidence": [
+        {
+          "file": "frontend/src/composables/useAuth.ts",
+          "line": 3,
+          "to": "frontend/src/lib/api.ts"
+        },
+        {
+          "file": "frontend/src/composables/useAuth.ts",
+          "line": 4,
+          "to": "frontend/src/lib/types.ts",
+          "typeOnly": true
+        },
+        {
+          "file": "frontend/src/composables/useCourseLearning.ts",
+          "line": 3,
+          "to": "frontend/src/lib/api.ts"
+        },
+        {
+          "file": "frontend/src/composables/useCourseLearning.ts",
+          "line": 4,
+          "to": "frontend/src/lib/types.ts",
+          "typeOnly": true
+        },
+        {
+          "file": "frontend/src/composables/useDashboard.ts",
+          "line": 3,
+          "to": "frontend/src/lib/api.ts"
+        }
+      ]
+    }
+  ],
+  "unresolved": {
+    "external": 84,
+    "outside": 0,
+    "unknown": 3,
+    "opaque": 1
+  }
+}

@@ -1,0 +1,394 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "InterviewLoop · 面试训练平台系统全景",
+    "subtitle": "浏览器 → FastAPI → MySQL / Redis → 外部智能服务（DeepSeek、豆包实时对话、Simli 数字人、TTS）",
+    "locale": "zh-CN",
+    "output": ".archify/architecture-interviewloop-20261128-151210/interviewloop-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:Wjb-1233/interview-loop.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "4d57772d62b295b88103904dbf81f3380314630d"
+    }
+  },
+  "layout": {
+    "mode": "auto"
+  },
+  "components": [
+    {
+      "id": "learner",
+      "type": "external",
+      "label": "学员 / 管理员",
+      "sublabel": "浏览器",
+      "sources": [
+        {
+          "path": "frontend/src/router.ts",
+          "line": 6,
+          "end_line": 23,
+          "label": "学员与管理台路由"
+        }
+      ],
+      "pos": [
+        40,
+        380
+      ],
+      "size": [
+        150,
+        62
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "InterviewLoop Web",
+      "sublabel": "Vue 3 + Vite",
+      "sources": [
+        {
+          "path": "frontend/src/lib/api.ts",
+          "line": 5,
+          "end_line": 9,
+          "label": "/api/v1 客户端"
+        },
+        {
+          "path": "frontend/vite.config.ts",
+          "line": 39,
+          "end_line": 43,
+          "label": "开发代理到 8081"
+        }
+      ],
+      "pos": [
+        300,
+        380
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI 应用",
+      "sublabel": "uvicorn :8081 · /api/v1",
+      "sources": [
+        {
+          "path": "backend/app/main.py",
+          "line": 255,
+          "end_line": 274,
+          "label": "17 组路由注册"
+        },
+        {
+          "path": "backend/app/main.py",
+          "line": 105,
+          "end_line": 116,
+          "label": "启动建表与播种"
+        }
+      ],
+      "pos": [
+        640,
+        380
+      ],
+      "size": [
+        190,
+        62
+      ]
+    },
+    {
+      "id": "voicews",
+      "type": "backend",
+      "label": "语音会话网关",
+      "sublabel": "/voice/ws 双工转发",
+      "sources": [
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 126,
+          "end_line": 160,
+          "label": "WS 鉴权并转发上游"
+        }
+      ],
+      "pos": [
+        640,
+        560
+      ],
+      "size": [
+        190,
+        62
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "MySQL 8.4",
+      "sublabel": "career_coach · 127.0.0.1:3308",
+      "sources": [
+        {
+          "path": "backend/app/db/base.py",
+          "line": 10,
+          "end_line": 30,
+          "label": "异步引擎与连接池"
+        },
+        {
+          "path": "docker-compose.yml",
+          "line": 4,
+          "end_line": 21,
+          "label": "容器与端口"
+        }
+      ],
+      "pos": [
+        700,
+        200
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis 7.4",
+      "sublabel": "限流 · 127.0.0.1:6380",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/rate_limit.py",
+          "line": 14,
+          "end_line": 35,
+          "label": "限流器连接 Redis"
+        },
+        {
+          "path": "docker-compose.yml",
+          "line": 22,
+          "end_line": 36,
+          "label": "容器与端口"
+        }
+      ],
+      "pos": [
+        960,
+        200
+      ],
+      "size": [
+        160,
+        62
+      ]
+    },
+    {
+      "id": "llm",
+      "type": "external",
+      "label": "DeepSeek",
+      "sublabel": "chat/completions",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/llm.py",
+          "line": 118,
+          "end_line": 157,
+          "label": "JSON 补全与重试"
+        }
+      ],
+      "pos": [
+        1000,
+        520
+      ],
+      "size": [
+        180,
+        62
+      ]
+    },
+    {
+      "id": "doubao",
+      "type": "external",
+      "label": "豆包实时对话",
+      "sublabel": "duplex/realtime/dialogue",
+      "sources": [
+        {
+          "path": "backend/app/features/voice/router.py",
+          "line": 35,
+          "end_line": 37,
+          "label": "上游地址与资源"
+        }
+      ],
+      "pos": [
+        640,
+        720
+      ],
+      "size": [
+        190,
+        62
+      ]
+    },
+    {
+      "id": "simli",
+      "type": "external",
+      "label": "Simli 数字人",
+      "sublabel": "compose/token + WebRTC",
+      "sources": [
+        {
+          "path": "backend/app/features/avatar/service.py",
+          "line": 48,
+          "end_line": 97,
+          "label": "令牌换取与错误码"
+        },
+        {
+          "path": "frontend/src/components/media/SimliPresenter.vue",
+          "line": 203,
+          "end_line": 207,
+          "label": "浏览器侧建连"
+        }
+      ],
+      "pos": [
+        300,
+        60
+      ],
+      "size": [
+        170,
+        62
+      ]
+    },
+    {
+      "id": "tts",
+      "type": "external",
+      "label": "语音合成",
+      "sublabel": "seed-tts-2.0 → edge-tts",
+      "sources": [
+        {
+          "path": "backend/app/infrastructure/narration.py",
+          "line": 3,
+          "end_line": 3,
+          "label": "引擎优先级"
+        },
+        {
+          "path": "backend/app/infrastructure/narration.py",
+          "line": 78,
+          "end_line": 160,
+          "label": "豆包与 edge-tts 实现"
+        }
+      ],
+      "pos": [
+        1000,
+        340
+      ],
+      "size": [
+        180,
+        62
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Docker Compose · career-coach（MySQL :3308 / Redis :6380）",
+      "wraps": [
+        "db",
+        "redis"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "learner-web",
+      "from": "learner",
+      "to": "web",
+      "label": "打开场景 / 面试房间"
+    },
+    {
+      "id": "web-api-rest",
+      "from": "web",
+      "to": "api",
+      "label": "REST /api/v1（Bearer）",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-db",
+      "from": "api",
+      "to": "db",
+      "label": "SQLAlchemy async（asyncmy）"
+    },
+    {
+      "id": "api-redis",
+      "from": "api",
+      "to": "redis",
+      "label": "限流计数"
+    },
+    {
+      "id": "api-llm",
+      "from": "api",
+      "to": "llm",
+      "label": "评分 · 话术 · 计划",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-tts",
+      "from": "api",
+      "to": "tts",
+      "label": "试听 / 微课配音"
+    },
+    {
+      "id": "api-simli",
+      "from": "api",
+      "to": "simli",
+      "label": "换 5 分钟令牌（API Key 留服务端）",
+      "variant": "security"
+    },
+    {
+      "id": "web-voicews",
+      "from": "web",
+      "to": "voicews",
+      "label": "WS /voice/ws?ticket=…",
+      "variant": "emphasis"
+    },
+    {
+      "id": "voicews-doubao",
+      "from": "voicews",
+      "to": "doubao",
+      "label": "WSS 双工转发",
+      "variant": "emphasis"
+    },
+    {
+      "id": "web-simli",
+      "from": "web",
+      "to": "simli",
+      "label": "WebRTC 数字人回流"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "前端与接口",
+      "items": [
+        "Vue 3 + Vite；/api/v1 开发期由 Vite 代理到 8081，部署期同源反代",
+        "访问令牌走 Bearer，刷新令牌用 HttpOnly Cookie（/auth/refresh）",
+        "视频面试的 Simli 数字人由浏览器直接建 WebRTC，后端只发 5 分钟令牌"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "后端进程",
+      "items": [
+        "单个 uvicorn 进程承载 17 组路由，REST 与 /voice/ws 同源同进程",
+        "/voice/ws 做票据校验与 2 路会话槽位，再把帧转发给豆包",
+        "媒体文件写本地目录，经 /media/tts、/media/lessons 静态挂载"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "外部智能服务",
+      "items": [
+        "DeepSeek chat/completions 承担评分、话术改写与计划生成",
+        "豆包双工实时对话提供面试问答与语音，浏览器不直连",
+        "TTS 依次尝试 seed-tts-2.0 → edge-tts → 系统语音",
+        "SMTP 未配置时不报错，找回密码回退管理员工单"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "数据与部署",
+      "items": [
+        "MySQL 8.4 存业务数据；Redis 7.4 只做限流，不存业务状态",
+        "两者都由 docker compose（career-coach）起在本机 3308 / 6380",
+        "非生产启动时自动建表并写入演示账号与场景"
+      ]
+    }
+  ]
+}
