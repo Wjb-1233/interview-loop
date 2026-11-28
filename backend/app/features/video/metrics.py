@@ -119,6 +119,76 @@ def _frame_metrics(landmarks) -> dict:
     }
 
 
+def _sample_frames(capture, fps: float, step: int, mp, landmarker) -> dict:
+    """按间隔抽帧做人脸检测，累计各项逐帧指标。"""
+    stats = {"frames": 0, "faces": 0, "centered": 0, "yaws": [], "pitches": [], "mouths": [],
+             "centers_x": [], "centers_y": [], "brightness": []}
+    index = 0
+    while stats["frames"] < MAX_FRAMES:
+        ok, frame = capture.read()
+        if not ok:
+            break
+        if index % step == 0:
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            stats["brightness"].append(float(rgb.mean()))
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+            timestamp_ms = _ts_offset + (int(index / fps * 1000) if fps else index * 40)
+            result = landmarker.detect_for_video(mp_image, timestamp_ms)
+            stats["frames"] += 1
+            if result.face_landmarks:
+                stats["faces"] += 1
+                metrics = _frame_metrics(result.face_landmarks[0])
+                stats["yaws"].append(metrics["yaw"])
+                stats["pitches"].append(metrics["pitch"])
+                stats["mouths"].append(metrics["mouth"])
+                stats["centers_x"].append(metrics["centerX"])
+                stats["centers_y"].append(metrics["centerY"])
+                if metrics["eyeCentered"] and abs(metrics["yaw"]) < 0.12 and abs(metrics["pitch"]) < 0.22:
+                    stats["centered"] += 1
+        index += 1
+    return stats
+
+
+def _summarize_frames(stats: dict) -> dict:
+    frames, faces = stats["frames"], stats["faces"]
+    yaws, pitches, mouths = stats["yaws"], stats["pitches"], stats["mouths"]
+    yaw_std = round(statistics.pstdev(yaws), 3) if len(yaws) > 1 else 0.0
+    pitch_std = round(statistics.pstdev(pitches), 3) if len(pitches) > 1 else 0.0
+    centers_x, centers_y, brightness = stats["centers_x"], stats["centers_y"], stats["brightness"]
+    return {
+        "faces": faces,
+        "faceRatio": round(faces / frames, 3),
+        "eyeContactRatio": round(stats["centered"] / faces, 3) if faces else 0.0,
+        "yawStd": yaw_std,
+        "pitchStd": pitch_std,
+        "headStability": round(max(0.0, 1 - min(1.0, (yaw_std + pitch_std) * 5)), 3),
+        "mouthVariation": round(statistics.pstdev(mouths), 4) if len(mouths) > 1 else 0.0,
+        "centerOffset": (
+            round(((statistics.fmean(centers_x) - 0.5) ** 2 + (statistics.fmean(centers_y) - 0.5) ** 2) ** 0.5, 3)
+            if centers_x else 0.5
+        ),
+        "brightness": round(statistics.fmean(brightness), 1) if brightness else 0.0,
+    }
+
+
+def _camera_tips(summary: dict) -> list[str]:
+    tips: list[str] = []
+    face_ratio, eye_contact = summary["faceRatio"], summary["eyeContactRatio"]
+    if face_ratio < 0.85:
+        tips.append(f"出镜率 {round(face_ratio * 100)}%，有相当时间没对准镜头")
+    if eye_contact < 0.6:
+        tips.append(f"眼神在镜头上的时间只有 {round(eye_contact * 100)}%，看屏幕会让对方觉得没交流")
+    if summary["headStability"] < 0.6:
+        tips.append("头部晃动偏多，回答时尽量让脸保持在画面中间")
+    if summary["centerOffset"] > 0.12:
+        tips.append("面部偏离画面中心，建议把摄像头调到与眼睛平齐")
+    if summary["brightness"] < 70:
+        tips.append("画面偏暗，补光或面向窗户会更清楚")
+    if summary["mouthVariation"] < 0.004 and summary["faces"] > 5:
+        tips.append("表情几乎没变化，适当放松面部会更自然")
+    return tips
+
+
 def analyze_video(path: Path) -> dict:
     """逐帧采样分析，返回镜头指标与一句整体判断。"""
     global _ts_offset
@@ -142,86 +212,26 @@ def analyze_video(path: Path) -> dict:
         }
 
     mp, mp_python, vision = _import_mediapipe()
-
-    frames = 0
-    faces = 0
-    centered = 0
-    yaws: list[float] = []
-    pitches: list[float] = []
-    mouths: list[float] = []
-    centers_x: list[float] = []
-    centers_y: list[float] = []
-    brightness: list[float] = []
-
-    landmarker = _get_landmarker()
-    if True:
-        index = 0
-        while frames < MAX_FRAMES:
-            ok, frame = capture.read()
-            if not ok:
-                break
-            if index % step == 0:
-                rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                brightness.append(float(rgb.mean()))
-                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-                timestamp_ms = _ts_offset + (int(index / fps * 1000) if fps else index * 40)
-                result = landmarker.detect_for_video(mp_image, timestamp_ms)
-                frames += 1
-                if result.face_landmarks:
-                    faces += 1
-                    metrics = _frame_metrics(result.face_landmarks[0])
-                    yaws.append(metrics["yaw"])
-                    pitches.append(metrics["pitch"])
-                    mouths.append(metrics["mouth"])
-                    centers_x.append(metrics["centerX"])
-                    centers_y.append(metrics["centerY"])
-                    if metrics["eyeCentered"] and abs(metrics["yaw"]) < 0.12 and abs(metrics["pitch"]) < 0.22:
-                        centered += 1
-            index += 1
+    stats = _sample_frames(capture, fps, step, mp, _get_landmarker())
     capture.release()
     _ts_offset += int(duration * 1000) + 1000
 
-    if frames == 0:
+    if stats["frames"] == 0:
         return {"available": False, "reason": "视频无法解码"}
 
-    face_ratio = round(faces / frames, 3)
-    eye_contact = round(centered / faces, 3) if faces else 0.0
-    yaw_std = round(statistics.pstdev(yaws), 3) if len(yaws) > 1 else 0.0
-    pitch_std = round(statistics.pstdev(pitches), 3) if len(pitches) > 1 else 0.0
-    head_stability = round(max(0.0, 1 - min(1.0, (yaw_std + pitch_std) * 5)), 3)
-    mouth_variation = round(statistics.pstdev(mouths), 4) if len(mouths) > 1 else 0.0
-    offset = (
-        round(((statistics.fmean(centers_x) - 0.5) ** 2 + (statistics.fmean(centers_y) - 0.5) ** 2) ** 0.5, 3)
-        if centers_x else 0.5
-    )
-    mean_brightness = round(statistics.fmean(brightness), 1) if brightness else 0.0
-
-    tips: list[str] = []
-    if face_ratio < 0.85:
-        tips.append(f"出镜率 {round(face_ratio * 100)}%，有相当时间没对准镜头")
-    if eye_contact < 0.6:
-        tips.append(f"眼神在镜头上的时间只有 {round(eye_contact * 100)}%，看屏幕会让对方觉得没交流")
-    if head_stability < 0.6:
-        tips.append("头部晃动偏多，回答时尽量让脸保持在画面中间")
-    if offset > 0.12:
-        tips.append("面部偏离画面中心，建议把摄像头调到与眼睛平齐")
-    if mean_brightness < 70:
-        tips.append("画面偏暗，补光或面向窗户会更清楚")
-    if mouth_variation < 0.004 and faces > 5:
-        tips.append("表情几乎没变化，适当放松面部会更自然")
-
+    summary = _summarize_frames(stats)
     return {
         "available": True,
         "durationSeconds": round(duration, 1),
         "resolution": [width, height],
-        "sampledFrames": frames,
-        "faceRatio": face_ratio,
-        "eyeContactRatio": eye_contact,
-        "headStability": head_stability,
-        "yawStd": yaw_std,
-        "pitchStd": pitch_std,
-        "mouthVariation": mouth_variation,
-        "centerOffset": offset,
-        "brightness": mean_brightness,
-        "tips": tips,
+        "sampledFrames": stats["frames"],
+        "faceRatio": summary["faceRatio"],
+        "eyeContactRatio": summary["eyeContactRatio"],
+        "headStability": summary["headStability"],
+        "yawStd": summary["yawStd"],
+        "pitchStd": summary["pitchStd"],
+        "mouthVariation": summary["mouthVariation"],
+        "centerOffset": summary["centerOffset"],
+        "brightness": summary["brightness"],
+        "tips": _camera_tips(summary),
     }

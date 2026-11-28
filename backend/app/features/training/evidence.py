@@ -40,17 +40,13 @@ class TurnObservation(BaseModel):
         return valid
 
 
-async def evidence_reply(training, history, question, answer, answer_id: str, next_required: str | None = None) -> tuple[str, bool]:
-    context = copy.deepcopy(training.assessment_context or {})
-    criteria = context.get("criteria", [])
-    if not criteria:
-        return "请补充你作出这一判断的依据和验证方法。", True
+def _select_active(criteria: list[dict], context: dict, question: str) -> dict:
     active = next((item for item in criteria if item["id"] == context.get("activeCriterionId")), None)
-    active = active or next((item for item in reversed(criteria) if re.search(item.get("match", "^$"), question)), criteria[0])
-    coverage = context.setdefault("coverage", {})
-    covered = coverage.setdefault(active["id"], {})
-    degraded = False
-    parsed = TurnObservation()
+    return active or next((item for item in reversed(criteria) if re.search(item.get("match", "^$"), question)), criteria[0])
+
+
+async def _observe(active: dict, history, question: str, answer: str) -> tuple[TurnObservation, bool]:
+    """请求模型观察当前回答；失败返回空观察并标记降级。"""
     try:
         raw = await llm_gateway.complete_json(OBSERVATION_PROMPT, json.dumps({
             "question": question, "answer": answer, "points": active["points"],
@@ -59,46 +55,73 @@ async def evidence_reply(training, history, question, answer, answer_id: str, ne
         parsed = TurnObservation.model_validate(raw)
         if "observations" not in raw:
             raise ValueError("Missing evidence observations")
+        return parsed, False
     except Exception:
-        degraded = True
+        return TurnObservation(), True
+
+
+def _accept_observations(parsed: TurnObservation, active: dict, covered: dict, answer: str, round_no: int, answer_id: str) -> list[dict]:
     accepted = []
     for observation in parsed.observations:
         if observation.point not in active["points"] or observation.level not in {"MENTIONED", "EXPLAINED"} or observation.quote not in answer:
             continue
-        entry = {"quote": observation.quote, "level": observation.level, "roundNo": training.current_round,
+        entry = {"quote": observation.quote, "level": observation.level, "roundNo": round_no,
                  "answerMessageId": answer_id}
         if covered.get(observation.point, {}).get("level") != "EXPLAINED":
             covered[observation.point] = entry
         accepted.append({"point": observation.point, **entry})
+    return accepted
+
+
+def _valid_clarification(parsed: TurnObservation, history, answer: str, already_clarified: bool) -> tuple[bool, str | None, str | None]:
     previous_quotes = [item.content for item in history if item.speaker == "USER"]
     clarification = parsed.clarification or {}
     old, new = clarification.get("previousQuote"), clarification.get("currentQuote")
-    prior_traces = context.get("evidenceTrace", [])
-    already_clarified = any(item.get("clarification") for item in prior_traces if item.get("criterionId") == active["id"])
-    valid_clarification = isinstance(old, str) and len(old) >= 4 and any(old in text for text in previous_quotes) and isinstance(new, str) and len(new) >= 4 and new in answer and not already_clarified
-    missing = [point for point in active["points"] if covered.get(point, {}).get("level") != "EXPLAINED"]
+    valid = isinstance(old, str) and len(old) >= 4 and any(old in text for text in previous_quotes) and isinstance(new, str) and len(new) >= 4 and new in answer and not already_clarified
+    return valid, old, new
+
+
+def _next_question(
+    active: dict, criteria: list[dict], context: dict, prior_traces: list[dict], missing: list[str],
+    answer: str, clarification: tuple[bool, str | None, str | None],
+) -> tuple[str, str]:
+    valid, old, new = clarification
     asked = sum(item.get("criterionId") == active["id"] for item in prior_traces)
     prior_questions = {item.get("nextQuestion") for item in prior_traces if item.get("criterionId") == active["id"]}
     probe_points = [point for point in missing if active["probes"][active["points"].index(point)] not in prior_questions]
-    if valid_clarification:
-        next_question = f"你前面提到“{old[:18]}”，现在说“{new[:18]}”，两处条件是否不同？"
-        reason = "前后原话存在需要确认的条件差异，先澄清再判断。"
-    elif probe_points and asked < 2:
+    if valid:
+        return (f"你前面提到“{old[:18]}”，现在说“{new[:18]}”，两处条件是否不同？",
+                "前后原话存在需要确认的条件差异，先澄清再判断。")
+    if probe_points and asked < 2:
         point = probe_points[0]
-        next_question = active["probes"][active["points"].index(point)]
         reason = f"继续确认尚未充分解释的“{point}”。"
         if constructive_uncertainty(answer):
             reason = f"已说明未知范围，继续确认“{point}”的验证路径。"
-    else:
-        visited = {item.get("criterionId") for item in prior_traces} | {active["id"]}
-        following = next((item for item in criteria if item["id"] not in visited), None)
-        if following:
-            context["activeCriterionId"] = following["id"]
-            next_question = following["question"]
-            reason = "当前考察点已完成本轮追问预算，转向尚未覆盖的能力。" if missing else "当前要点已解释，进入下一项考察。"
-        else:
-            next_question = "回看刚才的方案，你最需要补做哪项验证，为什么？"
-            reason = "各考察点已触达，收束到尚需验证的边界。"
+        return active["probes"][active["points"].index(point)], reason
+    visited = {item.get("criterionId") for item in prior_traces} | {active["id"]}
+    following = next((item for item in criteria if item["id"] not in visited), None)
+    if following:
+        context["activeCriterionId"] = following["id"]
+        reason = "当前考察点已完成本轮追问预算，转向尚未覆盖的能力。" if missing else "当前要点已解释，进入下一项考察。"
+        return following["question"], reason
+    return "回看刚才的方案，你最需要补做哪项验证，为什么？", "各考察点已触达，收束到尚需验证的边界。"
+
+
+async def evidence_reply(training, history, question, answer, answer_id: str, next_required: str | None = None) -> tuple[str, bool]:
+    context = copy.deepcopy(training.assessment_context or {})
+    criteria = context.get("criteria", [])
+    if not criteria:
+        return "请补充你作出这一判断的依据和验证方法。", True
+    active = _select_active(criteria, context, question)
+    covered = context.setdefault("coverage", {}).setdefault(active["id"], {})
+    parsed, degraded = await _observe(active, history, question, answer)
+    accepted = _accept_observations(parsed, active, covered, answer, training.current_round, answer_id)
+    prior_traces = context.get("evidenceTrace", [])
+    already_clarified = any(item.get("clarification") for item in prior_traces if item.get("criterionId") == active["id"])
+    clarification = _valid_clarification(parsed, history, answer, already_clarified)
+    valid_clarification, old, new = clarification
+    missing = [point for point in active["points"] if covered.get(point, {}).get("level") != "EXPLAINED"]
+    next_question, reason = _next_question(active, criteria, context, prior_traces, missing, answer, clarification)
     context.setdefault("activeCriterionId", active["id"])
     if next_required:
         next_question = next_required

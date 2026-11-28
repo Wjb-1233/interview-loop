@@ -122,16 +122,40 @@ def prepare_calibration(directory: Path) -> dict:
     return manifest
 
 
+def _expected_conversations(directory: Path, key: dict) -> dict:
+    # Reconstruct immutable question text instead of trusting a modified rater A.
+    samples = {row['id']: row for row in [json.loads(line) for line in (directory / 'private/samples.jsonl').read_text(encoding='utf-8').splitlines()]}
+    expected = {}
+    for identity, row in key.items():
+        sample = samples[row['case_id']]
+        expected[identity] = {'dimension': row['dimension'], 'conversation': f"问：{sample['question']}\n答：{sample['answer']}"}
+    return expected
+
+
+def _model_comparison(model_path: Path, selected: list, key: dict, a: dict, b: dict) -> dict | None:
+    """模型分与两位评审的对照；模型结果不完整时返回 None。"""
+    model = indexed(read_csv(model_path), 'model')
+    if not set(selected) <= set(model):
+        return None
+    scores = {}
+    for identity in selected:
+        row = model[identity]
+        if row.get('dimension') != key[identity]['dimension'] or row.get('standard_hash') != key[identity]['standard_hash']:
+            raise ValueError(f'{identity}: 模型维度或评分标准版本不匹配')
+        scores[identity] = ordinal(row.get('model_score'), identity)
+    if any(value is None for value in scores.values()):
+        return None
+    return {dimension: {
+        'vsRaterA': summarize([(scores[i], a[i]) for i in selected if key[i]['dimension'] == dimension]),
+        'vsRaterB': summarize([(scores[i], b[i]) for i in selected if key[i]['dimension'] == dimension])}
+        for dimension in DIMENSION_LABELS.values()}
+
+
 def analyze_calibration(directory: Path, split: str = 'development', model_path: Path | None = None) -> dict:
     if split not in {'development', 'holdout'}:
         raise ValueError('只允许 development 或 holdout')
     key = indexed(read_csv(directory / 'private/key.csv'), 'key')
-    expected = {}
-    # Reconstruct immutable question text instead of trusting a modified rater A.
-    samples = {row['id']: row for row in [json.loads(line) for line in (directory / 'private/samples.jsonl').read_text(encoding='utf-8').splitlines()]}
-    for identity, row in key.items():
-        sample = samples[row['case_id']]
-        expected[identity] = {'dimension': row['dimension'], 'conversation': f"问：{sample['question']}\n答：{sample['answer']}"}
+    expected = _expected_conversations(directory, key)
     a, b = load_rater(directory / 'rater_a.csv', expected), load_rater(directory / 'rater_b.csv', expected)
     selected = [identity for identity, row in key.items() if row['split'] == split]
     complete = all(a[identity] is not None and b[identity] is not None for identity in selected)
@@ -153,21 +177,9 @@ def analyze_calibration(directory: Path, split: str = 'development', model_path:
         disagreements.extend(i for i in ids if a[i] != b[i])
     output['needsAdjudication'] = disagreements
     if model_path:
-        model = indexed(read_csv(model_path), 'model')
-        if not set(selected) <= set(model):
+        comparison = _model_comparison(model_path, selected, key, a, b)
+        if comparison is None:
             output['modelComparisonStatus'] = 'INCOMPLETE_MODEL_RESULTS'
-            return output
-        scores = {}
-        for identity in selected:
-            row = model[identity]
-            if row.get('dimension') != key[identity]['dimension'] or row.get('standard_hash') != key[identity]['standard_hash']:
-                raise ValueError(f'{identity}: 模型维度或评分标准版本不匹配')
-            scores[identity] = ordinal(row.get('model_score'), identity)
-        if any(value is None for value in scores.values()):
-            output['modelComparisonStatus'] = 'INCOMPLETE_MODEL_RESULTS'
-            return output
-        output['modelComparison'] = {dimension: {
-            'vsRaterA': summarize([(scores[i], a[i]) for i in selected if key[i]['dimension'] == dimension]),
-            'vsRaterB': summarize([(scores[i], b[i]) for i in selected if key[i]['dimension'] == dimension])}
-            for dimension in DIMENSION_LABELS.values()}
+        else:
+            output['modelComparison'] = comparison
     return output

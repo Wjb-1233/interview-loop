@@ -70,6 +70,63 @@ def prepare_study(directory: Path, slots: int = 12) -> dict:
     return manifest
 
 
+def _has_session(person: dict) -> bool:
+    return any(person.get(f'{phase}_session_id') for phase in PHASES)
+
+
+def _screen_participant(identity: str, person: dict, has_data: bool) -> tuple[bool, bool]:
+    """校验处置与同意状态，返回 (是否排除, 是否缺少同意)。"""
+    disposition = person.get('disposition', '')
+    if disposition not in {'', 'COMPLETE', 'NOT_ENROLLED', 'WITHDRAWN'}:
+        raise ValueError(f'{identity}: disposition 不合法')
+    exclude = disposition in {'NOT_ENROLLED', 'WITHDRAWN'}
+    if exclude and (has_data or _has_session(person)):
+        raise ValueError(f'{identity}: 未入组或撤回者须清空回答与会话编号，保留处置记录')
+    no_consent = person.get('consent') != 'YES'
+    if no_consent and (has_data or _has_session(person)):
+        raise ValueError(f'{identity}: 未记录自愿同意，不能分析或导出个人回答')
+    return exclude, no_consent
+
+
+def _check_phase(identity: str, person: dict, phase: str, forms: dict, observations: dict, manifest: dict,
+                 sessions: set, expected_ids: set) -> bool:
+    """校验单个测次的会话条件与题面，返回该测次数据是否完整。"""
+    complete = True
+    sequence = person['sequence']
+    session_id = person.get(f'{phase}_session_id', '').strip()
+    if session_id:
+        if session_id in sessions:
+            raise ValueError('同一 session_id 不能重复用作不同参与者或测次')
+        sessions.add(session_id)
+    reference = tuple(person.get(f'pre_{field}') for field in CONDITIONS)
+    actual = tuple(person.get(f'{phase}_{field}') for field in CONDITIONS)
+    if not session_id or not all(actual):
+        complete = False
+    elif actual != reference or actual[-1] != manifest['standardHash']:
+        raise ValueError(f'{identity}: 前后测方式、难度、深度或评分版本不一致')
+    form = sequence[0 if phase == 'pre' else 1] if phase != 'transfer' else 'C'
+    for competency, question in forms[form]:
+        sample_id = f'{identity}-{phase}-{competency}'
+        expected_ids.add(sample_id)
+        row = observations.get(sample_id)
+        if not row or any(row.get(key) != value for key, value in {
+            'participant_id': identity, 'phase': phase, 'form': form,
+            'competency_id': competency, 'question': question}.items()):
+            raise ValueError(f'{sample_id}: 题目、测次或配对被改动')
+        if not row.get('answer', '').strip():
+            complete = False
+    return complete
+
+
+def _require_training_minutes(identity: str, person: dict) -> None:
+    try:
+        minutes = float(person['training_minutes'])
+    except (ValueError, TypeError):
+        raise ValueError(f'{identity}: 须填写实际训练分钟数') from None
+    if not 0 < minutes <= 240:
+        raise ValueError(f'{identity}: 实际训练分钟数不合理')
+
+
 def study_inputs(directory: Path):
     manifest = json.loads((directory / 'manifest.json').read_text(encoding='utf-8'))
     forms = json.loads((directory / 'forms.json').read_text(encoding='utf-8'))['forms']
@@ -84,54 +141,20 @@ def study_inputs(directory: Path):
     complete = []
     incomplete, excluded = [], []
     for identity, person in participants.items():
-        sequence = person.get('sequence')
-        if sequence not in {'AB', 'BA'}:
+        if person.get('sequence') not in {'AB', 'BA'}:
             raise ValueError(f'{identity}: sequence 须为 AB/BA')
         has_data = any(row.get('answer', '').strip() for row in observations.values() if row['participant_id'] == identity)
-        disposition = person.get('disposition', '')
-        if disposition not in {'', 'COMPLETE', 'NOT_ENROLLED', 'WITHDRAWN'}:
-            raise ValueError(f'{identity}: disposition 不合法')
-        exclude = disposition in {'NOT_ENROLLED', 'WITHDRAWN'}
+        exclude, no_consent = _screen_participant(identity, person, has_data)
         if exclude:
-            if has_data or any(person.get(f'{phase}_session_id') for phase in PHASES):
-                raise ValueError(f'{identity}: 未入组或撤回者须清空回答与会话编号，保留处置记录')
-            excluded.append({'participantId': identity, 'reason': disposition})
-        if person.get('consent') != 'YES':
-            if has_data or any(person.get(f'{phase}_session_id') for phase in PHASES):
-                raise ValueError(f'{identity}: 未记录自愿同意，不能分析或导出个人回答')
-            if not exclude:
-                incomplete.append(identity)
-        valid = person.get('consent') == 'YES' and disposition == 'COMPLETE'
-        reference = tuple(person.get(f'pre_{field}') for field in CONDITIONS)
+            excluded.append({'participantId': identity, 'reason': person['disposition']})
+        if no_consent and not exclude:
+            incomplete.append(identity)
+        valid = not no_consent and person.get('disposition', '') == 'COMPLETE'
         for phase in PHASES:
-            session_id = person.get(f'{phase}_session_id', '').strip()
-            if session_id:
-                if session_id in sessions:
-                    raise ValueError('同一 session_id 不能重复用作不同参与者或测次')
-                sessions.add(session_id)
-            actual = tuple(person.get(f'{phase}_{field}') for field in CONDITIONS)
-            if not session_id or not all(actual):
+            if not _check_phase(identity, person, phase, forms, observations, manifest, sessions, expected_ids):
                 valid = False
-            elif actual != reference or actual[-1] != manifest['standardHash']:
-                raise ValueError(f'{identity}: 前后测方式、难度、深度或评分版本不一致')
-            form = sequence[0 if phase == 'pre' else 1] if phase != 'transfer' else 'C'
-            for competency, question in forms[form]:
-                sample_id = f'{identity}-{phase}-{competency}'
-                expected_ids.add(sample_id)
-                row = observations.get(sample_id)
-                if not row or any(row.get(key) != value for key, value in {
-                    'participant_id': identity, 'phase': phase, 'form': form,
-                    'competency_id': competency, 'question': question}.items()):
-                    raise ValueError(f'{sample_id}: 题目、测次或配对被改动')
-                if not row.get('answer', '').strip():
-                    valid = False
         if valid:
-            try:
-                minutes = float(person['training_minutes'])
-            except (ValueError, TypeError):
-                raise ValueError(f'{identity}: 须填写实际训练分钟数') from None
-            if not 0 < minutes <= 240:
-                raise ValueError(f'{identity}: 实际训练分钟数不合理')
+            _require_training_minutes(identity, person)
             complete.append(identity)
         elif identity not in incomplete and not exclude:
             incomplete.append(identity)

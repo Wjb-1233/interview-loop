@@ -68,6 +68,50 @@ async def transfer_overview(db, plan, tasks) -> dict:
                          for training, evaluation in rows]}
 
 
+def _pick_transfer_questions(candidates: list, history: list[str]) -> list:
+    """优先每个考察点各取一道没问过的新题，不够再放宽到同考察点；凑够 2 道，否则报错。"""
+    normalize = lambda text: re.sub(r"[\s，。！？、,.!?]", "", text)
+    seen = [normalize(question) for question in history]
+
+    def was_seen(criterion, question):
+        base = next((item.get('baseText', question) for item in criterion.get('transferQuestionSpecs', [])
+                     if item['text'] == question), question)
+        return any(normalize(base) in old for old in seen)
+
+    selected = []
+    chosen_criteria = set()
+    for criterion, question in candidates:
+        if was_seen(criterion, question) or criterion["id"] in chosen_criteria:
+            continue
+        selected.append((criterion, question))
+        chosen_criteria.add(criterion["id"])
+        if len(selected) == 2:
+            break
+    if len(selected) < 2:
+        for criterion, question in candidates:
+            if any(question == value for _, value in selected) or was_seen(criterion, question):
+                continue
+            selected.append((criterion, question))
+            if len(selected) == 2:
+                break
+    if len(selected) < 2:
+        raise AppError(409, "TRANSFER_QUESTIONS_EXHAUSTED", "现有新题不足，请管理员在场景考察标准中补充迁移题")
+    return selected
+
+
+def _transfer_context(context: dict, plan, baseline, scene, selected: list, questions: list[dict]) -> dict:
+    context.update(purpose="TRANSFER", adaptiveEnabled=False, evidenceTrace=[], coverage={}, hintUses=0)
+    context["transfer"] = {"planId": plan.id, "baselineSessionId": baseline.id,
+        "competencies": [criterion["id"] for criterion, _ in selected], "difficulty": scene.difficulty,
+        "questionSetId": hashlib.sha256(str(questions).encode()).hexdigest()[:16],
+        "notice": "按平台已有作答记录筛选的新题面；与原题分开查看，不推断招聘通过率。"}
+    context['transfer']['questionSpecs'] = [copy.deepcopy(spec) for criterion, question in selected
+        for spec in criterion.get('transferQuestionSpecs', []) if spec['text'] == question]
+    context['transfer']['equivalenceValidated'] = False
+    context['transfer']['difficultyBasis'] = 'AUTHOR_TAGGED_NOT_EMPIRICALLY_EQUATED'
+    return context
+
+
 async def start_transfer(db, user_id: str, plan_id: str) -> str:
     plan = await db.scalar(select(TrainingPlan).where(TrainingPlan.id == plan_id).with_for_update())
     if plan is None or plan.user_id != user_id:
@@ -85,42 +129,9 @@ async def start_transfer(db, user_id: str, plan_id: str) -> str:
     candidates = candidate_questions(context, scene.difficulty)
     history = (await db.scalars(select(Message.content).join(TrainingSession, TrainingSession.id == Message.session_id)
         .where(TrainingSession.user_id == user_id, Message.speaker == "AI"))).all()
-    normalize = lambda text: re.sub(r"[\s，。！？、,.!?]", "", text)
-    seen = [normalize(question) for question in history]
-    def was_seen(criterion, question):
-        base = next((item.get('baseText', question) for item in criterion.get('transferQuestionSpecs', [])
-                     if item['text'] == question), question)
-        return any(normalize(base) in old for old in seen)
-    selected = []
-    chosen_criteria = set()
-    for criterion, question in candidates:
-        if was_seen(criterion, question):
-            continue
-        if criterion["id"] in chosen_criteria:
-            continue
-        selected.append((criterion, question))
-        chosen_criteria.add(criterion["id"])
-        if len(selected) == 2:
-            break
-    if len(selected) < 2:
-        for criterion, question in candidates:
-            if any(question == value for _, value in selected) or was_seen(criterion, question):
-                continue
-            selected.append((criterion, question))
-            if len(selected) == 2:
-                break
-    if len(selected) < 2:
-        raise AppError(409, "TRANSFER_QUESTIONS_EXHAUSTED", "现有新题不足，请管理员在场景考察标准中补充迁移题")
+    selected = _pick_transfer_questions(candidates, history)
     questions = [{"text": question, "dimension": plan.focus_dimension, "difficulty": scene.difficulty} for _, question in selected]
-    context.update(purpose="TRANSFER", adaptiveEnabled=False, evidenceTrace=[], coverage={}, hintUses=0)
-    context["transfer"] = {"planId": plan.id, "baselineSessionId": baseline.id,
-        "competencies": [criterion["id"] for criterion, _ in selected], "difficulty": scene.difficulty,
-        "questionSetId": hashlib.sha256(str(questions).encode()).hexdigest()[:16],
-        "notice": "按平台已有作答记录筛选的新题面；与原题分开查看，不推断招聘通过率。"}
-    context['transfer']['questionSpecs'] = [copy.deepcopy(spec) for criterion, question in selected
-        for spec in criterion.get('transferQuestionSpecs', []) if spec['text'] == question]
-    context['transfer']['equivalenceValidated'] = False
-    context['transfer']['difficultyBasis'] = 'AUTHOR_TAGGED_NOT_EMPIRICALLY_EQUATED'
+    context = _transfer_context(context, plan, baseline, scene, selected, questions)
     training = TrainingSession(user_id=user_id, scene_id=scene.id, channel="TEXT", status="ACTIVE",
         max_rounds=2, covered_count=1, question_plan=questions, jd_text=baseline.jd_text,
         depth="STANDARD", mode="STANDARD", plan_id=plan.id, task_key="transfer", assessment_context=context)

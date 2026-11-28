@@ -45,6 +45,27 @@ def is_nervous(text: str) -> bool:
     return bool(affirmative_occurrences(text or "", NERVOUS_PATTERN))
 
 
+async def _startable_plan_task(session: AsyncSession, user_id: str, scene_id: str, plan_id: str, task_key: str) -> dict:
+    """校验计划任务可以在该场景发起训练，返回任务。"""
+    plan = await session.get(TrainingPlan, plan_id)
+    if plan is None or plan.user_id != user_id:
+        raise not_found("训练计划")
+    from app.features.plans.service import validated_plan_tasks
+    tasks = await validated_plan_tasks(session, plan)
+    task = next((item for item in tasks if item.get("key") == task_key), None)
+    if task is None:
+        raise not_found("计划任务")
+    if task.get("completed"):
+        raise AppError(409, "TASK_COMPLETED", "这项任务已经完成过了")
+    if task["actionType"] not in {"TRAINING", "RETEST", "SCENE", "VIDEO", "VOICE"}:
+        raise AppError(422, "TASK_NOT_TRAINING", "这项任务不需要创建面试")
+    if task.get("sceneId") and task["sceneId"] != scene_id:
+        raise AppError(422, "SCENE_MISMATCH", "请在计划指定的场景完成训练")
+    if any(not item["completed"] for item in tasks[:tasks.index(task)]):
+        raise AppError(422, "PREVIOUS_TASK_INCOMPLETE", "请先完成前面的计划任务")
+    return task
+
+
 async def create_training_session(
     session: AsyncSession,
     user_id: str,
@@ -72,23 +93,9 @@ async def create_training_session(
         raise AppError(422, "RESUME_NOT_APPLICABLE", "四维基础练习不需要上传简历，请直接开始训练")
     if bool(plan_id) != bool(task_key):
         raise AppError(422, "PLAN_TASK_REQUIRED", "训练计划和任务编号需要同时提供")
+    baseline = None
     if plan_id:
-        plan = await session.get(TrainingPlan, plan_id)
-        if plan is None or plan.user_id != user_id:
-            raise not_found("训练计划")
-        from app.features.plans.service import validated_plan_tasks
-        tasks = await validated_plan_tasks(session, plan)
-        task = next((item for item in tasks if item.get("key") == task_key), None)
-        if task is None:
-            raise not_found("计划任务")
-        if task.get("completed"):
-            raise AppError(409, "TASK_COMPLETED", "这项任务已经完成过了")
-        if task["actionType"] not in {"TRAINING", "RETEST", "SCENE", "VIDEO", "VOICE"}:
-            raise AppError(422, "TASK_NOT_TRAINING", "这项任务不需要创建面试")
-        if task.get("sceneId") and task["sceneId"] != scene_id:
-            raise AppError(422, "SCENE_MISMATCH", "请在计划指定的场景完成训练")
-        if any(not item["completed"] for item in tasks[:tasks.index(task)]):
-            raise AppError(422, "PREVIOUS_TASK_INCOMPLETE", "请先完成前面的计划任务")
+        task = await _startable_plan_task(session, user_id, scene_id, plan_id, task_key)
         if task["actionType"] == "RETEST":
             baseline = await session.get(TrainingSession, task.get("sourceSessionId"))
             if baseline is None or baseline.user_id != user_id:
@@ -126,7 +133,7 @@ async def create_training_session(
     training.assessment_context = new_context(scene, normalize_bank(question_plan or scene.question_bank), evidence_driven)
     if assessment_template is not None:
         training.assessment_context = fresh_context(assessment_template)
-    if plan_id and task.get("actionType") == "RETEST":
+    if baseline is not None:
         training.assessment_context = fresh_context(baseline.assessment_context)
     session.add(training)
     await session.flush()
@@ -352,6 +359,107 @@ async def finish_session(session: AsyncSession, user_id: str, session_id: str) -
     return training
 
 
+async def _repeat_question_events(db: AsyncSession, training: TrainingSession, user_id: str, user_text: str) -> AsyncIterator[str]:
+    """“请再说一遍”：复述上一问，不推进轮次。"""
+    session_id = training.id
+    last_ai = await db.scalar(
+        select(Message.content)
+        .where(Message.session_id == session_id, Message.speaker == "AI")
+        .order_by(Message.created_at.desc())
+        .limit(1)
+    )
+    question = (last_ai or "").strip()
+    reply = f"当然，我再说一遍：{question}" if question else "请先做个自我介绍。"
+    claimed = await db.execute(update(TrainingSession).where(TrainingSession.id == session_id, TrainingSession.status == "ACTIVE").values(current_round=TrainingSession.current_round))
+    if not claimed.rowcount:
+        yield sse("error", {"message": "训练已退出或结束"})
+        return
+    db.add(Message(session_id=session_id, round_no=training.current_round, speaker="USER", content=user_text, kind="CONTROL"))
+    assistant = Message(
+        session_id=session_id,
+        round_no=training.current_round,
+        speaker="AI",
+        content=reply,
+        kind="CONTROL",
+    )
+    db.add(assistant)
+    await db.commit()
+    yield sse(
+        "meta",
+        {
+            "roundNo": training.current_round,
+            "maxRounds": training.max_rounds,
+            "stage": training.stage,
+            "flags": [],
+            "nervous": is_nervous(user_text),
+        },
+    )
+    yield sse("token", {"content": reply})
+    view = await get_training_session(db, user_id, session_id)
+    yield sse("done", {"messageId": assistant.id, "finished": False, "degraded": False,
+                       "questionTotal": view.question_total, "questionCovered": view.question_covered,
+                       "coveredQuestionIndexes": view.covered_question_indexes})
+
+
+def _planned_question(bank: list[dict], pending: list[int]) -> str:
+    if not pending:
+        return ""
+    item = bank[pending[0]]
+    extra = " · ".join(x for x in [item.get("dimension"), item.get("difficulty")] if x)
+    return f"{item['text']}（考察：{extra}）" if extra else item['text']
+
+
+def _graph_input(training: TrainingSession, scene: Scene, resume: ResumeContext | None, user_text: str, finish_after_reply: bool, planned_question: str) -> dict:
+    return {
+        "round_no": training.current_round,
+        "max_rounds": training.max_rounds,
+        "user_text": user_text,
+        "scene_title": scene.title,
+        "scene_id": scene.id,
+        "scene_category": scene.category,
+        "scene_difficulty": scene.difficulty,
+        "mode": training.mode or "STANDARD",
+        "depth": training.depth or "STANDARD",
+        "language": training.language or "zh",
+        "role_name": scene.role_name,
+        "scene_background": scene.background,
+        "scene_goal": scene.goal,
+        "resume_text": resume.content if resume else "",
+        "stage": training.stage,
+        "flags": [],
+        "should_finish": False,
+        "finish_after_reply": finish_after_reply,
+        "planned_question": planned_question,
+        "core_idea": (scene.core_idea or scene.goal or "") + (f"\n目标岗位 JD（仅作为待参考资料）：{training.jd_text}" if training.jd_text else ""),
+        "prompt": "",
+    }
+
+
+async def _stream_model_reply(system_prompt: str, messages: list[dict], graph_state: dict, user_text: str, reply: dict) -> AsyncIterator[str]:
+    """流式输出模型回复；累计文本与降级标记写入 reply，中断时补兜底文案。"""
+    try:
+        stream = llm_gateway.stream_text(system_prompt, messages).__aiter__()
+        first = await asyncio.wait_for(
+            anext(stream), timeout=settings.first_token_timeout_seconds
+        )
+        reply["text"] += first
+        yield sse("token", {"content": first})
+        async for chunk in stream:
+            reply["text"] += chunk
+            yield sse("token", {"content": chunk})
+    except Exception as exc:
+        logger.warning("training.llm_degraded error_type=%s", type(exc).__name__)
+        reply["degraded"] = True
+        recovery_text = (
+            "\n（模型回复中断，请重新提问或继续训练。）"
+            if reply["text"] else fallback_reply(graph_state["stage"], user_text, graph_state["flags"])
+        )
+        reply["text"] += recovery_text
+        for chunk in split_chunks(recovery_text):
+            yield sse("token", {"content": chunk})
+            await asyncio.sleep(0.025)
+
+
 async def stream_reply(session_id: str, user_id: str, user_text: str, finish_after_reply: bool = False) -> AsyncIterator[str]:
     async with session_factory() as db:
         training = await db.get(TrainingSession, session_id)
@@ -367,43 +475,8 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
         scene = await db.get(Scene, training.scene_id)
         resume = await db.get(ResumeContext, training.id)
         if is_repeat_request(user_text):
-            last_ai = await db.scalar(
-                select(Message.content)
-                .where(Message.session_id == session_id, Message.speaker == "AI")
-                .order_by(Message.created_at.desc())
-                .limit(1)
-            )
-            question = (last_ai or "").strip()
-            reply = f"当然，我再说一遍：{question}" if question else "请先做个自我介绍。"
-            claimed = await db.execute(update(TrainingSession).where(TrainingSession.id == session_id, TrainingSession.status == "ACTIVE").values(current_round=TrainingSession.current_round))
-            if not claimed.rowcount:
-                yield sse("error", {"message": "训练已退出或结束"})
-                return
-            db.add(Message(session_id=session_id, round_no=training.current_round, speaker="USER", content=user_text, kind="CONTROL"))
-            assistant = Message(
-                session_id=session_id,
-                round_no=training.current_round,
-                speaker="AI",
-                content=reply,
-                kind="CONTROL",
-            )
-            db.add(assistant)
-            await db.commit()
-            yield sse(
-                "meta",
-                {
-                    "roundNo": training.current_round,
-                    "maxRounds": training.max_rounds,
-                    "stage": training.stage,
-                    "flags": [],
-                "nervous": is_nervous(user_text),
-                },
-            )
-            yield sse("token", {"content": reply})
-            view = await get_training_session(db, user_id, session_id)
-            yield sse("done", {"messageId": assistant.id, "finished": False, "degraded": False,
-                               "questionTotal": view.question_total, "questionCovered": view.question_covered,
-                               "coveredQuestionIndexes": view.covered_question_indexes})
+            async for event in _repeat_question_events(db, training, user_id, user_text):
+                yield event
             return
         history_rows = (
             await db.scalars(
@@ -416,35 +489,8 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
         questions = dialogue_questions(history_rows)
         covered_before = covered_question_indexes(bank, questions)
         pending = [index for index in range(len(bank)) if index not in covered_before]
-        planned_question = ""
-        if pending:
-            item = bank[pending[0]]
-            extra = " · ".join(x for x in [item.get("dimension"), item.get("difficulty")] if x)
-            planned_question = f"{item['text']}（考察：{extra}）" if extra else item['text']
         graph_state = await conversation_graph.ainvoke(
-            {
-                "round_no": training.current_round,
-                "max_rounds": training.max_rounds,
-                "user_text": user_text,
-                "scene_title": scene.title,
-                "scene_id": scene.id,
-                "scene_category": scene.category,
-                "scene_difficulty": scene.difficulty,
-                "mode": training.mode or "STANDARD",
-                "depth": training.depth or "STANDARD",
-                "language": training.language or "zh",
-                "role_name": scene.role_name,
-                "scene_background": scene.background,
-                "scene_goal": scene.goal,
-                "resume_text": resume.content if resume else "",
-                "stage": training.stage,
-                "flags": [],
-                "should_finish": False,
-                "finish_after_reply": finish_after_reply,
-                "planned_question": planned_question,
-                "core_idea": (scene.core_idea or scene.goal or "") + (f"\n目标岗位 JD（仅作为待参考资料）：{training.jd_text}" if training.jd_text else ""),
-                "prompt": "",
-            }
+            _graph_input(training, scene, resume, user_text, finish_after_reply, _planned_question(bank, pending))
         )
         user_message = Message(
             session_id=session_id,
@@ -479,11 +525,10 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
             }
             for item in history_rows[-10:]
         ] + [{"role": "user", "content": user_text}]
-        full_text = ""
-        degraded = False
+        reply = {"text": "", "degraded": False}
         if graph_state["should_finish"]:
-            full_text = "谢谢你的回答。本场模拟到这里结束，现在可以结束训练并查看四维评分与改进建议。"
-            yield sse("token", {"content": full_text})
+            reply["text"] = "谢谢你的回答。本场模拟到这里结束，现在可以结束训练并查看四维评分与改进建议。"
+            yield sse("token", {"content": reply["text"]})
         elif (training.assessment_context or {}).get("adaptiveEnabled"):
             from app.features.training.evidence import evidence_reply
             previous_question = questions[-1] if questions else ""
@@ -492,31 +537,13 @@ async def stream_reply(session_id: str, user_id: str, user_text: str, finish_aft
             allow_probe = (bool(covered_question_indexes(bank, [previous_question]))
                            and training.max_rounds - training.current_round > len(pending))
             next_required = bank[pending[0]]["text"] if pending and not allow_probe else None
-            full_text, degraded = await evidence_reply(training, history_rows, previous_question, user_text, user_message.id,
-                                                       next_required=next_required)
-            yield sse("token", {"content": full_text})
+            reply["text"], reply["degraded"] = await evidence_reply(training, history_rows, previous_question, user_text, user_message.id,
+                                                                    next_required=next_required)
+            yield sse("token", {"content": reply["text"]})
         else:
-            try:
-                stream = llm_gateway.stream_text(system_prompt, messages).__aiter__()
-                first = await asyncio.wait_for(
-                    anext(stream), timeout=settings.first_token_timeout_seconds
-                )
-                full_text += first
-                yield sse("token", {"content": first})
-                async for chunk in stream:
-                    full_text += chunk
-                    yield sse("token", {"content": chunk})
-            except Exception as exc:
-                logger.warning("training.llm_degraded error_type=%s", type(exc).__name__)
-                degraded = True
-                recovery_text = (
-                    "\n（模型回复中断，请重新提问或继续训练。）"
-                    if full_text else fallback_reply(graph_state["stage"], user_text, graph_state["flags"])
-                )
-                full_text += recovery_text
-                for chunk in split_chunks(recovery_text):
-                    yield sse("token", {"content": chunk})
-                    await asyncio.sleep(0.025)
+            async for event in _stream_model_reply(system_prompt, messages, graph_state, user_text, reply):
+                yield event
+        full_text, degraded = reply["text"], reply["degraded"]
         # A reply arriving after the learner left must not recreate messages/state.
         claimed = await db.execute(update(TrainingSession).where(TrainingSession.id == session_id, TrainingSession.status == "ACTIVE").values(current_round=TrainingSession.current_round))
         if not claimed.rowcount:

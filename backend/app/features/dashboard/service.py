@@ -52,32 +52,45 @@ def delivery_summary(training: TrainingSession | None) -> dict | None:
     return {'sessionId': training.id, 'channel': training.channel, 'speech': speech, 'camera': camera}
 
 
-async def dashboard_data(db: AsyncSession, user_id: str, channel: str | None = None, scene_id: str | None = None, anchor_session_id: str | None = None) -> dict:
-    totals = await overview(db, user_id)
-    formal = (Evaluation.user_id == user_id, TrainingSession.user_id == user_id, *formal_filters())
-    ordering = training_order()
+async def _scored_history(db: AsyncSession, formal: tuple, ordering) -> list:
     # Filter choices come from the learner's actual scored history, including retired scenes.
-    options = (await db.execute(select(TrainingSession, Scene.title).options(load_only(TrainingSession.id, TrainingSession.scene_id, TrainingSession.channel, TrainingSession.depth, TrainingSession.mode, TrainingSession.language, TrainingSession.jd_text, TrainingSession.started_at, TrainingSession.finished_at, TrainingSession.assessment_context)).join(Evaluation, Evaluation.session_id == TrainingSession.id).join(Scene, Scene.id == TrainingSession.scene_id).where(*formal).order_by(*ordering))).all()
-    candidates = [row for row in options if (not channel or row[0].channel == channel) and (not scene_id or row[0].scene_id == scene_id)]
-    selected = next((row for row in candidates if row[0].id == anchor_session_id), None) if anchor_session_id else next(iter(candidates), None)
-    if anchor_session_id and selected is None:
-        raise not_found('可比较的参考训练')
-    matching = []
-    total_matches = 0
-    selected_resume = None
-    if selected:
-        context = await db.get(ResumeContext, selected[0].id)
-        selected_resume = context.content if context else None
-        query = select(Evaluation, TrainingSession).join(TrainingSession, TrainingSession.id == Evaluation.session_id).outerjoin(ResumeContext, ResumeContext.session_id == TrainingSession.id).where(*formal, *condition_filters(selected[0], selected_resume))
-        total_matches = int(await db.scalar(select(func.count()).select_from(query.subquery())) or 0)
-        matching = (await db.execute(query.order_by(*ordering).limit(TREND_SAMPLES))).all()
-    recent = matching[:RECENT_SAMPLES]
+    return (await db.execute(select(TrainingSession, Scene.title).options(load_only(TrainingSession.id, TrainingSession.scene_id, TrainingSession.channel, TrainingSession.depth, TrainingSession.mode, TrainingSession.language, TrainingSession.jd_text, TrainingSession.started_at, TrainingSession.finished_at, TrainingSession.assessment_context)).join(Evaluation, Evaluation.session_id == TrainingSession.id).join(Scene, Scene.id == TrainingSession.scene_id).where(*formal).order_by(*ordering))).all()
+
+
+async def _matching_samples(db: AsyncSession, selected: tuple, formal: tuple, ordering) -> tuple[str | None, int, list]:
+    """同条件的正式评分样本：返回 (参考简历, 总匹配数, 最近 TREND_SAMPLES 条)。"""
+    context = await db.get(ResumeContext, selected[0].id)
+    resume = context.content if context else None
+    query = select(Evaluation, TrainingSession).join(TrainingSession, TrainingSession.id == Evaluation.session_id).outerjoin(ResumeContext, ResumeContext.session_id == TrainingSession.id).where(*formal, *condition_filters(selected[0], resume))
+    total = int(await db.scalar(select(func.count()).select_from(query.subquery())) or 0)
+    rows = (await db.execute(query.order_by(*ordering).limit(TREND_SAMPLES))).all()
+    return resume, total, rows
+
+
+def _recent_aggregates(recent: list) -> tuple[dict, list[str]]:
+    """近期样本的四维均分与风格标签（最多 3 个）。"""
     averages = {key: round(sum(getattr(item[0], f'{key}_score') for item in recent) / len(recent), 2) for key in SCORE_LABELS} if recent else {}
-    latest, latest_training = matching[0] if matching else (None, None)
     tag_counts = {}
     for evaluation, _ in recent:
         for tag in evaluation.style_tags or []:
             tag_counts[tag] = tag_counts.get(tag, 0) + 1
+    tags = [f'{tag} ×{count}' for tag, count in sorted(tag_counts.items(), key=lambda item: (-item[1], item[0]))[:3]]
+    return averages, tags
+
+
+async def dashboard_data(db: AsyncSession, user_id: str, channel: str | None = None, scene_id: str | None = None, anchor_session_id: str | None = None) -> dict:
+    totals = await overview(db, user_id)
+    formal = (Evaluation.user_id == user_id, TrainingSession.user_id == user_id, *formal_filters())
+    ordering = training_order()
+    options = await _scored_history(db, formal, ordering)
+    candidates = [row for row in options if (not channel or row[0].channel == channel) and (not scene_id or row[0].scene_id == scene_id)]
+    selected = next((row for row in candidates if row[0].id == anchor_session_id), None) if anchor_session_id else next(iter(candidates), None)
+    if anchor_session_id and selected is None:
+        raise not_found('可比较的参考训练')
+    selected_resume, total_matches, matching = (await _matching_samples(db, selected, formal, ordering)) if selected else (None, 0, [])
+    recent = matching[:RECENT_SAMPLES]
+    averages, style_tags = _recent_aggregates(recent)
+    latest, latest_training = matching[0] if matching else (None, None)
     return {
         'overview': totals, 'trainingCount': totals['trainingCount'],
         'condition': reference(selected[0], selected[1], selected_resume is not None) if selected else None,
@@ -86,7 +99,7 @@ async def dashboard_data(db: AsyncSession, user_id: str, channel: str | None = N
         'latestScore': latest.overall_score if latest else None, 'latestSessionId': latest_training.id if latest_training else None, 'latestTrainingAt': training_time(latest_training).isoformat() if latest_training else None,
         'recentAverage': round(sum(item[0].overall_score for item in recent) / len(recent), 1) if recent else None,
         'dimensions': scores(latest) if latest else None, 'averageDimensions': averages or None,
-        'styleTags': [f'{tag} ×{count}' for tag, count in sorted(tag_counts.items(), key=lambda item: (-item[1], item[0]))[:3]],
+        'styleTags': style_tags,
         'weaknesses': [{'dimension': SCORE_LABELS[key], 'averageScore': value, 'sampleCount': len(recent)} for key, value in sorted(averages.items(), key=lambda item: item[1])[:2]] if len(set(averages.values())) > 1 else [],
         'summary': training_summary(recent, averages, SCORE_LABELS),
         'trends': [{'sessionId': training.id, 'date': training_time(training).isoformat(), 'score': evaluation.overall_score, 'dimensions': scores(evaluation)} for evaluation, training in reversed(matching)],

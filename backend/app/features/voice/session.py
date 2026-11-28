@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
@@ -20,6 +20,59 @@ def _coverage(scene: Scene, questions: list[str], bank_override: list[dict] | No
     return len(covered_question_indexes(bank, questions))
 
 
+def _clean_turns(turns: list[dict]) -> tuple[list[tuple[str, str]], list[dict]]:
+    """丢掉没有回答的轮次，返回 (问答对, 转写时间戳)。"""
+    cleaned: list[tuple[str, str]] = []
+    transcript = []
+    for turn in turns:
+        question = str(turn.get("question", "")).strip()
+        answer = str(turn.get("answer", "")).strip()
+        if not answer:
+            continue
+        cleaned.append((question or "请继续。", answer))
+        transcript.append({"roundNo": len(cleaned), "startMs": turn.get("startMs"), "endMs": turn.get("endMs")})
+    return cleaned, transcript
+
+
+async def _same_dialogue_saved(session: AsyncSession, prepared: TrainingSession, cleaned: list[tuple[str, str]], channel: str) -> bool:
+    """预建会话已有内容时，判断是否就是同一场对话的重复保存。"""
+    existing = (await session.scalars(select(Message).where(Message.session_id == prepared.id).order_by(Message.round_no, Message.created_at))).all()
+    old = [(next((m.content for m in existing if m.round_no == index and m.speaker == "AI"), ""), next((m.content for m in existing if m.round_no == index and m.speaker == "USER"), "")) for index in range(1, prepared.current_round + 1)]
+    return old == cleaned and prepared.channel == channel
+
+
+async def _adopt_prepared_session(
+    session: AsyncSession, user_id: str, scene: Scene, prepared_session_id: str, training: TrainingSession,
+    cleaned: list[tuple[str, str]], channel: str, duration_seconds: int | None, recording_path: str | None,
+) -> tuple[TrainingSession, str | None]:
+    """复用进房间时预建的会话。返回 (要落库的会话, 已保存时直接可返回的会话 id)。"""
+    prepared = await session.get(TrainingSession, prepared_session_id)
+    if prepared is None or prepared.user_id != user_id or prepared.scene_id != scene.id:
+        raise AppError(404, "SESSION_NOT_FOUND", "准备会话不存在")
+    if prepared.current_round:
+        if await _same_dialogue_saved(session, prepared, cleaned, channel):
+            return prepared, prepared.id
+        raise AppError(409, "SESSION_ALREADY_SAVED", "本场面试已保存，请查看训练记录")
+    if prepared.status != "ACTIVE":
+        raise AppError(409, "SESSION_ALREADY_SAVED", "本场面试已保存，请查看训练记录")
+    await session.execute(delete(Message).where(Message.session_id == prepared.id))
+    prepared.current_round = len(cleaned)
+    prepared.covered_count = _coverage(scene, [question for question, _ in cleaned], prepared.question_plan)
+    prepared.channel = channel
+    prepared.duration_seconds = duration_seconds
+    prepared.delivery = {**(prepared.delivery or {}), **(training.delivery or {})}
+    prepared.recording_path = recording_path
+    return prepared, None
+
+
+def _dialogue_messages(training_id: str, cleaned: list[tuple[str, str]]) -> list[Message]:
+    messages = []
+    for index, (question, answer) in enumerate(cleaned, start=1):
+        messages.append(Message(session_id=training_id, round_no=index, speaker="AI", content=question))
+        messages.append(Message(session_id=training_id, round_no=index, speaker="USER", content=answer))
+    return messages
+
+
 async def create_voice_session(
     session: AsyncSession,
     user_id: str,
@@ -35,16 +88,7 @@ async def create_voice_session(
     scene = await get_scene(session, scene_id, user_id)
     if not turns:
         raise AppError(422, "VOICE_SESSION_EMPTY", "这次通话没有可评分的对话内容")
-
-    cleaned: list[tuple[str, str]] = []
-    transcript = []
-    for turn in turns:
-        question = str(turn.get("question", "")).strip()
-        answer = str(turn.get("answer", "")).strip()
-        if not answer:
-            continue
-        cleaned.append((question or "请继续。", answer))
-        transcript.append({"roundNo": len(cleaned), "startMs": turn.get("startMs"), "endMs": turn.get("endMs")})
+    cleaned, transcript = _clean_turns(turns)
     if not cleaned:
         raise AppError(422, "VOICE_SESSION_EMPTY", "这次通话没有可评分的回答")
 
@@ -66,48 +110,15 @@ async def create_voice_session(
     from app.features.training.rubrics import new_context
     training.assessment_context = new_context(scene, normalize_bank(scene.question_bank))
     if prepared_session_id:
-        prepared = await session.get(TrainingSession, prepared_session_id)
-        if prepared is None or prepared.user_id != user_id or prepared.scene_id != scene_id:
-            raise AppError(404, "SESSION_NOT_FOUND", "准备会话不存在")
-        if prepared.current_round:
-            existing = (await session.scalars(select(Message).where(Message.session_id == prepared.id).order_by(Message.round_no, Message.created_at))).all()
-            old = [(next((m.content for m in existing if m.round_no == index and m.speaker == "AI"), ""), next((m.content for m in existing if m.round_no == index and m.speaker == "USER"), "")) for index in range(1, prepared.current_round + 1)]
-            if old == cleaned and prepared.channel == channel:
-                return prepared.id
-            raise AppError(409, "SESSION_ALREADY_SAVED", "本场面试已保存，请查看训练记录")
-        if prepared.status != "ACTIVE":
-            raise AppError(409, "SESSION_ALREADY_SAVED", "本场面试已保存，请查看训练记录")
-        from sqlalchemy import delete
-        await session.execute(delete(Message).where(Message.session_id == prepared.id))
-        prepared.current_round = len(cleaned)
-        prepared.covered_count = _coverage(scene, [question for question, _ in cleaned], prepared.question_plan)
-        prepared.channel = channel
-        prepared.duration_seconds = duration_seconds
-        prepared.delivery = {**(prepared.delivery or {}), **(training.delivery or {})}
-        prepared.recording_path = recording_path
-        training = prepared
+        training, saved_id = await _adopt_prepared_session(
+            session, user_id, scene, prepared_session_id, training, cleaned, channel, duration_seconds, recording_path
+        )
+        if saved_id:
+            return saved_id
     session.add(training)
     await session.flush()
 
-    messages = []
-    for index, (question, answer) in enumerate(cleaned, start=1):
-        messages.append(
-            Message(
-                session_id=training.id,
-                round_no=index,
-                speaker="AI",
-                content=question,
-            )
-        )
-        messages.append(
-            Message(
-                session_id=training.id,
-                round_no=index,
-                speaker="USER",
-                content=answer,
-            )
-        )
-
+    messages = _dialogue_messages(training.id, cleaned)
     session.add_all(messages)
     await session.flush()
     training.delivery = transcript_delivery({**(training.delivery or {}), "transcript": transcript}, messages, channel)

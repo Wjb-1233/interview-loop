@@ -29,6 +29,56 @@ answerQuote 必须是本次回答中的连续原文片段，不可改写。
 只输出 JSON：{"score":3,"answerQuote":"回答原句","strength":"已经做对的具体点","gap":"仍需改进的具体点","nextAction":"下一次改答时可直接执行的动作"}。"""
 
 
+def _review_turns(transcript: list, evidence) -> list[AbilityReviewTurn]:
+    turns: list[AbilityReviewTurn] = []
+    preceding_question = ""
+    for message in transcript:
+        if message.speaker == "AI":
+            preceding_question = message.content
+        elif message.speaker == "USER":
+            turns.append(AbilityReviewTurn(
+                round_no=message.round_no,
+                question=preceding_question,
+                answer=message.content,
+                flags=list(message.flags or []),
+                is_focus_evidence=bool(evidence and evidence.answer_message_id == message.id),
+            ))
+    return turns
+
+
+def _report_suggestions(evaluation: Evaluation) -> list[AbilityReviewSuggestion]:
+    return [AbilityReviewSuggestion(
+        round_no=int(item["roundNo"]),
+        problem=str(item.get("problem", "")),
+        original=str(item.get("original", "")),
+        rewrite=str(item.get("rewrite", "")),
+    ) for item in (evaluation.suggestions or [])
+        if isinstance(item, dict) and str(item.get("roundNo", "")).isdigit()]
+
+
+def _focus_exchange(transcript: list, evidence) -> tuple[str, str]:
+    """要重练的 (问题, 原回答)：优先取证据对应的一问一答，否则取最后一轮作答。"""
+    question = "请重新回答上次训练中最需要改进的提问。"
+    original_answer = ""
+    if evidence:
+        question_message = next((item for item in transcript if item.id == evidence.question_message_id), None)
+        answer_message = next((item for item in transcript if item.id == evidence.answer_message_id), None)
+        if question_message and answer_message:
+            question = question_message.content
+            original_answer = answer_message.content
+    if not original_answer:
+        for index in range(len(transcript) - 1, -1, -1):
+            if transcript[index].speaker != "USER":
+                continue
+            original_answer = transcript[index].content
+            prior_question = next((item for item in reversed(transcript[:index]) if item.speaker != "USER"), None)
+            if prior_question:
+                question = prior_question.content
+            break
+    return question, original_answer
+
+
+
 async def current_practice(session: AsyncSession, user_id: str) -> AbilityPracticeView | None:
     evaluation = await session.scalar(
         select(Evaluation).where(Evaluation.user_id == user_id)
@@ -52,43 +102,9 @@ async def current_practice(session: AsyncSession, user_id: str) -> AbilityPracti
     ).all()
     training = await session.get(TrainingSession, evaluation.session_id)
     scene = await session.get(Scene, training.scene_id) if training else None
-    review_turns: list[AbilityReviewTurn] = []
-    preceding_question = ""
-    for message in transcript:
-        if message.speaker == "AI":
-            preceding_question = message.content
-        elif message.speaker == "USER":
-            review_turns.append(AbilityReviewTurn(
-                round_no=message.round_no,
-                question=preceding_question,
-                answer=message.content,
-                flags=list(message.flags or []),
-                is_focus_evidence=bool(evidence and evidence.answer_message_id == message.id),
-            ))
-    report_suggestions = [AbilityReviewSuggestion(
-        round_no=int(item["roundNo"]),
-        problem=str(item.get("problem", "")),
-        original=str(item.get("original", "")),
-        rewrite=str(item.get("rewrite", "")),
-    ) for item in (evaluation.suggestions or [])
-        if isinstance(item, dict) and str(item.get("roundNo", "")).isdigit()]
-    question = "请重新回答上次训练中最需要改进的提问。"
-    original_answer = ""
-    if evidence:
-        question_message = next((item for item in transcript if item.id == evidence.question_message_id), None)
-        answer_message = next((item for item in transcript if item.id == evidence.answer_message_id), None)
-        if question_message and answer_message:
-            question = question_message.content
-            original_answer = answer_message.content
-    if not original_answer:
-        for index in range(len(transcript) - 1, -1, -1):
-            if transcript[index].speaker != "USER":
-                continue
-            original_answer = transcript[index].content
-            prior_question = next((item for item in reversed(transcript[:index]) if item.speaker != "USER"), None)
-            if prior_question:
-                question = prior_question.content
-            break
+    review_turns = _review_turns(transcript, evidence)
+    report_suggestions = _report_suggestions(evaluation)
+    question, original_answer = _focus_exchange(transcript, evidence)
     attempts = (
         await session.scalars(
             select(AbilityAttempt).where(
