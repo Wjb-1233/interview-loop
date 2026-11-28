@@ -46,11 +46,14 @@ def configured() -> bool:
 
 
 async def create_session_token() -> dict[str, Any]:
-    """换一张短时令牌；密钥缺失返回 503，上游异常统一 502，前端据此回退本地形象。"""
+    """换一张短时令牌；密钥缺失返回 503，上游异常统一 502。
+
+    错误码和 detail 会原样显示在面试页（不再有本地形象回退），所以文案要写清缺什么、哪一步失败。
+    """
 
     api_key = settings.simli_api_key.strip()
     if not api_key:
-        raise AppError(503, "SIMLI_NOT_CONFIGURED", "在线数字人未配置，已使用本地虚拟形象")
+        raise AppError(503, "SIMLI_NOT_CONFIGURED", "在线数字人未配置：服务端缺少 SIMLI_API_KEY")
 
     payload = {
         "faceId": settings.simli_face_id,
@@ -69,22 +72,22 @@ async def create_session_token() -> dict[str, Any]:
             )
     except httpx.HTTPError as exc:
         logger.warning("simli.token_request_failed error_type=%s", type(exc).__name__)
-        raise AppError(502, "SIMLI_UNAVAILABLE", "在线数字人暂时不可用，已使用本地虚拟形象") from exc
+        raise AppError(502, "SIMLI_UNAVAILABLE", "在线数字人上游请求失败：无法连接 Simli 令牌服务") from exc
 
     if response.status_code != 200:
         logger.warning("simli.token_rejected status_code=%s", response.status_code)
-        raise AppError(502, "SIMLI_UNAVAILABLE", "在线数字人暂时不可用，已使用本地虚拟形象")
+        raise AppError(502, "SIMLI_UNAVAILABLE", f"在线数字人上游拒绝请求：Simli 返回 HTTP {response.status_code}")
 
     try:
         body = response.json()
     except ValueError as exc:
         logger.warning("simli.token_bad_json")
-        raise AppError(502, "SIMLI_UNAVAILABLE", "在线数字人暂时不可用，已使用本地虚拟形象") from exc
+        raise AppError(502, "SIMLI_UNAVAILABLE", "Simli 令牌响应不是合法 JSON") from exc
 
     token = body.get("session_token") if isinstance(body, dict) else None
     if not token:
         logger.warning("simli.token_missing")
-        raise AppError(502, "SIMLI_UNAVAILABLE", "在线数字人暂时不可用，已使用本地虚拟形象")
+        raise AppError(502, "SIMLI_UNAVAILABLE", "Simli 令牌响应里没有 session_token")
 
     return {
         "sessionToken": token,

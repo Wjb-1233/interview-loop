@@ -35,6 +35,9 @@ const fallbackNotice = shallowRef('')
 let fallbackTried = false
 const turnState = shallowRef<'idle' | 'heard' | 'thinking' | 'speaking'>('idle')
 const error = shallowRef('')
+/** 数字人失败的最近原因：开场失败时并入阻塞错误，中途掉线时走非阻塞提示。 */
+const avatarFailure = shallowRef('')
+const avatarNotice = shallowRef('')
 const heard = shallowRef('')
 const reply = shallowRef('')
 const rounds = shallowRef(0)
@@ -72,7 +75,7 @@ let startedAt = 0
 let turnStartedAt = 0
 let pendingTiming: { startMs: number; endMs: number } | null = null
 
-/** 等形象的硬上限：比 Simli 的 8 秒建连超时多 1 秒，落回本地形象时也不会拖住开场。 */
+/** 等形象的硬上限：比 Simli 的 8 秒建连超时多 1 秒；超时按失败处理并报出原因。 */
 const AVATAR_WAIT_MS = 9000
 
 let socket: WebSocket | null = null
@@ -233,14 +236,28 @@ function handleEvent(raw: string): void {
   }
 }
 
-/** 形象就位是口型的前提，但不能让它无限期拖住开场，超时就当没有形象继续。 */
-function waitAvatar(): Promise<unknown> {
-  const opening = avatar.value?.connect() ?? Promise.resolve(false)
-  return new Promise((resolve) => {
-    const timer = window.setTimeout(() => resolve(false), AVATAR_WAIT_MS)
-    const done = (ok: boolean) => { window.clearTimeout(timer); resolve(ok) }
-    void opening.then(() => done(true), () => done(false))
+/** 数字人是视频面试的唯一形象来源：连不上就带着具体原因停下，不再“没有形象也照常开始”。 */
+async function waitAvatar(): Promise<boolean> {
+  const handle = avatar.value
+  if (!handle) { avatarFailure.value = '数字人组件未挂载，请刷新页面后重试'; return false }
+  let timer = 0
+  const timeout = new Promise<boolean>((resolve) => {
+    timer = window.setTimeout(() => resolve(false), AVATAR_WAIT_MS)
   })
+  const connected = await Promise.race([handle.connect().catch(() => false), timeout])
+  window.clearTimeout(timer)
+  if (connected && handle.isConnected()) return true
+  avatarFailure.value = handle.lastError?.()
+    || `数字人 ${AVATAR_WAIT_MS / 1000} 秒内没有连上`
+  return false
+}
+
+/** 会话中途掉线：人物画面保不住，但已经答的内容要留着，用错误条如实说明。 */
+function onAvatarUnavailable(detail: string): void {
+  avatarFailure.value = detail
+  // 开场就没连上时由启动流程统一报错，这里只负责“面试进行中掉线”的提示，避免同一句话出现两次。
+  if (status.value !== 'live') return
+  avatarNotice.value = `在线数字人已断开：${detail}。面试可以继续，画面不会自动恢复。`
 }
 
 async function start(): Promise<void> {
@@ -248,6 +265,7 @@ async function start(): Promise<void> {
   closing = false
   status.value = 'connecting'
   error.value = ''
+  avatarNotice.value = ''
   heard.value = ''
   reply.value = ''
   lastQuestion = openingLine()
@@ -261,9 +279,15 @@ async function start(): Promise<void> {
   const seq = ++sessionSeq
 
   try {
-    // 数字人的口型靠播放音轨转发驱动：先等形象就位再开口，否则开场那句没有音源可转发，
-    // 画面里人不动嘴。最多等 9 秒（覆盖 Simli 自身 8 秒建连超时），等不到也照常开始。
-    if (isVideo.value) await waitAvatar()
+    // 数字人的口型靠播放音轨转发驱动，形象没就位就没有可转发的音源；视频面试拿不到人物就停下报错。
+    if (isVideo.value) {
+      const avatarReady = await waitAvatar()
+      if (disposed || seq !== sessionSeq) return
+      if (!avatarReady) {
+        fail(`在线数字人不可用：${avatarFailure.value}。视频面试需要在线数字人，请点「重新连接」重试，或改用语音面试。`)
+        return
+      }
+    }
     preparePlayback()
     if (seq !== sessionSeq) return
     const info = await api.get<ApiEnvelope<{ enabled: boolean; voice: string }>>('/voice/status')
@@ -918,7 +942,7 @@ onBeforeUnmount(() => {
     </header>
     <div class="room-stage">
       <template v-if="isVideo">
-        <AvatarPresenter ref="avatar" :active="status === 'live' || status === 'connecting'" :speaking="interviewerSpeaking" :listening="interviewerListening" />
+        <AvatarPresenter ref="avatar" :active="status === 'live' || status === 'connecting'" :speaking="interviewerSpeaking" :listening="interviewerListening" @unavailable="onAvatarUnavailable" />
         <div class="room-overlay">
           <span class="badge">模拟面试官</span>
           <span class="clock" aria-label="剩余时间">{{ timeLabel }}</span>
@@ -982,6 +1006,7 @@ onBeforeUnmount(() => {
 
     <p v-if="fallbackNotice" class="fallback">{{ fallbackNotice }}</p>
     <p v-if="exitError" class="room-error" role="alert">{{ exitError }}</p>
+    <p v-if="avatarNotice" class="room-error" role="status">{{ avatarNotice }}</p>
 
     <div v-if="error" class="room-error-block" role="alert">
       <p class="room-error">{{ error }}</p>

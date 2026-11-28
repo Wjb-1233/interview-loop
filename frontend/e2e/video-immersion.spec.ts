@@ -2,7 +2,28 @@ import { expect, test, type Page } from '@playwright/test'
 
 type Engine = 'pipeline' | 'doubao'
 
-async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera = false, mode: 'voice' | 'video' = 'video', avatar?: string) {
+const SIMLI_STUB = `
+  export const LogLevel = { ERROR: 0 }
+  export class SimliClient {
+    constructor(_token, video) { this.video = video }
+    on() {}
+    async start() {
+      const frame = document.createElement('canvas')
+      frame.width = frame.height = 768
+      const context = frame.getContext('2d')
+      context.fillRect(0, 0, 768, 768)
+      this.stream = frame.captureStream()
+      this.video.srcObject = this.stream
+    }
+    async stop() { this.stream.getTracks().forEach(track => track.stop()) }
+    ClearBuffer() {}
+    listenToMediastreamTrack() {}
+  }
+  export default { SimliClient, LogLevel }
+`
+
+/** 数字人是视频面试唯一形象来源，所以房间用例一律接上假 SDK，只有 avatarError 用例让它失败。 */
+async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera = false, mode: 'voice' | 'video' = 'video', avatarError = false) {
   const errors: string[] = []
   const saved: string[] = []
   const discarded: string[] = []
@@ -68,6 +89,10 @@ async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera 
       speak(utterance: SpeechSynthesisUtterance) { (window as any).__replayUtterance = utterance; utterance.onstart?.(new SpeechSynthesisEvent('start', { utterance })) },
     } })
   }, { failRoomCamera })
+  await page.route('**/node_modules/.vite/deps/simli-client.js*', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: SIMLI_STUB,
+  }))
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname
     let data: unknown = []
@@ -76,7 +101,23 @@ async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera 
     else if (path.endsWith('/voice/status')) data = { enabled: true, engine, voice: 'test-voice' }
     else if (path.endsWith('/interview-context')) data = { instructions: '中文面试', openingLine: '请介绍你的项目职责。', minimumRounds: 2 }
     else if (path.endsWith('/voice/ws-ticket')) data = { ticket: 'test-ticket', expiresIn: 60 }
-    else if (avatar === 'simli' && path.endsWith('/avatar/simli-session')) data = { sessionToken: 'avatar-test-token' }
+    else if (path.endsWith('/avatar/simli-session')) {
+      if (avatarError) {
+        await route.fulfill({
+          status: 503,
+          json: {
+            type: 'about:blank',
+            title: 'SIMLI_NOT_CONFIGURED',
+            status: 503,
+            detail: '在线数字人未配置：服务端缺少 SIMLI_API_KEY',
+            instance: path,
+            requestId: 'avatar-test',
+          },
+        })
+        return
+      }
+      data = { sessionToken: 'avatar-test-token' }
+    }
     else if (path.endsWith('/discard')) { discarded.push(path); await route.fulfill({ status: 204 }); return }
     else if (path.endsWith('/voice/sessions')) { saved.push(route.request().postDataBuffer()!.toString('utf8')); data = { id: 'video-session' } }
     else if (path.endsWith('/finish')) {
@@ -86,31 +127,22 @@ async function openRoom(page: Page, engine: Engine = 'pipeline', failRoomCamera 
     } else { await route.fulfill({ status: 404, json: { detail: '此测试未提供该接口' } }); return }
     await route.fulfill({ json: { data, meta: {} } })
   })
-  await page.goto(`/${mode}?sceneId=video-scene&sessionId=video-session${avatar ? `&avatar=${avatar}` : ''}`)
+  await page.goto(`/${mode}?sceneId=video-scene&sessionId=video-session`)
   if (mode === 'video') await page.getByRole('button', { name: '开启摄像头和麦克风', exact: true }).click()
   await expect(page.getByRole('button', { name: '开始面试', exact: true })).toBeEnabled()
   await page.getByRole('button', { name: '开始面试', exact: true }).click()
   if (mode === 'video') await expect(page.getByRole('dialog', { name: '视频面试室', exact: true })).toBeVisible()
-  if (!failRoomCamera) await page.waitForFunction(() => (window as any).__videoRecorder?.state === 'recording')
+  if (!failRoomCamera && !avatarError) await page.waitForFunction(() => (window as any).__videoRecorder?.state === 'recording')
   return { errors, saved, discarded, scores: () => scores }
 }
 
-// 面试官有三种形象实现：照片（.photo-stage）、VRM 3D（.vrm-presenter）、Live2D（canvas）。
-// 按实际渲染的模式断言同一件事：面试官画面已渲染且可被读屏识别。
+// 面试官形象只有在线数字人（Simli）一条路径：断言画面已渲染且可被读屏识别。
 async function expectPresenterSurface(page: Page) {
   const host = page.locator('.avatar-presenter')
   await expect(host).toBeVisible()
-  const photo = host.locator('.photo-stage')
-  const vrm = host.locator('.vrm-presenter')
-  if (await photo.count()) {
-    await expect(photo).toBeVisible()
-    await expect(page.getByRole('img', { name: '虚拟面试官', exact: true })).toBeVisible()
-  } else if (await vrm.count()) {
-    await expect(vrm).toBeVisible()
-    await expect(page.getByRole('img', { name: '虚拟面试官 · VRM 3D', exact: true })).toBeVisible()
-  } else {
-    await expect(host.locator('.avatar-canvas canvas')).toHaveCount(1)
-  }
+  await expect(host).toHaveClass(/connected/)
+  await expect(host.locator('.simli-presenter')).toBeVisible()
+  await expect.poll(() => host.locator('.simli-video').evaluate((el) => (el as HTMLVideoElement).videoWidth)).toBe(768)
 }
 
 async function sendAudio(page: Page, engine: Engine, seconds = 1) {
@@ -211,29 +243,7 @@ test('减少动画设置和沉浸模式键盘操作有效', async ({ page }) => 
 
 test('在线面试官保留方形视频的完整画面，普通和沉浸模式均居中显示', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 900 })
-  await page.route('**/node_modules/.vite/deps/simli-client.js*', route => route.fulfill({
-    contentType: 'application/javascript',
-    body: `
-      export const LogLevel = { ERROR: 0 }
-      export class SimliClient {
-        constructor(_token, video) { this.video = video }
-        on() {}
-        async start() {
-          const frame = document.createElement('canvas')
-          frame.width = frame.height = 768
-          const context = frame.getContext('2d')
-          context.fillRect(0, 0, 768, 768)
-          this.stream = frame.captureStream()
-          this.video.srcObject = this.stream
-        }
-        async stop() { this.stream.getTracks().forEach(track => track.stop()) }
-        ClearBuffer() {}
-        listenToMediastreamTrack() {}
-      }
-      export default { SimliClient, LogLevel }
-    `,
-  }))
-  const state = await openRoom(page, 'pipeline', false, 'video', 'simli')
+  const state = await openRoom(page, 'pipeline', false, 'video')
   const video = page.locator('.simli-video')
   const expectUncroppedFrame = async () => {
     await expect(video).toHaveCSS('object-fit', 'contain')
@@ -327,48 +337,32 @@ test('豆包真实协议的 text 完成事件无需 delta 也能保存回答', a
   expect(state.errors).toEqual([])
 })
 
-test('本地 Live2D 读取实际播放音轨，重听打断保留声音与评分且不调用云端数字人', async ({ page }) => {
-  let cloudRequests = 0
-  page.on('request', (request) => { if (request.url().includes('/api/v1/avatars/')) cloudRequests++ })
-  await page.addInitScript(() => {
-    const original = AnalyserNode.prototype.getFloatTimeDomainData
-    AnalyserNode.prototype.getFloatTimeDomainData = function(array) {
-      original.call(this, array)
-      if (Array.from(array).some((value) => Math.abs(value) > .01)) (window as any).__avatarAudioObserved = true
-    }
-  })
-  const state = await openRoom(page, 'pipeline', false, 'video', 'live2d')
-  await expect(page.locator('.avatar-presenter')).toHaveClass(/connected/)
-  await sendAudio(page, 'pipeline', 4)
-  await expect(page.locator('.avatar-presenter')).toHaveClass(/speaking/)
-  await expect.poll(() => page.evaluate(() => Boolean((window as any).__avatarAudioObserved))).toBe(true)
-  await page.screenshot({ path: '../docs/evidence/video-immersive-local-speaking.png' })
-  await page.getByRole('button', { name: '打断', exact: true }).click()
-  await expect(page.locator('.avatar-presenter')).not.toHaveClass(/speaking/)
-  await sendConversation(page, 'pipeline')
-  await page.getByRole('button', { name: '重听问题', exact: true }).click()
-  await expect(page.locator('.avatar-presenter')).toHaveClass(/speaking/)
-  expect(await page.evaluate(() => (window as any).__replayUtterance.text)).toBe('有什么边界？')
-  await page.getByRole('button', { name: '打断', exact: true }).click()
-  await expect(page.locator('.avatar-presenter')).not.toHaveClass(/speaking/)
-  await expectPresenterSurface(page)
-  await page.locator('.room-controls .end').click()
-  await expect(page.getByRole('button', { name: '重试生成报告', exact: true })).toBeVisible()
-  expect(state.saved[0]).toContain('我负责接口设计。')
-  expect(state.saved[0]).toContain('请介绍你的项目职责。')
-  expect(state.saved).toHaveLength(1)
-  expect(cloudRequests).toBe(0)
+test('数字人不可用时视频面试直接报出具体错误，不再回退本地形象', async ({ page }) => {
+  const state = await openRoom(page, 'pipeline', false, 'video', true)
+  const roomError = page.locator('.room-error-block')
+  await expect(roomError).toBeVisible()
+  await expect(roomError).toContainText('在线数字人不可用')
+  await expect(roomError).toContainText('在线数字人未配置：服务端缺少 SIMLI_API_KEY')
+  await expect(roomError).toContainText('SIMLI_NOT_CONFIGURED')
+  await expect(roomError).toContainText('HTTP 503')
+  await expect(page.getByRole('button', { name: '重新连接', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '改用语音面试', exact: true })).toBeVisible()
+  await expect(page.locator('.avatar-error')).toContainText('SIMLI_NOT_CONFIGURED')
+  await expect(page.locator('.photo-stage, .vrm-presenter')).toHaveCount(0)
+  // 等过 200ms 的淡出过渡，截图里只留最终状态
+  await page.waitForTimeout(350)
+  await expect(page.locator('.simli-loading')).toHaveCount(0)
+  await page.screenshot({ path: '../docs/evidence/avatar-failure-error.png' })
+  expect(state.saved).toHaveLength(0)
   expect(state.errors).toEqual([])
 })
 
-test('3D 动态模块加载失败会回退照片，结束和评分入口仍可使用', async ({ page }) => {
-  await page.route('**/avatars/human/**', route => route.fulfill({ status: 404 }))
-  await page.route('**/src/components/media/VrmPresenter.vue*', route => route.abort('failed'))
-  const state = await openRoom(page, 'pipeline', false, 'video', 'vrm')
-  await expect(page.locator('.photo-stage')).toBeVisible()
-  await sendConversation(page, 'pipeline')
-  await page.locator('.room-controls .end').click()
-  await expect(page.getByRole('button', { name: '重试生成报告', exact: true })).toBeVisible()
-  expect(state.saved).toHaveLength(1)
+test('数字人重连仍失败时错误文案保留，页面不崩', async ({ page }) => {
+  const state = await openRoom(page, 'pipeline', false, 'video', true)
+  await expect(page.locator('.avatar-error')).toContainText('SIMLI_NOT_CONFIGURED')
+  await page.getByRole('button', { name: '重新连接数字人', exact: true }).click()
+  await expect(page.locator('.avatar-error')).toContainText('SIMLI_NOT_CONFIGURED')
+  await page.getByRole('button', { name: '重新连接', exact: true }).click()
+  await expect(page.locator('.room-error-block')).toContainText('在线数字人不可用')
   expect(state.errors).toEqual([])
 })

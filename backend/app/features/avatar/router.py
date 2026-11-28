@@ -11,6 +11,6 @@ router = APIRouter(prefix="/avatar", tags=["数字人"])
 
 @router.get("/simli-session")
 async def simli_session(user: CurrentUser) -> dict:
-    """返回 5 分钟有效的 Simli 会话令牌；未配置 503、上游失败 502，前端两种情况都回退本地形象。"""
+    """返回 5 分钟有效的 Simli 会话令牌；未配置 503、上游失败 502，前端把错误码和 detail 直接显示给用户。"""
 
     return ok(await service.create_session_token())

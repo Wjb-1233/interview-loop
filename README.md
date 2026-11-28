@@ -75,13 +75,18 @@ py -3.11 -m venv .venv
 .venv\Scripts\python.exe -m alembic upgrade head
 ```
 
-启动：
+启动（固定走 venv 的脚本，任何终端都一致）：
 
 ```powershell
-.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8081 --reload
+# 在项目根目录执行；需要热重载时追加 --reload
+.\scripts\start-backend.cmd
 ```
 
+后端固定监听 `127.0.0.1:8081`，同一时间只能有一个实例；端口被占用时脚本会直接失败，请先关掉旧进程。任务管理器里会出现两个 python 进程：venv 的 `Scripts\python.exe` 启动器，以及它派生的真正服务进程，二者同属这一套 venv，属于正常现象。
+
 浏览器打开 `http://127.0.0.1:8081/docs`，能看到接口页面即成功。
+
+不要用系统全局 Python（例如 `D:\Astudy\...` 下的解释器）启动本项目：依赖装不全时会拿到一个绑定了端口却不接连接的死进程。
 
 在 PyCharm 中可新建 Python 运行配置：
 

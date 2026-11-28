@@ -6,7 +6,7 @@ import { authorizedFetch } from '@/lib/api'
 /**
  * 在线数字人面试官（Simli）。视频与声音是同一条 WebRTC 回流，画面比送进去的音频晚约 1 秒，
  * 所以回流带音轨时由这里的 <audio> 单独出声（ownsAudio），房间的本地 TTS 只送不播，
- * 嘴和声来自同一条流才不会错位；回退本地形象时 ownsAudio 为假，本地 TTS 照常出声。
+ * 嘴和声来自同一条流才不会错位；数字人没接管出声时 ownsAudio 为假，本地 TTS 照常出声。
  * 令牌由后端 /avatar/simli-session 现取现用（5 分钟有效，密钥不下发浏览器）。
  */
 withDefaults(defineProps<{
@@ -19,17 +19,19 @@ withDefaults(defineProps<{
 const emit = defineEmits<{
   ready: [value: boolean]
   configured: [value: boolean]
-  /** 连不上就交给 AvatarPresenter 回退本地形象，不弹错误阻塞面试。 */
+  /** 失败原因（含错误码 / HTTP 状态）：交给 AvatarPresenter 直接显示给用户，不再回退本地形象。 */
   unavailable: [reason: string]
 }>()
 
-/** 8 秒还没出画就先给用户出口（继续等 / 切本地形象）；20 秒仍未出画才判失败，交给 AvatarPresenter 回退。 */
+/** 8 秒还没出画就先告诉用户连得慢；20 秒仍未出画判失败，把原因上抛由页面显示。 */
 const SLOW_AFTER_S = 8
 const TIMEOUT_MS = 20000
 
 const videoEl = useTemplateRef<HTMLVideoElement>('video')
 const audioEl = useTemplateRef<HTMLAudioElement>('audio')
 const state = shallowRef<'loading' | 'ready' | 'error'>('loading')
+/** 失败原因原样给用户看：带上后端错误码与 HTTP 状态，省得同一个错误还得翻控制台。 */
+const lastErrorText = shallowRef('')
 
 let client: SimliClient | null = null
 let tapped: AnalyserNode | null = null
@@ -104,12 +106,21 @@ function withTimeout<T>(task: Promise<T>, ms: number): Promise<T> {
   })
 }
 
+type ProblemDetail = { title?: string; detail?: string; status?: number }
+
+async function describeFailure(response: Response): Promise<string> {
+  const problem = await response.json().catch(() => null) as ProblemDetail | null
+  const code = problem?.title || (response.status === 503 ? 'SIMLI_NOT_CONFIGURED' : 'SIMLI_UNAVAILABLE')
+  const message = problem?.detail || '在线数字人暂时不可用'
+  return `${message}（${code} / HTTP ${response.status}）`
+}
+
 async function fetchToken(): Promise<string> {
   const response = await withTimeout(authorizedFetch('/avatar/simli-session', { method: 'GET' }), TIMEOUT_MS)
-  if (!response.ok) throw new Error(response.status === 503 ? 'not-configured' : 'unavailable')
+  if (!response.ok) throw new Error(await describeFailure(response))
   const body = await response.json() as { data?: { sessionToken?: string } }
   const token = body?.data?.sessionToken
-  if (!token) throw new Error('unavailable')
+  if (!token) throw new Error('数字人令牌响应里没有 sessionToken（后端 /avatar/simli-session 返回异常）')
   return token
 }
 
@@ -156,13 +167,29 @@ function release(): void {
   audioEl.value?.pause()
 }
 
+/** 把 SDK 抛出来的各种形态收敛成一句能直接显示的具体原因。 */
+function readReason(reason: unknown): string {
+  if (reason instanceof Error) {
+    if (!reason.message) return '数字人连接失败，原因未知'
+    return reason.message === 'timeout' ? `数字人连接超时（${TIMEOUT_MS / 1000} 秒内没有画面）` : reason.message
+  }
+  if (typeof reason === 'string') {
+    if (reason === 'timeout') return `数字人连接超时（${TIMEOUT_MS / 1000} 秒内没有画面）`
+    if (reason === 'closed') return '数字人会话被服务端关闭'
+    if (reason === 'unavailable') return '数字人连接失败，原因未知'
+    return `数字人连接中断：${reason}`
+  }
+  return '数字人连接失败，原因未知'
+}
+
 function fail(reason: unknown): boolean {
   if (disposed) return false
   release()
   state.value = 'error'
+  lastErrorText.value = readReason(reason)
   emit('ready', false)
   emit('configured', false)
-  emit('unavailable', typeof reason === 'string' ? reason : 'unavailable')
+  emit('unavailable', lastErrorText.value)
   return false
 }
 
@@ -196,7 +223,7 @@ async function start(): Promise<boolean> {
     void video.play().catch(() => undefined)
     return true
   } catch (reason) {
-    return fail(reason instanceof Error && reason.message !== 'timeout' ? 'unavailable' : reason)
+    return fail(reason)
   }
 }
 
@@ -261,6 +288,8 @@ onBeforeUnmount(() => {
 defineExpose({
   connect, disconnect, observeAudio, finishAudio,
   isConnected: () => state.value === 'ready',
+  /** 具体失败原因（含错误码 / HTTP 状态），由 AvatarPresenter 原样显示。 */
+  lastError: () => lastErrorText.value,
   /** 回流音就是房间唯一声源时返回 true：本地 TTS 只送不播，避免两路声音差一秒。 */
   ownsAudio: () => adoptReturnedAudio(),
 })
@@ -277,12 +306,10 @@ defineExpose({
           <path d="M12 124c0-24 16-39 36-39s36 15 36 39z" />
         </svg>
         <p class="simli-loading-text">
-          {{ waited >= SLOW_AFTER_S ? '数字人连接较慢，可继续等待或切换本地形象' : `正在接入数字人… 已等待 ${waited} 秒` }}
+          {{ waited >= SLOW_AFTER_S ? `数字人连接较慢，仍在等待（已 ${waited} 秒）` : `正在接入数字人… 已等待 ${waited} 秒` }}
         </p>
-        <button v-if="waited >= SLOW_AFTER_S" type="button" class="simli-switch" @click="fail('switched-to-local')">切换本地形象</button>
       </div>
     </Transition>
-    <p v-if="state === 'error'" class="simli-loading-text simli-error">数字人不可用，已切换本地形象</p>
     <span v-if="state === 'ready'" class="simli-status">{{ speaking ? '正在讲解' : listening ? '认真倾听' : '准备就绪' }}</span>
   </div>
 </template>
@@ -315,9 +342,6 @@ defineExpose({
 .simli-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; text-align: center; }
 .simli-figure { width: 78px; height: 100px; fill: #7e9a93; animation: simli-breathe 2.6s ease-in-out infinite; }
 .simli-loading-text { margin: 0; color: #b9c7c2; font-size: 13px; line-height: 1.7; }
-.simli-switch { padding: 7px 16px; border: 1px solid #ffffff3d; border-radius: 18px; background: #f8fbf114; color: #e7efeb; font: inherit; font-size: 13px; cursor: pointer; transition: background 160ms ease, border-color 160ms ease; }
-.simli-switch:hover { background: #f8fbf126; border-color: #ffffff66; }
-.simli-switch:focus-visible { outline: 2px solid #9fd8c8; outline-offset: 2px; }
 .simli-error { position: absolute; inset: 0; display: grid; place-items: center; }
 .simli-fade-enter-active,
 .simli-fade-leave-active { transition: opacity 200ms ease-out; }
